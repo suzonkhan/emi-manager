@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Upazilla extends Model
 {
@@ -13,8 +13,6 @@ class Upazilla extends Model
 
     protected $fillable = [
         'name',
-        'bn_name',
-        'code',
         'district_id',
         'is_active',
     ];
@@ -37,9 +35,9 @@ class Upazilla extends Model
     /**
      * Division through district
      */
-    public function division(): BelongsTo
+    public function division()
     {
-        return $this->district()->division();
+        return $this->hasOneThrough(Division::class, District::class, 'id', 'id', 'district_id', 'division_id');
     }
 
     /**

@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('districts', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('bn_name')->nullable(); // Bengali name
-            $table->string('code', 10)->unique();
             $table->foreignId('division_id')->constrained()->onDelete('cascade');
             $table->boolean('is_active')->default(true);
             $table->timestamps();

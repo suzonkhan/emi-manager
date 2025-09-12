@@ -1,27 +1,14 @@
 <?php
 
-use App\District;
-use Illuminate\Database\Eloquent\Model;
+namespace Database\Seeders;
+
+use App\Models\District;
+use App\Models\Division;
+use App\Models\Upazilla;
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+class BangladeshLocationSeeder extends Seeder
 {
-
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        Model::unguard();
-        $this->call('DistrictSeeder');
-    }
-}
-
-class DistrictSeeder extends Seeder
-{
-
     public function run()
     {
         $district_data = [
@@ -1396,14 +1383,88 @@ class DistrictSeeder extends Seeder
             ['Rangpur', 'Thakurgaon', 'Thakurgaon Sadar', 'Thakurgaon Sadar', '5100'],
         ];
 
-        foreach ($district_data as $district) {
-            District::create(array(
-                'division'   => $district[0],
-                'district'   => $district[1],
-                'thana'      => $district[2],
-                'postoffice' => $district[3],
-                'postcode'   => $district[4],
-            ));
+        $divisions = [];
+        $districts = [];
+        $upazillas = [];
+
+        // Process data and extract unique divisions, districts, and upazillas
+        foreach ($district_data as $data) {
+            $divisionName = $data[0];
+            $districtName = $data[1];
+            $upazillaName = $data[2]; // thana
+
+            // Store unique divisions
+            if (! isset($divisions[$divisionName])) {
+                $divisions[$divisionName] = [
+                    'name' => $divisionName,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // Store unique districts with division reference
+            $districtKey = $divisionName.'|'.$districtName;
+            if (! isset($districts[$districtKey])) {
+                $districts[$districtKey] = [
+                    'name' => $districtName,
+                    'division_name' => $divisionName,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // Store unique upazillas with district reference
+            $upazillaKey = $divisionName.'|'.$districtName.'|'.$upazillaName;
+            if (! isset($upazillas[$upazillaKey])) {
+                $upazillas[$upazillaKey] = [
+                    'name' => $upazillaName,
+                    'division_name' => $divisionName,
+                    'district_name' => $districtName,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
+
+        // Insert divisions first
+        $divisionInserts = [];
+        foreach ($divisions as $division) {
+            $divisionInserts[] = $division;
+        }
+        Division::insert($divisionInserts);
+
+        // Get created divisions with IDs
+        $createdDivisions = Division::all()->keyBy('name');
+
+        // Insert districts with division_id
+        $districtInserts = [];
+        foreach ($districts as $district) {
+            $districtInserts[] = [
+                'name' => $district['name'],
+                'division_id' => $createdDivisions[$district['division_name']]->id,
+                'created_at' => $district['created_at'],
+                'updated_at' => $district['updated_at'],
+            ];
+        }
+        District::insert($districtInserts);
+
+        // Get created districts with IDs
+        $createdDistricts = District::with('division')->get()
+            ->keyBy(function ($district) {
+                return $district->division->name.'|'.$district->name;
+            });
+
+        // Insert upazillas with district_id
+        $upazillaInserts = [];
+        foreach ($upazillas as $upazilla) {
+            $districtKey = $upazilla['division_name'].'|'.$upazilla['district_name'];
+            $upazillaInserts[] = [
+                'name' => $upazilla['name'],
+                'district_id' => $createdDistricts[$districtKey]->id,
+                'created_at' => $upazilla['created_at'],
+                'updated_at' => $upazilla['updated_at'],
+            ];
+        }
+        Upazilla::insert($upazillaInserts);
     }
 }
