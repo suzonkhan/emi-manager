@@ -13,10 +13,32 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('unique_id')->unique();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable();
+            $table->string('phone', 20);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // Parent-child relationship for nested structure
+            $table->foreignId('parent_id')->nullable()->constrained('users')->onDelete('cascade');
+            
+            // Address fields - will add foreign keys after addresses table is created
+            $table->unsignedBigInteger('present_address_id')->nullable();
+            $table->unsignedBigInteger('permanent_address_id')->nullable();
+            
+            // Payment merchant numbers
+            $table->string('bkash_merchant_number')->nullable();
+            $table->string('nagad_merchant_number')->nullable();
+            
+            // Password change permission flag
+            $table->boolean('can_change_password')->default(false);
+            
+            // Status and metadata
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('last_login_at')->nullable();
+            $table->json('metadata')->nullable(); // For storing additional user data
+            
             $table->rememberToken();
             $table->timestamps();
         });
