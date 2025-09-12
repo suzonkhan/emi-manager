@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Contracts\UserRepositoryInterface;
 use App\Http\Requests\Api\ChangePasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
 use App\Models\User;
+use App\Repositories\User\UserRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
