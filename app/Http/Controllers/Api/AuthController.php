@@ -3,64 +3,41 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\ChangePasswordRequest;
+use App\Http\Requests\Api\LoginRequest;
+use App\Http\Resources\Api\UserProfileResource;
+use App\Http\Resources\Api\UserResource;
+use App\Services\AuthService;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
+
+    public function __construct(private AuthService $authService) {}
+
     /**
      * Login user and create token
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'login' => 'required|string', // Can be email or phone
-            'password' => 'required|string',
-        ]);
+        try {
+            $authData = $this->authService->login($request);
 
-        // Determine if login is email or phone
-        $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        
-        // Find user by email or phone
-        $user = User::where($loginField, $request->login)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'login' => ['The provided credentials are incorrect.'],
-            ]);
+            return $this->successResponse(
+                'Login successful',
+                [
+                    'user' => new UserResource($authData['user']),
+                    'token' => $authData['token'],
+                    'token_type' => $authData['token_type'],
+                ]
+            );
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e);
         }
-
-        if (!$user->is_active) {
-            throw ValidationException::withMessages([
-                'login' => ['Your account is inactive. Please contact administrator.'],
-            ]);
-        }
-
-        // Update last login
-        $user->updateLastLogin();
-
-        // Create token
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => [
-                'id' => $user->id,
-                'unique_id' => $user->unique_id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->getRoleNames()->first(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'can_change_password' => $user->canChangeOwnPassword(),
-            ],
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ]);
     }
 
     /**
@@ -68,11 +45,9 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->tokens()->delete();
+        $this->authService->logout($request->user());
 
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ]);
+        return $this->successResponse('Logged out successfully');
     }
 
     /**
@@ -80,66 +55,29 @@ class AuthController extends Controller
      */
     public function profile(Request $request): JsonResponse
     {
-        $user = $request->user();
-        
-        return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'unique_id' => $user->unique_id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->getRoleNames()->first(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'parent' => $user->parent ? [
-                    'id' => $user->parent->id,
-                    'unique_id' => $user->parent->unique_id,
-                    'name' => $user->parent->name,
-                    'role' => $user->parent->getRoleNames()->first(),
-                ] : null,
-                'present_address' => $user->presentAddress?->load(['division', 'district', 'upazilla']),
-                'permanent_address' => $user->permanentAddress?->load(['division', 'district', 'upazilla']),
-                'bkash_merchant_number' => $user->bkash_merchant_number,
-                'nagad_merchant_number' => $user->nagad_merchant_number,
-                'can_change_password' => $user->canChangeOwnPassword(),
-                'is_active' => $user->is_active,
-                'last_login_at' => $user->last_login_at,
-                'hierarchy_level' => $user->getHierarchyLevel(),
-                'created_at' => $user->created_at,
-            ]
-        ]);
+        $user = $this->authService->getUserProfile($request->user());
+
+        return $this->successResponse(
+            'Profile retrieved successfully',
+            ['user' => new UserProfileResource($user)]
+        );
     }
 
     /**
      * Change password (only if allowed)
      */
-    public function changePassword(Request $request): JsonResponse
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $user = $request->user();
+        try {
+            $this->authService->changePassword($request->user(), $request);
 
-        if (!$user->canChangeOwnPassword()) {
-            return response()->json([
-                'message' => 'You do not have permission to change your password. Contact your administrator.'
-            ], 403);
+            return $this->successResponse('Password changed successfully');
+        } catch (ValidationException $e) {
+            if (isset($e->errors()['permission'])) {
+                return $this->forbiddenResponse($e->errors()['permission'][0]);
+            }
+
+            return $this->validationErrorResponse($e);
         }
-
-        $request->validate([
-            'current_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if (!Hash::check($request->current_password, $user->password)) {
-            throw ValidationException::withMessages([
-                'current_password' => ['The current password is incorrect.'],
-            ]);
-        }
-
-        $user->update([
-            'password' => Hash::make($request->new_password)
-        ]);
-
-        return response()->json([
-            'message' => 'Password changed successfully'
-        ]);
     }
 }
