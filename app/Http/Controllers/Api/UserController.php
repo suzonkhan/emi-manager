@@ -3,261 +3,102 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\User\CreateUserRequest;
+use App\Http\Requests\User\ResetPasswordRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\UserDetailResource;
+use App\Http\Resources\UserListResource;
+use App\Services\UserService;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-use App\Models\User;
-use App\Models\Address;
-use Spatie\Permission\Models\Role;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    /**
-     * Get users based on hierarchy
-     */
+    use ApiResponseTrait;
+
+    public function __construct(private UserService $userService) {}
+
     public function index(Request $request): JsonResponse
     {
-        $user = $request->user();
-        
-        // Users can only see their subordinates and themselves
-        $query = User::where('parent_id', $user->id)
-            ->orWhere('id', $user->id)
-            ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+        $users = $this->userService->getAllUsers($request->user(), 15);
 
-        // If super admin, can see all users
-        if ($user->hasRole('super_admin')) {
-            $query = User::with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
-        }
-
-        $users = $query->paginate(15);
-
-        return response()->json([
-            'users' => $users->items(),
+        return $this->success([
+            'users' => UserListResource::collection($users->items()),
             'pagination' => [
                 'current_page' => $users->currentPage(),
                 'last_page' => $users->lastPage(),
                 'per_page' => $users->perPage(),
                 'total' => $users->total(),
-            ]
+            ],
         ]);
     }
 
-    /**
-     * Create a new user
-     */
-    public function store(Request $request): JsonResponse
+    public function store(CreateUserRequest $request): JsonResponse
     {
-        $user = $request->user();
-        
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email',
-            'phone' => 'required|string|max:20|unique:users,phone',
-            'password' => 'required|string|min:8',
-            'role' => 'required|string|exists:roles,name',
-            
-            // Address fields
-            'present_address.street_address' => 'required|string',
-            'present_address.landmark' => 'nullable|string',
-            'present_address.postal_code' => 'nullable|string|max:10',
-            'present_address.division_id' => 'required|exists:divisions,id',
-            'present_address.district_id' => 'required|exists:districts,id',
-            'present_address.upazilla_id' => 'required|exists:upazillas,id',
-            
-            'permanent_address.street_address' => 'required|string',
-            'permanent_address.landmark' => 'nullable|string',
-            'permanent_address.postal_code' => 'nullable|string|max:10',
-            'permanent_address.division_id' => 'required|exists:divisions,id',
-            'permanent_address.district_id' => 'required|exists:districts,id',
-            'permanent_address.upazilla_id' => 'required|exists:upazillas,id',
-            
-            'bkash_merchant_number' => 'nullable|string',
-            'nagad_merchant_number' => 'nullable|string',
-        ]);
+        try {
+            $user = $this->userService->createUser($request, $request->user());
 
-        // Check if user can create this role
-        if (!$user->canCreateUser($request->role)) {
-            return response()->json([
-                'message' => 'You do not have permission to create a user with this role.'
-            ], 403);
+            return $this->success([
+                'message' => 'User created successfully',
+                'user' => new UserDetailResource($user),
+            ], 201);
+        } catch (\Exception $e) {
+            return $this->error('Failed to create user: '.$e->getMessage(), 500);
         }
-
-        // Create addresses
-        $presentAddress = Address::create($request->present_address);
-        $permanentAddress = Address::create($request->permanent_address);
-
-        // Create user
-        $newUser = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'parent_id' => $user->id,
-            'present_address_id' => $presentAddress->id,
-            'permanent_address_id' => $permanentAddress->id,
-            'bkash_merchant_number' => $request->bkash_merchant_number,
-            'nagad_merchant_number' => $request->nagad_merchant_number,
-            'can_change_password' => false, // Only super admin can change passwords initially
-            'is_active' => true,
-        ]);
-
-        // Assign role
-        $newUser->assignRole($request->role);
-
-        return response()->json([
-            'message' => 'User created successfully',
-            'user' => [
-                'id' => $newUser->id,
-                'unique_id' => $newUser->unique_id,
-                'name' => $newUser->name,
-                'email' => $newUser->email,
-                'phone' => $newUser->phone,
-                'role' => $newUser->getRoleNames()->first(),
-            ]
-        ], 201);
     }
 
-    /**
-     * Get specific user details
-     */
-    public function show(Request $request, $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $currentUser = $request->user();
-        
-        $user = User::with([
-            'roles', 
-            'presentAddress.division', 
-            'presentAddress.district', 
-            'presentAddress.upazilla',
-            'permanentAddress.division', 
-            'permanentAddress.district', 
-            'permanentAddress.upazilla',
-            'parent',
-            'children'
-        ])->findOrFail($id);
+        $user = $this->userService->getUserDetails($id, $request->user());
 
-        // Check permission - can view self, subordinates, or if super admin
-        if (!$currentUser->hasRole('super_admin') && 
-            $user->parent_id !== $currentUser->id && 
-            $user->id !== $currentUser->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (! $user) {
+            return $this->forbidden('You do not have permission to view this user');
         }
 
-        return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'unique_id' => $user->unique_id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->getRoleNames()->first(),
-                'parent' => $user->parent ? [
-                    'id' => $user->parent->id,
-                    'unique_id' => $user->parent->unique_id,
-                    'name' => $user->parent->name,
-                    'role' => $user->parent->getRoleNames()->first(),
-                ] : null,
-                'children_count' => $user->children->count(),
-                'present_address' => $user->presentAddress,
-                'permanent_address' => $user->permanentAddress,
-                'bkash_merchant_number' => $user->bkash_merchant_number,
-                'nagad_merchant_number' => $user->nagad_merchant_number,
-                'can_change_password' => $user->canChangeOwnPassword(),
-                'is_active' => $user->is_active,
-                'last_login_at' => $user->last_login_at,
-                'hierarchy_level' => $user->getHierarchyLevel(),
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
-            ]
+        return $this->success([
+            'user' => new UserDetailResource($user),
         ]);
     }
 
-    /**
-     * Update user (limited fields)
-     */
-    public function update(Request $request, $id): JsonResponse
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
-        $currentUser = $request->user();
-        $user = User::findOrFail($id);
+        try {
+            $user = $this->userService->updateUser($request, $id, $request->user());
 
-        // Check permission
-        if (!$currentUser->hasRole('super_admin') && 
-            $user->parent_id !== $currentUser->id && 
-            $user->id !== $currentUser->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            if (! $user) {
+                return $this->forbidden('You do not have permission to update this user');
+            }
+
+            return $this->success([
+                'message' => 'User updated successfully',
+                'user' => new UserDetailResource($user),
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to update user: '.$e->getMessage(), 500);
         }
-
-        $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|nullable|email|unique:users,email,' . $id,
-            'phone' => 'sometimes|string|max:20|unique:users,phone,' . $id,
-            'bkash_merchant_number' => 'sometimes|nullable|string',
-            'nagad_merchant_number' => 'sometimes|nullable|string',
-            'is_active' => 'sometimes|boolean',
-        ]);
-
-        $updateData = $request->only([
-            'name', 'email', 'phone', 'bkash_merchant_number', 
-            'nagad_merchant_number'
-        ]);
-
-        // Only super admin can change is_active status
-        if ($request->has('is_active') && $currentUser->hasRole('super_admin')) {
-            $updateData['is_active'] = $request->is_active;
-        }
-
-        $user->update($updateData);
-
-        return response()->json([
-            'message' => 'User updated successfully',
-            'user' => [
-                'id' => $user->id,
-                'unique_id' => $user->unique_id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'is_active' => $user->is_active,
-            ]
-        ]);
     }
 
-    /**
-     * Reset user password (Super admin only)
-     */
-    public function resetPassword(Request $request, $id): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request, int $id): JsonResponse
     {
-        $currentUser = $request->user();
-
-        if (!$currentUser->hasRole('super_admin')) {
-            return response()->json(['message' => 'Only super admin can reset passwords'], 403);
+        if (! $request->user()->hasRole('super_admin')) {
+            return $this->forbidden('Only super admin can reset passwords');
         }
 
-        $request->validate([
-            'new_password' => 'required|string|min:8',
-            'can_change_password' => 'sometimes|boolean',
-        ]);
+        $success = $this->userService->resetPassword($request, $id, $request->user());
 
-        $user = User::findOrFail($id);
-        
-        $user->update([
-            'password' => Hash::make($request->new_password),
-            'can_change_password' => $request->get('can_change_password', false),
-        ]);
+        if (! $success) {
+            return $this->forbidden('You do not have permission to reset this user\'s password');
+        }
 
-        return response()->json([
-            'message' => 'Password reset successfully',
-        ]);
+        return $this->success(['message' => 'Password reset successfully']);
     }
 
-    /**
-     * Get available roles for creation
-     */
     public function getAvailableRoles(Request $request): JsonResponse
     {
         $user = $request->user();
         $userRole = $user->getRoleNames()->first();
-        
+
         $hierarchy = [
             'super_admin' => ['dealer', 'sub_dealer', 'salesman', 'customer'],
             'dealer' => ['sub_dealer', 'salesman', 'customer'],
@@ -267,9 +108,7 @@ class UserController extends Controller
         ];
 
         $availableRoles = $hierarchy[$userRole] ?? [];
-        
-        return response()->json([
-            'available_roles' => $availableRoles
-        ]);
+
+        return $this->success(['available_roles' => $availableRoles]);
     }
 }

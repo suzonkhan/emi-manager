@@ -3,6 +3,7 @@
 namespace App\Repositories\User;
 
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -48,5 +49,64 @@ class UserRepository implements UserRepositoryInterface
             'permanentAddress.district',
             'permanentAddress.upazilla',
         ]);
+    }
+
+    public function getUsersByHierarchy(User $currentUser, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = $this->user->where('parent_id', $currentUser->id)
+            ->orWhere('id', $currentUser->id)
+            ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+
+        if ($currentUser->hasRole('super_admin')) {
+            $query = $this->user->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    public function findUserWithDetails(int $id): ?User
+    {
+        return $this->user->with([
+            'roles',
+            'presentAddress.division',
+            'presentAddress.district',
+            'presentAddress.upazilla',
+            'permanentAddress.division',
+            'permanentAddress.district',
+            'permanentAddress.upazilla',
+            'parent',
+            'children',
+        ])->find($id);
+    }
+
+    public function createUser(array $userData, int $parentId): User
+    {
+        $userData['parent_id'] = $parentId;
+        $userData['can_change_password'] = false;
+        $userData['is_active'] = true;
+
+        return $this->user->create($userData);
+    }
+
+    public function updateUser(User $user, array $data): bool
+    {
+        return $user->update($data);
+    }
+
+    public function resetUserPassword(User $user, string $hashedPassword, bool $canChangePassword): bool
+    {
+        return $user->update([
+            'password' => $hashedPassword,
+            'can_change_password' => $canChangePassword,
+        ]);
+    }
+
+    public function canUserAccessUser(User $currentUser, User $targetUser): bool
+    {
+        if ($currentUser->hasRole('super_admin')) {
+            return true;
+        }
+
+        return $targetUser->parent_id === $currentUser->id || $targetUser->id === $currentUser->id;
     }
 }

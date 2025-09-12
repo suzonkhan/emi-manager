@@ -19,9 +19,6 @@ class AuthController extends Controller
 
     public function __construct(private AuthService $authService) {}
 
-    /**
-     * Login user and create token
-     */
     public function login(LoginRequest $request): JsonResponse
     {
         try {
@@ -40,9 +37,6 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Logout user (revoke all tokens)
-     */
     public function logout(Request $request): JsonResponse
     {
         $this->authService->logout($request->user());
@@ -50,9 +44,6 @@ class AuthController extends Controller
         return $this->successResponse('Logged out successfully');
     }
 
-    /**
-     * Get current user profile
-     */
     public function profile(Request $request): JsonResponse
     {
         $user = $this->authService->getUserProfile($request->user());
@@ -63,9 +54,6 @@ class AuthController extends Controller
         );
     }
 
-    /**
-     * Change password (only if allowed)
-     */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         try {
