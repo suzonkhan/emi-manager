@@ -1,17 +1,12 @@
 <?php
 
-namespace App\Http\Resources\Api;
+namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class UserListResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -21,9 +16,10 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->getRoleNames()->first(),
-            'permissions' => $this->getAllPermissions()->pluck('name'),
-            'can_change_password' => $this->canChangeOwnPassword(),
             'is_active' => $this->is_active,
+            'present_address' => new AddressResource($this->whenLoaded('presentAddress')),
+            'last_login_at' => $this->last_login_at,
+            'created_at' => $this->created_at,
         ];
     }
 }

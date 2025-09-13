@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\Permission\Models\Role;
 
 class CreateUserRequest extends FormRequest
 {
@@ -36,9 +37,15 @@ class CreateUserRequest extends FormRequest
         ];
     }
 
-    public function getUserData(): array
+    public function getCreateData(): array
     {
-        return $this->only(['name', 'email', 'phone', 'password', 'role', 'bkash_merchant_number', 'nagad_merchant_number']);
+        $data = $this->only(['name', 'email', 'phone', 'password', 'bkash_merchant_number', 'nagad_merchant_number']);
+
+        // Add address IDs
+        $data['present_address_id'] = null; // Will be set after address creation
+        $data['permanent_address_id'] = null; // Will be set after address creation
+
+        return $data;
     }
 
     public function getPresentAddressData(): array
@@ -49,5 +56,17 @@ class CreateUserRequest extends FormRequest
     public function getPermanentAddressData(): array
     {
         return $this->input('permanent_address');
+    }
+
+    public function getRoleId(): ?int
+    {
+        $roleName = $this->input('role');
+        if (! $roleName) {
+            return null;
+        }
+
+        $role = Role::where('name', $roleName)->first();
+
+        return $role?->id;
     }
 }

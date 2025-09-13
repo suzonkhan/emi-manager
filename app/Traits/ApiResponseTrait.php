@@ -11,8 +11,13 @@ trait ApiResponseTrait
     /**
      * Return a success JSON response.
      */
-    protected function successResponse(string $message = 'Success', mixed $data = null, int $statusCode = 200): JsonResponse
+    protected function success(mixed $data = null, int $statusCode = 200, string $message = 'Success'): JsonResponse
     {
+        if (is_array($data) && isset($data['message'])) {
+            $message = $data['message'];
+            unset($data['message']);
+        }
+
         $response = [
             'success' => true,
             'message' => $message,
@@ -32,7 +37,7 @@ trait ApiResponseTrait
     /**
      * Return an error JSON response.
      */
-    protected function errorResponse(string $message = 'Error', mixed $errors = null, int $statusCode = 400): JsonResponse
+    protected function error(string $message = 'Error', mixed $errors = null, int $statusCode = 400): JsonResponse
     {
         $response = [
             'success' => false,
@@ -49,36 +54,32 @@ trait ApiResponseTrait
     /**
      * Return a validation error response.
      */
-    protected function validationErrorResponse(ValidationException $exception): JsonResponse
+    protected function validationError(ValidationException $exception): JsonResponse
     {
-        return $this->errorResponse(
-            'Validation failed',
-            $exception->errors(),
-            422
-        );
+        return $this->error('Validation failed', $exception->errors(), 422);
     }
 
     /**
      * Return an unauthorized response.
      */
-    protected function unauthorizedResponse(string $message = 'Unauthorized'): JsonResponse
+    protected function unauthorized(string $message = 'Unauthorized'): JsonResponse
     {
-        return $this->errorResponse($message, null, 401);
+        return $this->error($message, null, 401);
     }
 
     /**
      * Return a forbidden response.
      */
-    protected function forbiddenResponse(string $message = 'Forbidden'): JsonResponse
+    protected function forbidden(string $message = 'Forbidden'): JsonResponse
     {
-        return $this->errorResponse($message, null, 403);
+        return $this->error($message, null, 403);
     }
 
     /**
      * Return a not found response.
      */
-    protected function notFoundResponse(string $message = 'Resource not found'): JsonResponse
+    protected function notFound(string $message = 'Resource not found'): JsonResponse
     {
-        return $this->errorResponse($message, null, 404);
+        return $this->error($message, null, 404);
     }
 }

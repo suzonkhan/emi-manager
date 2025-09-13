@@ -40,11 +40,11 @@ class UserController extends Controller
             $user = $this->userService->createUser($request, $request->user());
 
             return $this->success([
-                'message' => 'User created successfully',
                 'user' => new UserDetailResource($user),
+                'message' => 'User created successfully',
             ], 201);
         } catch (\Exception $e) {
-            return $this->error('Failed to create user: '.$e->getMessage(), 500);
+            return $this->error('Failed to create user: '.$e->getMessage(), null, 500);
         }
     }
 
@@ -71,11 +71,11 @@ class UserController extends Controller
             }
 
             return $this->success([
-                'message' => 'User updated successfully',
                 'user' => new UserDetailResource($user),
+                'message' => 'User updated successfully',
             ]);
         } catch (\Exception $e) {
-            return $this->error('Failed to update user: '.$e->getMessage(), 500);
+            return $this->error('Failed to update user: '.$e->getMessage(), null, 500);
         }
     }
 

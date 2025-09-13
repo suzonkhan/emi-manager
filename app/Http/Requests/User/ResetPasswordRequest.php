@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -19,7 +19,7 @@ class ResetPasswordRequest extends FormRequest
         ];
     }
 
-    public function getNewPassword(): string
+    public function getPassword(): string
     {
         return $this->input('new_password');
     }

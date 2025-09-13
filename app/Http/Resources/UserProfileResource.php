@@ -1,12 +1,17 @@
 <?php
 
-namespace App\Http\Resources\Api;
+namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserDetailResource extends JsonResource
+class UserProfileResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -16,6 +21,7 @@ class UserDetailResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->getRoleNames()->first(),
+            'permissions' => $this->getAllPermissions()->pluck('name'),
             'parent' => $this->when($this->parent, function () {
                 return [
                     'id' => $this->parent->id,
@@ -24,7 +30,6 @@ class UserDetailResource extends JsonResource
                     'role' => $this->parent->getRoleNames()->first(),
                 ];
             }),
-            'children_count' => $this->whenLoaded('children', fn () => $this->children->count()),
             'present_address' => new AddressResource($this->whenLoaded('presentAddress')),
             'permanent_address' => new AddressResource($this->whenLoaded('permanentAddress')),
             'bkash_merchant_number' => $this->bkash_merchant_number,
@@ -34,7 +39,6 @@ class UserDetailResource extends JsonResource
             'last_login_at' => $this->last_login_at,
             'hierarchy_level' => $this->getHierarchyLevel(),
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

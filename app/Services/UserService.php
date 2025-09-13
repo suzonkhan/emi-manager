@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\Address;
 use App\Models\User;
 use App\Repositories\User\UserRepositoryInterface;
 use Exception;
@@ -39,13 +40,20 @@ class UserService
         DB::beginTransaction();
 
         try {
+            // Create addresses first
+            $presentAddress = Address::create($request->getPresentAddressData());
+            $permanentAddress = Address::create($request->getPermanentAddressData());
+
+            // Get user data and add address IDs
             $userData = $request->getCreateData();
             $userData['password'] = Hash::make($userData['password']);
+            $userData['present_address_id'] = $presentAddress->id;
+            $userData['permanent_address_id'] = $permanentAddress->id;
 
             $user = $this->userRepository->createUser($userData, $currentUser->id);
 
             if ($roleId = $request->getRoleId()) {
-                $user->attachRole($roleId);
+                $user->assignRole($roleId);
             }
 
             DB::commit();

@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ChangePasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
-use App\Http\Resources\Api\UserProfileResource;
-use App\Http\Resources\Api\UserResource;
+use App\Http\Resources\UserProfileResource;
+use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
@@ -24,16 +24,16 @@ class AuthController extends Controller
         try {
             $authData = $this->authService->login($request);
 
-            return $this->successResponse(
-                'Login successful',
+            return $this->success(
                 [
                     'user' => new UserResource($authData['user']),
                     'token' => $authData['token'],
                     'token_type' => $authData['token_type'],
+                    'message' => 'Login successful',
                 ]
             );
         } catch (ValidationException $e) {
-            return $this->validationErrorResponse($e);
+            return $this->validationError($e);
         }
     }
 
@@ -41,17 +41,17 @@ class AuthController extends Controller
     {
         $this->authService->logout($request->user());
 
-        return $this->successResponse('Logged out successfully');
+        return $this->success(['message' => 'Logged out successfully']);
     }
 
     public function profile(Request $request): JsonResponse
     {
         $user = $this->authService->getUserProfile($request->user());
 
-        return $this->successResponse(
-            'Profile retrieved successfully',
-            ['user' => new UserProfileResource($user)]
-        );
+        return $this->success([
+            'user' => new UserProfileResource($user),
+            'message' => 'Profile retrieved successfully',
+        ]);
     }
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
@@ -59,13 +59,13 @@ class AuthController extends Controller
         try {
             $this->authService->changePassword($request->user(), $request);
 
-            return $this->successResponse('Password changed successfully');
+            return $this->success(['message' => 'Password changed successfully']);
         } catch (ValidationException $e) {
             if (isset($e->errors()['permission'])) {
-                return $this->forbiddenResponse($e->errors()['permission'][0]);
+                return $this->forbidden($e->errors()['permission'][0]);
             }
 
-            return $this->validationErrorResponse($e);
+            return $this->validationError($e);
         }
     }
 }
