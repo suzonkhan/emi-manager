@@ -42,10 +42,10 @@ class CustomerService
                 'country' => $customerData['country'],
             ]);
 
-            // Calculate loan amount and EMI
-            $loanAmount = $customerData['product_price'] - $customerData['down_payment'];
+            // Calculate financed amount and EMI
+            $financedAmount = $customerData['product_price'] - $customerData['down_payment'];
             $emiAmount = $this->calculateEMI(
-                $loanAmount,
+                $financedAmount,
                 $customerData['interest_rate'],
                 $customerData['tenure_months']
             );
@@ -64,11 +64,11 @@ class CustomerService
                 'product_name' => $customerData['product_name'],
                 'product_price' => $customerData['product_price'],
                 'down_payment' => $customerData['down_payment'],
-                'loan_amount' => $loanAmount,
+                'financed_amount' => $financedAmount,
                 'interest_rate' => $customerData['interest_rate'],
                 'tenure_months' => $customerData['tenure_months'],
                 'emi_amount' => $emiAmount,
-                'pending_amount' => $loanAmount,
+                'pending_amount' => $financedAmount,
                 'paid_amount' => 0,
                 'next_emi_date' => now()->addMonth(),
                 'status' => 'active',
@@ -78,26 +78,26 @@ class CustomerService
                 'document_path' => $documentPath,
             ]);
 
-            // Mark token as used
-            $this->tokenService->markTokenAsUsed($token);
+            // Complete token usage with assignment history tracking
+            $this->tokenService->completeTokenUsage($token, $customer, $salesman);
 
             return $customer->load(['address', 'token', 'createdBy']);
         });
     }
 
     /**
-     * Calculate EMI based on loan amount, interest rate, and tenure
+     * Calculate EMI based on financed amount, interest rate, and tenure
      */
-    private function calculateEMI(float $loanAmount, float $interestRate, int $tenureMonths): float
+    private function calculateEMI(float $financedAmount, float $interestRate, int $tenureMonths): float
     {
         $monthlyRate = ($interestRate / 100) / 12;
-        
+
         if ($monthlyRate == 0) {
-            return $loanAmount / $tenureMonths;
+            return $financedAmount / $tenureMonths;
         }
 
-        $emi = $loanAmount * $monthlyRate * pow(1 + $monthlyRate, $tenureMonths) / 
-               (pow(1 + $monthlyRate, $tenureMonths) - 1);
+        $emi = $financedAmount * $monthlyRate * pow(1 + $monthlyRate, $tenureMonths) /
+            (pow(1 + $monthlyRate, $tenureMonths) - 1);
 
         return round($emi, 2);
     }
@@ -141,7 +141,7 @@ class CustomerService
             if ($customer->document_path) {
                 Storage::disk('public')->delete($customer->document_path);
             }
-            
+
             $updateData['document_path'] = $updateData['document']->store('customer-documents', 'public');
             unset($updateData['document']);
         }
@@ -160,9 +160,9 @@ class CustomerService
             $customer->address->update($addressData);
 
             // Remove address data from customer update
-            unset($updateData['address_line_1'], $updateData['address_line_2'], 
-                  $updateData['city'], $updateData['state'], 
-                  $updateData['postal_code'], $updateData['country']);
+            unset($updateData['address_line_1'], $updateData['address_line_2'],
+                $updateData['city'], $updateData['state'],
+                $updateData['postal_code'], $updateData['country']);
         }
 
         $this->customerRepository->updateCustomer($customer, $updateData);

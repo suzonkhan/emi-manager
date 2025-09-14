@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CreateCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
-use App\Http\Resources\Customer\CustomerCollection;
-use App\Http\Resources\Customer\CustomerResource;
+use App\Http\Resources\CustomerResource;
 use App\Services\CustomerService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +26,7 @@ class CustomerController extends Controller
             $perPage = $request->integer('per_page', 15);
             $customers = $this->customerService->getCustomersByUser($request->user(), $perPage);
 
-            return $this->success(new CustomerCollection($customers));
+            return $this->success(CustomerResource::collection($customers));
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -136,7 +135,7 @@ class CustomerController extends Controller
                 $perPage
             );
 
-            return $this->success(new CustomerCollection($customers));
+            return $this->success(CustomerResource::collection($customers));
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -208,7 +207,7 @@ class CustomerController extends Controller
 
             return $this->success([
                 'total_pending_amount' => $totalPending,
-                'formatted_amount' => '₹' . number_format($totalPending, 2),
+                'formatted_amount' => '₹'.number_format($totalPending, 2),
             ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());

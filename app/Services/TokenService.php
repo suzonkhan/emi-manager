@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\Token;
 use App\Models\User;
 use App\Repositories\Token\TokenRepositoryInterface;
+use App\Repositories\TokenAssignment\TokenAssignmentRepositoryInterface;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +15,8 @@ class TokenService
 {
     public function __construct(
         private RoleHierarchyService $roleHierarchyService,
-        private TokenRepositoryInterface $tokenRepository
+        private TokenRepositoryInterface $tokenRepository,
+        private TokenAssignmentRepositoryInterface $tokenAssignmentRepository
     ) {}
 
     /**
@@ -25,19 +28,33 @@ class TokenService
             throw new Exception('Only super admin can generate tokens');
         }
 
-        $tokensData = [];
-        for ($i = 0; $i < $quantity; $i++) {
-            $tokensData[] = [
-                'created_by' => $user->id,
-                'status' => 'available',
-                'metadata' => [
-                    'generated_at' => now()->toISOString(),
-                    'batch_size' => $quantity,
-                ],
-            ];
-        }
+        return DB::transaction(function () use ($user, $quantity) {
+            $tokens = collect();
+            $tokensData = [];
 
-        return $this->tokenRepository->bulkCreateTokens($tokensData);
+            for ($i = 0; $i < $quantity; $i++) {
+                $tokensData[] = [
+                    'created_by' => $user->id,
+                    'status' => 'available',
+                    'metadata' => [
+                        'generated_at' => now()->toISOString(),
+                        'batch_size' => $quantity,
+                    ],
+                ];
+            }
+
+            $tokens = $this->tokenRepository->bulkCreateTokens($tokensData);
+
+            // Record generation history for each token
+            foreach ($tokens as $token) {
+                $this->tokenAssignmentRepository->recordGeneration($token, $user, [
+                    'batch_size' => $quantity,
+                    'total_generated' => $quantity,
+                ]);
+            }
+
+            return $tokens;
+        });
     }
 
     /**
@@ -50,32 +67,25 @@ class TokenService
             throw new Exception('You cannot assign tokens to this user role');
         }
 
-        // Find available token assigned to fromUser
-        $token = $this->tokenRepository->findByCode($tokenCode);
+        return DB::transaction(function () use ($fromUser, $toUser, $tokenCode) {
+            // Find available token assigned to fromUser
+            $token = $this->tokenRepository->findByCode($tokenCode);
 
-        if (! $token || $token->assigned_to !== $fromUser->id || $token->status !== 'assigned') {
-            throw new Exception('Token not found or not available for assignment');
-        }
+            if (! $token || $token->assigned_to !== $fromUser->id || $token->status !== 'assigned') {
+                throw new Exception('Token not found or not available for assignment');
+            }
 
-        // Transfer token
-        $this->tokenRepository->updateToken($token, [
-            'assigned_to' => $toUser->id,
-            'assigned_at' => now(),
-            'metadata' => array_merge($token->metadata ?? [], [
-                'assignment_chain' => array_merge(
-                    $token->metadata['assignment_chain'] ?? [],
-                    [
-                        [
-                            'from_user_id' => $fromUser->id,
-                            'to_user_id' => $toUser->id,
-                            'assigned_at' => now()->toISOString(),
-                        ],
-                    ]
-                ),
-            ]),
-        ]);
+            // Transfer token
+            $this->tokenRepository->updateToken($token, [
+                'assigned_to' => $toUser->id,
+                'assigned_at' => now(),
+            ]);
 
-        return $token->fresh();
+            // Record assignment history
+            $this->tokenAssignmentRepository->recordAssignment($token, $fromUser, $toUser);
+
+            return $token->fresh();
+        });
     }
 
     /**
@@ -104,7 +114,14 @@ class TokenService
                         throw new Exception("Token {$tokenCode} not found or not available");
                     }
 
+                    // Assign token to dealer
                     $this->tokenRepository->assignTokenToUser($token, $dealer);
+
+                    // Record assignment history
+                    $this->tokenAssignmentRepository->recordAssignment($token, $superAdmin, $dealer, [
+                        'distribution_batch' => true,
+                    ]);
+
                     $results[$dealerId][] = $token;
                 }
             }
@@ -146,6 +163,25 @@ class TokenService
 
         // Don't mark as used here - will be done when customer is created
         return $token;
+    }
+
+    /**
+     * Complete token usage for customer creation
+     */
+    public function completeTokenUsage(Token $token, Customer $customer, User $user): void
+    {
+        DB::transaction(function () use ($token, $customer, $user) {
+            // Update token to used status
+            $this->tokenRepository->markTokenAsUsed($token, $customer);
+
+            // Record token usage in assignment history
+            $this->tokenAssignmentRepository->recordUsage($token, $user, [
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->full_name,
+                'customer_phone' => $customer->phone,
+                'financed_amount' => $customer->financed_amount,
+            ]);
+        });
     }
 
     /**

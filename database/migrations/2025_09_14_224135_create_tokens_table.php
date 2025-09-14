@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('code', 12)->unique(); // 12-character token code
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade'); // Who generated this token
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null'); // Current holder
+            $table->foreignId('used_by')->nullable()->constrained('users')->onDelete('set null'); // Who used it for customer
             $table->enum('status', ['available', 'assigned', 'used'])->default('available');
             $table->timestamp('assigned_at')->nullable();
             $table->timestamp('used_at')->nullable();

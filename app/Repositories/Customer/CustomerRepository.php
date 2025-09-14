@@ -44,7 +44,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function getCustomersByStatus(string $status, User $user = null): Collection
+    public function getCustomersByStatus(string $status, ?User $user = null): Collection
     {
         $query = Customer::where('status', $status);
 
@@ -74,7 +74,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             'active_customers' => (clone $query)->where('status', 'active')->count(),
             'inactive_customers' => (clone $query)->where('status', 'inactive')->count(),
             'total_pending_amount' => (clone $query)->sum('pending_amount'),
-            'total_loan_amount' => (clone $query)->sum('product_price'),
+            'total_financed_amount' => (clone $query)->sum('product_price'),
             'customers_this_month' => (clone $query)->whereMonth('created_at', now()->month)->count(),
             'average_emi_amount' => (clone $query)->avg('emi_amount'),
         ];
@@ -100,16 +100,16 @@ class CustomerRepository implements CustomerRepositoryInterface
         return $this->getCustomersQueryForUser($user)
             ->where(function (Builder $query) use ($searchTerm) {
                 $query->where('name', 'like', "%{$searchTerm}%")
-                      ->orWhere('phone', 'like', "%{$searchTerm}%")
-                      ->orWhere('email', 'like', "%{$searchTerm}%")
-                      ->orWhere('product_name', 'like', "%{$searchTerm}%");
+                    ->orWhere('phone', 'like', "%{$searchTerm}%")
+                    ->orWhere('email', 'like', "%{$searchTerm}%")
+                    ->orWhere('product_name', 'like', "%{$searchTerm}%");
             })
             ->with(['address', 'token', 'createdBy'])
             ->latest()
             ->paginate($perPage);
     }
 
-    public function getCustomersWithOverdueEMIs(User $user = null): Collection
+    public function getCustomersWithOverdueEMIs(?User $user = null): Collection
     {
         $query = Customer::where('status', 'active')
             ->where('pending_amount', '>', 0)
@@ -122,7 +122,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         return $query->with(['address', 'token', 'createdBy'])->get();
     }
 
-    public function getCustomersCreatedBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate, User $user = null): Collection
+    public function getCustomersCreatedBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?User $user = null): Collection
     {
         $query = Customer::whereBetween('created_at', [$startDate, $endDate]);
 
@@ -140,7 +140,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->sum('pending_amount');
     }
 
-    public function getCustomersNearEMIDue(int $days = 7, User $user = null): Collection
+    public function getCustomersNearEMIDue(int $days = 7, ?User $user = null): Collection
     {
         $dueDate = Carbon::now()->addDays($days);
 
@@ -176,9 +176,9 @@ class CustomerRepository implements CustomerRepositoryInterface
         // User can see customers created by users in their hierarchy
         return $query->where(function (Builder $q) use ($user, $assignableRoles) {
             $q->where('created_by', $user->id)
-              ->orWhereHas('createdBy', function (Builder $creatorQuery) use ($assignableRoles) {
-                  $creatorQuery->whereIn('role', $assignableRoles);
-              });
+                ->orWhereHas('createdBy', function (Builder $creatorQuery) use ($assignableRoles) {
+                    $creatorQuery->whereIn('role', $assignableRoles);
+                });
         });
     }
 }

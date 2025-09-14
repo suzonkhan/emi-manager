@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Token\AssignTokenRequest;
 use App\Http\Requests\Token\GenerateTokenRequest;
-use App\Http\Resources\Token\TokenCollection;
-use App\Http\Resources\Token\TokenResource;
+use App\Http\Resources\TokenResource;
 use App\Models\User;
 use App\Services\RoleHierarchyService;
 use App\Services\TokenService;
@@ -35,7 +34,7 @@ class TokenController extends Controller
             );
 
             return $this->success([
-                'tokens' => new TokenCollection($tokens),
+                'tokens' => TokenResource::collection($tokens),
                 'message' => "Generated {$tokens->count()} tokens successfully",
             ]);
         } catch (\Exception $e) {
@@ -58,8 +57,8 @@ class TokenController extends Controller
             }
 
             return $this->success([
-                'available_tokens' => new TokenCollection($availableTokens),
-                'created_tokens' => new TokenCollection($createdTokens),
+                'available_tokens' => TokenResource::collection($availableTokens),
+                'created_tokens' => TokenResource::collection($createdTokens),
             ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -158,7 +157,7 @@ class TokenController extends Controller
         try {
             $user = $request->user();
             $assignableRoles = $this->roleHierarchyService->getAssignableRoles($user->role);
-            
+
             $assignableUsers = User::whereIn('role', $assignableRoles)
                 ->select(['id', 'name', 'email', 'role'])
                 ->get();

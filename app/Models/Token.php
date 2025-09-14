@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
@@ -16,6 +17,7 @@ class Token extends Model
         'code',
         'created_by',
         'assigned_to',
+        'used_by',
         'status',
         'assigned_at',
         'used_at',
@@ -44,14 +46,24 @@ class Token extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function assignedUser(): BelongsTo
+    public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function usedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'used_by');
     }
 
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(TokenAssignment::class)->orderBy('created_at');
     }
 
     public function generateUniqueCode(): string

@@ -171,7 +171,7 @@ GET    /api/debug/routes         # List all routes
 - Test interface for manual testing
 
 ### 🔄 Next Steps
-- Add EMI-specific business logic (loan management, payment tracking)
+- Add EMI-specific business logic (financing management, payment tracking)
 - Implement advanced reporting features
 - Add file upload capabilities
 - Create comprehensive API documentation

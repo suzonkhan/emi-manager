@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Customer;
+namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -17,7 +17,7 @@ class CustomerResource extends JsonResource
             'product_name' => $this->product_name,
             'product_price' => $this->product_price,
             'down_payment' => $this->down_payment,
-            'loan_amount' => $this->loan_amount,
+            'financed_amount' => $this->financed_amount,
             'interest_rate' => $this->interest_rate,
             'tenure_months' => $this->tenure_months,
             'emi_amount' => $this->emi_amount,
@@ -58,15 +58,15 @@ class CustomerResource extends JsonResource
                 ] : null;
             }),
             'financial_summary' => [
-                'loan_to_value_ratio' => $this->product_price > 0 ? round(($this->loan_amount / $this->product_price) * 100, 2) : 0,
-                'payment_progress' => $this->loan_amount > 0 ? round(($this->paid_amount / $this->loan_amount) * 100, 2) : 0,
+                'financed_to_product_ratio' => $this->product_price > 0 ? round(($this->financed_amount / $this->product_price) * 100, 2) : 0,
+                'payment_progress' => $this->financed_amount > 0 ? round(($this->paid_amount / $this->financed_amount) * 100, 2) : 0,
                 'remaining_emis' => $this->emi_amount > 0 ? ceil($this->pending_amount / $this->emi_amount) : 0,
                 'is_overdue' => $this->next_emi_date && $this->next_emi_date->isPast() && $this->pending_amount > 0,
                 'days_overdue' => $this->next_emi_date && $this->next_emi_date->isPast() ? $this->next_emi_date->diffInDays(now()) : 0,
             ],
             'status_labels' => [
                 'active' => 'Active',
-                'inactive' => 'Inactive', 
+                'inactive' => 'Inactive',
                 'completed' => 'Completed',
                 'defaulted' => 'Defaulted',
             ][$this->status] ?? $this->status,
