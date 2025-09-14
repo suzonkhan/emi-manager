@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Repositories\Customer\CustomerRepository;
+use App\Repositories\Customer\CustomerRepositoryInterface;
+use App\Repositories\Token\TokenRepository;
+use App\Repositories\Token\TokenRepositoryInterface;
 use App\Repositories\User\UserRepository;
 use App\Repositories\User\UserRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
@@ -13,8 +17,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // User Repository
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(\App\Services\UserService::class);
+
+        // Token Repository
+        $this->app->bind(TokenRepositoryInterface::class, TokenRepository::class);
+
+        // Customer Repository
+        $this->app->bind(CustomerRepositoryInterface::class, CustomerRepository::class);
     }
 
     /**

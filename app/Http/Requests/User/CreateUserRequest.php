@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Rules\AssignableRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Spatie\Permission\Models\Role;
 
@@ -19,7 +20,12 @@ class CreateUserRequest extends FormRequest
             'email' => 'nullable|email|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone',
             'password' => 'required|string|min:8',
-            'role' => 'required|string|exists:roles,name',
+            'role' => [
+                'required',
+                'string',
+                'exists:roles,name',
+                new AssignableRole($this->user()),
+            ],
             'present_address.street_address' => 'required|string',
             'present_address.landmark' => 'nullable|string',
             'present_address.postal_code' => 'nullable|string|max:10',

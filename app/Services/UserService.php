@@ -12,11 +12,13 @@ use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class UserService
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository
+        private UserRepositoryInterface $userRepository,
+        private RoleHierarchyService $roleHierarchyService
     ) {}
 
     public function getAllUsers(User $currentUser, int $perPage = 15): LengthAwarePaginator
@@ -40,6 +42,14 @@ class UserService
         DB::beginTransaction();
 
         try {
+            // Additional role hierarchy validation
+            $requestedRole = $request->input('role');
+            if ($requestedRole && ! $this->roleHierarchyService->canAssignRole($currentUser, $requestedRole)) {
+                throw ValidationException::withMessages([
+                    'role' => ['You do not have permission to assign this role.'],
+                ]);
+            }
+
             // Create addresses first
             $presentAddress = Address::create($request->getPresentAddressData());
             $permanentAddress = Address::create($request->getPermanentAddressData());
@@ -76,6 +86,14 @@ class UserService
         DB::beginTransaction();
 
         try {
+            // Additional role hierarchy validation
+            $requestedRole = $request->input('role');
+            if ($requestedRole && ! $this->roleHierarchyService->canAssignRole($currentUser, $requestedRole)) {
+                throw ValidationException::withMessages([
+                    'role' => ['You do not have permission to assign this role.'],
+                ]);
+            }
+
             $updateData = $request->getUpdateData();
 
             if (isset($updateData['password'])) {

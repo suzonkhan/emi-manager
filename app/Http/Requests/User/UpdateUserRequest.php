@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Rules\AssignableRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Spatie\Permission\Models\Role;
 
@@ -21,7 +22,12 @@ class UpdateUserRequest extends FormRequest
             'email' => 'sometimes|nullable|email|unique:users,email,'.$userId,
             'phone' => 'sometimes|string|max:20|unique:users,phone,'.$userId,
             'password' => 'sometimes|string|min:8',
-            'role' => 'sometimes|string|exists:roles,name',
+            'role' => [
+                'sometimes',
+                'string',
+                'exists:roles,name',
+                new AssignableRole($this->user()),
+            ],
             'bkash_merchant_number' => 'sometimes|nullable|string',
             'nagad_merchant_number' => 'sometimes|nullable|string',
             'is_active' => 'sometimes|boolean',

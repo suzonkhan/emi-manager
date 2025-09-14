@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Api\UserController;
 use App\Models\District;
 use App\Models\Division;
@@ -34,6 +36,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/reset-password', [UserController::class, 'resetPassword']);
     });
 
+    // Token management routes
+    Route::prefix('tokens')->group(function () {
+        Route::get('/', [TokenController::class, 'index']);
+        Route::post('/generate', [TokenController::class, 'generate']); // Super Admin only
+        Route::post('/assign', [TokenController::class, 'assign']); // Assign to subordinates
+        Route::post('/distribute', [TokenController::class, 'distribute']); // Super Admin bulk distribution
+        Route::get('/statistics', [TokenController::class, 'statistics']);
+        Route::get('/assignable-users', [TokenController::class, 'assignableUsers']);
+    });
+
+    // Customer management routes
+    Route::prefix('customers')->group(function () {
+        Route::get('/', [CustomerController::class, 'index']);
+        Route::post('/', [CustomerController::class, 'store']); // Salesman only
+        Route::get('/statistics', [CustomerController::class, 'statistics']);
+        Route::get('/{id}', [CustomerController::class, 'show']);
+        Route::patch('/{id}/status', [CustomerController::class, 'updateStatus']);
+        Route::post('/{id}/documents', [CustomerController::class, 'uploadDocuments']);
+    });
+
     // Location routes for addresses
     Route::prefix('locations')->group(function () {
         Route::get('/divisions', function () {
@@ -61,15 +83,15 @@ Route::middleware('auth:sanctum')->group(function () {
             $user = $request->user();
 
             $stats = [
-                'total_subordinates'  => $user->children()->count(),
+                'total_subordinates' => $user->children()->count(),
                 'active_subordinates' => $user->children()->where('is_active', true)->count(),
-                'my_role'             => $user->getRoleNames()->first(),
-                'hierarchy_level'     => $user->getHierarchyLevel(),
+                'my_role' => $user->getRoleNames()->first(),
+                'hierarchy_level' => $user->getHierarchyLevel(),
             ];
 
             if ($user->hasRole('super_admin')) {
-                $stats['total_users']        = User::count();
-                $stats['active_users']       = User::where('is_active', true)->count();
+                $stats['total_users'] = User::count();
+                $stats['active_users'] = User::where('is_active', true)->count();
                 $stats['roles_distribution'] = User::join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
                     ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
                     ->groupBy('roles.name')
@@ -85,9 +107,9 @@ Route::middleware('auth:sanctum')->group(function () {
 // Test API endpoint
 Route::get('/test', function () {
     return response()->json([
-        'message'         => 'EMI Manager API is working!',
+        'message' => 'EMI Manager API is working!',
         'laravel_version' => app()->version(),
-        'timestamp'       => now(),
+        'timestamp' => now(),
     ]);
 });
 
@@ -113,7 +135,7 @@ if (app()->environment(['local', 'development'])) {
 
         Route::get('/roles', function () {
             return response()->json([
-                'roles'       => \Spatie\Permission\Models\Role::with('permissions')->get(),
+                'roles' => \Spatie\Permission\Models\Role::with('permissions')->get(),
                 'permissions' => \Spatie\Permission\Models\Permission::all(),
             ]);
         });

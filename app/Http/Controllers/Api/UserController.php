@@ -8,6 +8,7 @@ use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserDetailResource;
 use App\Http\Resources\UserListResource;
+use App\Services\RoleHierarchyService;
 use App\Services\UserService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +18,10 @@ class UserController extends Controller
 {
     use ApiResponseTrait;
 
-    public function __construct(private UserService $userService) {}
+    public function __construct(
+        private UserService $userService,
+        private RoleHierarchyService $roleHierarchyService
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -96,18 +100,7 @@ class UserController extends Controller
 
     public function getAvailableRoles(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $userRole = $user->getRoleNames()->first();
-
-        $hierarchy = [
-            'super_admin' => ['dealer', 'sub_dealer', 'salesman', 'customer'],
-            'dealer' => ['sub_dealer', 'salesman', 'customer'],
-            'sub_dealer' => ['salesman', 'customer'],
-            'salesman' => ['customer'],
-            'customer' => [],
-        ];
-
-        $availableRoles = $hierarchy[$userRole] ?? [];
+        $availableRoles = $this->roleHierarchyService->getAssignableRoles($request->user());
 
         return $this->success(['available_roles' => $availableRoles]);
     }

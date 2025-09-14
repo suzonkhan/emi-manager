@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\Upazilla;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -44,7 +45,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Administrator',
                 'phone' => '+8801700000000',
-                'password' => bcrypt('SuperAdmin@123'),
+                'password' => Hash::make('SuperAdmin@123'),
                 'present_address_id' => $address->id,
                 'permanent_address_id' => $address->id,
                 'can_change_password' => true,
