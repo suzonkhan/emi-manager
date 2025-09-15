@@ -348,6 +348,449 @@
 			"id": "48373923-87b049bb-d134-4d37-9cca-cda53dee3875"
 		},
 		{
+			"name": "Token Management",
+			"item": [
+				{
+					"name": "Get Tokens",
+					"id": "48373923-token-001",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens"
+							]
+						},
+						"description": "Get list of tokens based on user role and hierarchy. Shows assigned and available tokens."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Tokens",
+					"id": "48373923-token-002",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"count\": 100\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tokens/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens",
+								"generate"
+							]
+						},
+						"description": "Generate new tokens. Super Admin only. Specify the count of tokens to generate."
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Token",
+					"id": "48373923-token-003",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token_id\": 1,\n  \"assigned_to_user_id\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tokens/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens",
+								"assign"
+							]
+						},
+						"description": "Assign a token to a subordinate user. Creates assignment chain tracking."
+					},
+					"response": []
+				},
+				{
+					"name": "Distribute Tokens",
+					"id": "48373923-token-004",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"distribution_plan\": {\n    \"dealer_id_1\": 50,\n    \"dealer_id_2\": 30,\n    \"dealer_id_3\": 20\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tokens/distribute",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens",
+								"distribute"
+							]
+						},
+						"description": "Bulk distribute tokens to multiple dealers. Super Admin only. Specify user IDs and token counts."
+					},
+					"response": []
+				},
+				{
+					"name": "Token Statistics",
+					"id": "48373923-token-005",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tokens/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens",
+								"statistics"
+							]
+						},
+						"description": "Get token statistics including generated, assigned, used, and available counts."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Assignable Users",
+					"id": "48373923-token-006",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tokens/assignable-users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens",
+								"assignable-users"
+							]
+						},
+						"description": "Get list of users who can be assigned tokens based on hierarchy."
+					},
+					"response": []
+				}
+			],
+			"id": "48373923-token-group"
+		},
+		{
+			"name": "Customer Management",
+			"item": [
+				{
+					"name": "Get Customers",
+					"id": "48373923-customer-001",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/customers?page=1&per_page=15&status=pending",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "15"
+								},
+								{
+									"key": "status",
+									"value": "pending"
+								}
+							]
+						},
+						"description": "Get paginated list of customers. Filter by status: pending, approved, rejected."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer",
+					"id": "48373923-customer-002",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"ABC123DEF456\",\n  \"name\": \"রহিম উদ্দিন\",\n  \"email\": \"rahim@example.com\",\n  \"phone\": \"01712345678\",\n  \"nid_number\": \"1234567890123\",\n  \"father_name\": \"করিম উদ্দিন\",\n  \"mother_name\": \"ফাতেমা খাতুন\",\n  \"date_of_birth\": \"1985-06-15\",\n  \"occupation\": \"Business\",\n  \"monthly_income\": 35000,\n  \"present_address\": {\n    \"street_address\": \"১২৩ মুক্তিযোদ্ধা সরণি\",\n    \"landmark\": \"ঢাকা মেডিকেল কলেজের কাছে\",\n    \"postal_code\": \"1000\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"permanent_address\": {\n    \"street_address\": \"৪৫৬ পুরাতন ঢাকা\",\n    \"landmark\": \"লালবাগ কেল্লার পাশে\",\n    \"postal_code\": \"1211\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 2\n  },\n  \"product_name\": \"Samsung Galaxy S23\",\n  \"product_price\": 85000,\n  \"down_payment\": 15000,\n  \"loan_amount\": 70000,\n  \"interest_rate\": 15.5,\n  \"loan_term_months\": 12,\n  \"monthly_installment\": 6458.33,\n  \"guarantor_name\": \"আবদুল করিম\",\n  \"guarantor_phone\": \"01812345678\",\n  \"guarantor_nid\": \"9876543210987\",\n  \"guarantor_relation\": \"Brother\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/customers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers"
+							]
+						},
+						"description": "Create a new customer with EMI details. Salesman only. Requires a valid unused token."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer Details",
+					"id": "48373923-customer-003",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/customers/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers",
+								"1"
+							]
+						},
+						"description": "Get detailed information about a specific customer including EMI calculations and addresses."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Customer Status",
+					"id": "48373923-customer-004",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"approved\",\n  \"rejection_reason\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/customers/1/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers",
+								"1",
+								"status"
+							]
+						},
+						"description": "Update customer status to approved/rejected. Include rejection_reason if rejecting."
+					},
+					"response": []
+				},
+				{
+					"name": "Customer Statistics",
+					"id": "48373923-customer-005",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/customers/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers",
+								"statistics"
+							]
+						},
+						"description": "Get customer statistics including counts by status and total loan amounts."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Customer Documents",
+					"id": "48373923-customer-006",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "nid_front",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "nid_back",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "customer_photo",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "guarantor_nid_front",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "guarantor_nid_back",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/customers/1/documents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers",
+								"1",
+								"documents"
+							]
+						},
+						"description": "Upload customer documents including NID, photo, and guarantor documents."
+					},
+					"response": []
+				}
+			],
+			"id": "48373923-customer-group"
+		},
+		{
 			"name": "Locations",
 			"item": [
 				{
