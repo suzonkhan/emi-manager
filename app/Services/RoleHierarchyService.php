@@ -9,12 +9,11 @@ class RoleHierarchyService
     /**
      * Define the role hierarchy where higher roles can create/manage lower roles
      */
-    private const ROLE_HIERARCHY = [
-        'super_admin' => ['dealer', 'sub_dealer', 'salesman', 'customer'],
-        'dealer' => ['sub_dealer', 'salesman', 'customer'],
-        'sub_dealer' => ['salesman', 'customer'],
-        'salesman' => ['customer'],
-        'customer' => [],
+    private array $hierarchy = [
+        'super_admin' => ['dealer', 'sub_dealer', 'salesman'],
+        'dealer' => ['sub_dealer', 'salesman'],
+        'sub_dealer' => ['salesman'],
+        'salesman' => [],
     ];
 
     /**
@@ -24,7 +23,7 @@ class RoleHierarchyService
     {
         $userRole = $user->getRoleNames()->first();
 
-        return self::ROLE_HIERARCHY[$userRole] ?? [];
+        return $this->hierarchy[$userRole] ?? [];
     }
 
     /**
@@ -50,7 +49,7 @@ class RoleHierarchyService
      */
     public function getAllRoles(): array
     {
-        return array_keys(self::ROLE_HIERARCHY);
+        return array_keys($this->hierarchy);
     }
 
     /**
@@ -58,7 +57,7 @@ class RoleHierarchyService
      */
     public function getHierarchy(): array
     {
-        return self::ROLE_HIERARCHY;
+        return $this->hierarchy;
     }
 
     /**
@@ -66,7 +65,7 @@ class RoleHierarchyService
      */
     public function isValidRole(string $role): bool
     {
-        return array_key_exists($role, self::ROLE_HIERARCHY);
+        return array_key_exists($role, $this->hierarchy);
     }
 
     /**
@@ -79,7 +78,6 @@ class RoleHierarchyService
             'dealer' => 2,
             'sub_dealer' => 3,
             'salesman' => 4,
-            'customer' => 5,
         ];
 
         return $levels[$role] ?? 999;

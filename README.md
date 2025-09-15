@@ -31,10 +31,11 @@ Super Admin
 
 ### Role-Based Permissions
 - **Super Admin**: Full system access, can create dealers
-- **Dealer**: Can create sub-dealers and manage their hierarchy
+- **Dealer**: Can create sub-dealers and manage their hierarchy  
 - **Sub Dealer**: Can create salesmen and manage customers
 - **Sales Man**: Can create and manage customers
-- **Customer**: Basic profile management
+
+*Note: Customers are managed as separate entities without user accounts or login credentials.*
 
 ## 🔧 Technical Stack
 

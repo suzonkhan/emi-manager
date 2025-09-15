@@ -46,9 +46,6 @@ class RolePermissionSeeder extends Seeder
             'salesman' => [
                 'create_users', 'view_users',
             ],
-            'customer' => [
-                'view_users',
-            ],
         ];
 
         foreach ($roles as $roleName => $rolePermissions) {

@@ -13,7 +13,6 @@ beforeEach(function () {
     Role::create(['name' => 'dealer']);
     Role::create(['name' => 'sub_dealer']);
     Role::create(['name' => 'salesman']);
-    Role::create(['name' => 'customer']);
 });
 
 it('allows super admin to assign any lower role', function () {
@@ -25,7 +24,6 @@ it('allows super admin to assign any lower role', function () {
     expect($roleService->canAssignRole($superAdmin, 'dealer'))->toBeTrue();
     expect($roleService->canAssignRole($superAdmin, 'sub_dealer'))->toBeTrue();
     expect($roleService->canAssignRole($superAdmin, 'salesman'))->toBeTrue();
-    expect($roleService->canAssignRole($superAdmin, 'customer'))->toBeTrue();
 });
 
 it('prevents dealer from assigning super_admin role', function () {
@@ -46,20 +44,18 @@ it('allows dealer to assign only lower roles', function () {
 
     expect($roleService->canAssignRole($dealer, 'sub_dealer'))->toBeTrue();
     expect($roleService->canAssignRole($dealer, 'salesman'))->toBeTrue();
-    expect($roleService->canAssignRole($dealer, 'customer'))->toBeTrue();
 });
 
-it('prevents customer from assigning any role', function () {
-    $customer = User::factory()->create();
-    $customer->assignRole('customer');
+it('prevents salesman from assigning any role', function () {
+    $salesman = User::factory()->create();
+    $salesman->assignRole('salesman');
 
     $roleService = new RoleHierarchyService;
 
-    expect($roleService->canAssignRole($customer, 'super_admin'))->toBeFalse();
-    expect($roleService->canAssignRole($customer, 'dealer'))->toBeFalse();
-    expect($roleService->canAssignRole($customer, 'sub_dealer'))->toBeFalse();
-    expect($roleService->canAssignRole($customer, 'salesman'))->toBeFalse();
-    expect($roleService->canAssignRole($customer, 'customer'))->toBeFalse();
+    expect($roleService->canAssignRole($salesman, 'super_admin'))->toBeFalse();
+    expect($roleService->canAssignRole($salesman, 'dealer'))->toBeFalse();
+    expect($roleService->canAssignRole($salesman, 'sub_dealer'))->toBeFalse();
+    expect($roleService->canAssignRole($salesman, 'salesman'))->toBeFalse();
 });
 
 it('validates role hierarchy on user creation via API', function () {

@@ -113,11 +113,10 @@ class User extends Authenticatable
         $userRole = $this->getRoleNames()->first();
 
         $hierarchy = [
-            'super_admin' => ['dealer', 'sub_dealer', 'salesman', 'customer'],
-            'dealer' => ['sub_dealer', 'salesman', 'customer'],
-            'sub_dealer' => ['salesman', 'customer'],
-            'salesman' => ['customer'],
-            'customer' => [],
+            'super_admin' => ['dealer', 'sub_dealer', 'salesman'],
+            'dealer' => ['sub_dealer', 'salesman'],
+            'sub_dealer' => ['salesman'],
+            'salesman' => [],
         ];
 
         return in_array($role, $hierarchy[$userRole] ?? []);
@@ -135,12 +134,11 @@ class User extends Authenticatable
             'dealer' => 2,
             'sub_dealer' => 3,
             'salesman' => 4,
-            'customer' => 5,
         ];
 
         $role = $this->getRoleNames()->first();
 
-        return $levels[$role] ?? 5;
+        return $levels[$role] ?? 4;
     }
 
     public function scopeActive($query)
