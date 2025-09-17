@@ -218,7 +218,7 @@ class CustomerDataSeeder extends Seeder
         return Address::create([
             'street_address' => "House #{$houseNumber}, {$street}",
             'landmark' => $landmark,
-            'postal_code' => $upazilla['postal_code'],
+            'postal_code' => $this->generatePostalCode($upazilla),
             'division_id' => $upazilla['district']['division_id'],
             'district_id' => $upazilla['district_id'],
             'upazilla_id' => $upazilla['id'],
@@ -385,5 +385,16 @@ class CustomerDataSeeder extends Seeder
         foreach ($emiStats as $metric => $value) {
             $this->command->line("  {$metric}: {$value}");
         }
+    }
+
+    /**
+     * Generate a postal code based on district and upazilla IDs
+     */
+    private function generatePostalCode(array $upazilla): string
+    {
+        $districtId = str_pad($upazilla['district_id'], 2, '0', STR_PAD_LEFT);
+        $upazillaId = str_pad($upazilla['id'], 2, '0', STR_PAD_LEFT);
+        
+        return $districtId . $upazillaId;
     }
 }
