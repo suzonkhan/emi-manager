@@ -10,6 +10,7 @@ use App\Repositories\TokenAssignment\TokenAssignmentRepository;
 use App\Repositories\TokenAssignment\TokenAssignmentRepositoryInterface;
 use App\Repositories\User\UserRepository;
 use App\Repositories\User\UserRepositoryInterface;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -38,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Fix MySQL key length issue globally for utf8mb4
+        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
     }
 }
