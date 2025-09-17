@@ -70,8 +70,7 @@ class TokenManagementSeeder extends Seeder
                 'from_role' => 'super_admin',
                 'to_user_id' => null,
                 'to_role' => null,
-                'assignment_type' => 'generation',
-                'status' => 'completed',
+                'action' => 'generated',
                 'metadata' => [
                     'batch_info' => 'System launch batch',
                     'generation_reason' => 'Initial system setup',
@@ -117,9 +116,7 @@ class TokenManagementSeeder extends Seeder
                     'from_role' => 'super_admin',
                     'to_user_id' => $dealer->id,
                     'to_role' => 'dealer',
-                    'assignment_type' => 'assignment',
-                    'status' => 'completed',
-                    'assigned_at' => $token->assigned_at,
+                    'action' => 'assigned',
                     'metadata' => [
                         'assignment_reason' => 'Regional distribution',
                         'territory' => $this->getDealerTerritory($dealer),
@@ -171,9 +168,7 @@ class TokenManagementSeeder extends Seeder
                         'from_role' => 'dealer',
                         'to_user_id' => $subDealer->id,
                         'to_role' => 'sub_dealer',
-                        'assignment_type' => 'assignment',
-                        'status' => 'completed',
-                        'assigned_at' => $token->assigned_at,
+                        'action' => 'assigned',
                         'metadata' => [
                             'assignment_reason' => 'Zone distribution',
                             'zone' => $this->getSubDealerZone($subDealer),
@@ -227,9 +222,7 @@ class TokenManagementSeeder extends Seeder
                         'from_role' => 'sub_dealer',
                         'to_user_id' => $salesman->id,
                         'to_role' => 'salesman',
-                        'assignment_type' => 'assignment',
-                        'status' => 'completed',
-                        'assigned_at' => $token->assigned_at,
+                        'action' => 'assigned',
                         'metadata' => [
                             'assignment_reason' => 'Field sales distribution',
                             'territory' => $this->getSalesmanTerritory($salesman),
@@ -274,9 +267,7 @@ class TokenManagementSeeder extends Seeder
                     'from_role' => 'salesman',
                     'to_user_id' => null,
                     'to_role' => null,
-                    'assignment_type' => 'usage',
-                    'status' => 'completed',
-                    'assigned_at' => $token->used_at,
+                    'action' => 'used',
                     'metadata' => [
                         'usage_reason' => 'Customer onboarding',
                         'note' => 'Token used for EMI customer registration',
@@ -323,9 +314,9 @@ class TokenManagementSeeder extends Seeder
         ];
 
         $assignments = [
-            'generations' => TokenAssignment::where('assignment_type', 'generation')->count(),
-            'assignments' => TokenAssignment::where('assignment_type', 'assignment')->count(),
-            'usages' => TokenAssignment::where('assignment_type', 'usage')->count(),
+            'generations' => TokenAssignment::where('action', 'generated')->count(),
+            'assignments' => TokenAssignment::where('action', 'assigned')->count(),
+            'usages' => TokenAssignment::where('action', 'used')->count(),
         ];
 
         $this->command->table(

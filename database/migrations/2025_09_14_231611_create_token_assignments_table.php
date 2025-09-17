@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('token_id')->constrained()->onDelete('cascade');
             $table->foreignId('from_user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('to_user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('to_user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->enum('action', ['generated', 'assigned', 'used']);
             $table->string('from_role')->nullable();
-            $table->string('to_role');
+            $table->string('to_role')->nullable();
             $table->text('notes')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();

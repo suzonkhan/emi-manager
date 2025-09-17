@@ -175,7 +175,7 @@ class UserHierarchySeeder extends Seeder
             $address = $this->createAddress([
                 'street_address' => "{$zoneName} Office, Shop {$shopNumber}",
                 'landmark' => "Near {$upazilla['name']} Market",
-                'postal_code' => substr($upazilla['postal_code'], 0, 4),
+                'postal_code' => $this->generatePostalCode($upazilla),
                 'upazilla' => $upazilla,
             ]);
 
@@ -221,7 +221,7 @@ class UserHierarchySeeder extends Seeder
             $address = $this->createAddress([
                 'street_address' => "House #{$houseNumber}, Road #{$roadNumber}",
                 'landmark' => "Near {$upazilla['name']} School",
-                'postal_code' => $upazilla['postal_code'],
+                'postal_code' => $this->generatePostalCode($upazilla),
                 'upazilla' => $upazilla,
             ]);
 
@@ -364,5 +364,17 @@ class UserHierarchySeeder extends Seeder
                 ['Total Users', array_sum($counts)],
             ]
         );
+    }
+
+    private function generatePostalCode(array $upazilla): string
+    {
+        // Generate postal code based on upazilla and district
+        $districtId = $upazilla['district_id'];
+        $upazillaId = $upazilla['id'];
+        
+        // Create a 4-digit postal code: first 2 digits from district, last 2 from upazilla
+        $postalCode = str_pad($districtId, 2, '0', STR_PAD_LEFT) . str_pad($upazillaId % 100, 2, '0', STR_PAD_LEFT);
+        
+        return $postalCode;
     }
 }
