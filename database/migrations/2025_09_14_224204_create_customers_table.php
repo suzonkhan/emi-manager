@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->string('nid_no')->unique(); // National ID number
+            $table->string('nid_no', 100)->unique(); // National ID number - limited for composite index
             $table->string('name');
             $table->string('email')->nullable();
-            $table->string('mobile');
+            $table->string('mobile', 100); // Limited for composite index
 
             // Present Address
             $table->foreignId('present_address_id')->constrained('addresses')->onDelete('cascade');
@@ -43,7 +43,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'completed', 'defaulted', 'cancelled'])->default('active');
             $table->timestamps();
 
-            $table->index(['nid_no', 'mobile']);
+            $table->index(['nid_no', 'mobile']); // Now safe with limited lengths
             $table->index(['created_by', 'status']);
             $table->index('token_id');
         });
