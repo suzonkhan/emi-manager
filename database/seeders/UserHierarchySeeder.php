@@ -50,29 +50,32 @@ class UserHierarchySeeder extends Seeder
 
     private function getDhakaUpazillas(): array
     {
-        return Upazilla::whereHas('district', function ($query) {
-            $query->whereHas('division', function ($query) {
-                $query->where('name', 'Dhaka');
-            });
-        })->limit(10)->get()->toArray();
+        return Upazilla::with('district.division')
+            ->whereHas('district', function ($query) {
+                $query->whereHas('division', function ($query) {
+                    $query->where('name', 'Dhaka');
+                });
+            })->limit(10)->get()->toArray();
     }
 
     private function getChittagongUpazillas(): array
     {
-        return Upazilla::whereHas('district', function ($query) {
-            $query->whereHas('division', function ($query) {
-                $query->where('name', 'Chittagong');
-            });
-        })->limit(8)->get()->toArray();
+        return Upazilla::with('district.division')
+            ->whereHas('district', function ($query) {
+                $query->whereHas('division', function ($query) {
+                    $query->where('name', 'Chittagong');
+                });
+            })->limit(8)->get()->toArray();
     }
 
     private function getRajshahiUpazillas(): array
     {
-        return Upazilla::whereHas('district', function ($query) {
-            $query->whereHas('division', function ($query) {
-                $query->where('name', 'Rajshahi');
-            });
-        })->limit(6)->get()->toArray();
+        return Upazilla::with('district.division')
+            ->whereHas('district', function ($query) {
+                $query->whereHas('division', function ($query) {
+                    $query->where('name', 'Rajshahi');
+                });
+            })->limit(6)->get()->toArray();
     }
 
     private function createSuperAdmin(array $upazilla): User
