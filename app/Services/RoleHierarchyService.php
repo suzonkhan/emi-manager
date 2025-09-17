@@ -27,6 +27,18 @@ class RoleHierarchyService
     }
 
     /**
+     * Get roles that can be assigned by a specific role
+     */
+    public function getAssignableRolesByRole(?string $role): array
+    {
+        if ($role === null) {
+            return [];
+        }
+        
+        return $this->hierarchy[$role] ?? [];
+    }
+
+    /**
      * Check if a user can assign a specific role
      */
     public function canAssignRole(User $user, string $targetRole): bool

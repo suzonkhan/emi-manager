@@ -47,6 +47,19 @@ class TokenAssignmentRepository implements TokenAssignmentRepositoryInterface
      */
     public function recordGeneration(Token $token, User $generator, array $metadata = []): TokenAssignment
     {
+        // Defensive check for null or incomplete user object
+        if (!$generator) {
+            throw new \InvalidArgumentException('Generator user cannot be null');
+        }
+        
+        if (!$generator->name) {
+            throw new \InvalidArgumentException('Generator user must have a name property');
+        }
+        
+        if (!$generator->role) {
+            throw new \InvalidArgumentException('Generator user must have a role property');
+        }
+        
         return $this->create([
             'token_id' => $token->id,
             'from_user_id' => null,
@@ -66,6 +79,15 @@ class TokenAssignmentRepository implements TokenAssignmentRepositoryInterface
      */
     public function recordAssignment(Token $token, User $fromUser, User $toUser, array $metadata = []): TokenAssignment
     {
+        // Defensive checks for null or incomplete user objects
+        if (!$fromUser || !$fromUser->name || !$fromUser->role) {
+            throw new \InvalidArgumentException('From user must have name and role properties');
+        }
+        
+        if (!$toUser || !$toUser->name || !$toUser->role) {
+            throw new \InvalidArgumentException('To user must have name and role properties');
+        }
+        
         return $this->create([
             'token_id' => $token->id,
             'from_user_id' => $fromUser->id,
@@ -85,6 +107,11 @@ class TokenAssignmentRepository implements TokenAssignmentRepositoryInterface
      */
     public function recordUsage(Token $token, User $user, array $metadata = []): TokenAssignment
     {
+        // Defensive check for null or incomplete user object
+        if (!$user || !$user->name || !$user->role) {
+            throw new \InvalidArgumentException('User must have name and role properties');
+        }
+        
         return $this->create([
             'token_id' => $token->id,
             'from_user_id' => $user->id,

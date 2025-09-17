@@ -38,7 +38,7 @@ class TokenController extends Controller
                 'message' => "Generated {$tokens->count()} tokens successfully",
             ]);
         } catch (\Exception $e) {
-            return $this->error($e->getMessage(), null, 403);
+            return $this->error($e->getMessage(), null, 400);
         }
     }
 
@@ -156,7 +156,7 @@ class TokenController extends Controller
     {
         try {
             $user = $request->user();
-            $assignableRoles = $this->roleHierarchyService->getAssignableRoles($user->role);
+            $assignableRoles = $this->roleHierarchyService->getAssignableRoles($user);
 
             $assignableUsers = User::whereIn('role', $assignableRoles)
                 ->select(['id', 'name', 'email', 'role'])

@@ -24,6 +24,11 @@ class TokenService
      */
     public function generateTokens(User $user, int $quantity): Collection
     {
+        // Validate user object completeness
+        if (!$user || !$user->name || !$user->email) {
+            throw new Exception('User authentication error: incomplete user data. Please log out and log back in.');
+        }
+        
         if (! $user->hasRole('super_admin')) {
             throw new Exception('Only super admin can generate tokens');
         }

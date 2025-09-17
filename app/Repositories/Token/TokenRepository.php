@@ -138,7 +138,7 @@ class TokenRepository implements TokenRepositoryInterface
 
     public function bulkCreateTokens(array $tokensData): Collection
     {
-        $tokens = collect();
+        $tokens = new Collection();
 
         DB::transaction(function () use ($tokensData, &$tokens) {
             foreach ($tokensData as $tokenData) {
@@ -153,13 +153,18 @@ class TokenRepository implements TokenRepositoryInterface
     {
         $query = Token::query();
 
+        // If user has no role, return empty query
+        if (!$user->role) {
+            return $query->whereRaw('1 = 0'); // Returns no results
+        }
+
         // Super admin can see all tokens
         if ($user->role === 'super_admin') {
             return $query;
         }
 
         // Get assignable roles for the user
-        $assignableRoles = $this->roleHierarchyService->getAssignableRoles($user->role);
+        $assignableRoles = $this->roleHierarchyService->getAssignableRolesByRole($user->role);
 
         // User can see tokens created by users in their hierarchy or assigned to them
         return $query->where(function (Builder $q) use ($user, $assignableRoles) {

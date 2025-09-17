@@ -48,6 +48,15 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the user's role name
+     */
+    public function getRoleAttribute(): ?string
+    {
+        $role = $this->getRoleNames()->first();
+        return $role ?: null;
+    }
+
     protected static function boot(): void
     {
         parent::boot();
