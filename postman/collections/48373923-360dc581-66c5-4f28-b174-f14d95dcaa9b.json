@@ -399,7 +399,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"count\": 100\n}"
+							"raw": "{\n  \"quantity\": 10,\n  \"notes\": \"Optional generation notes\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/tokens/generate",
