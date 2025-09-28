@@ -1045,6 +1045,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
+				"id": "2ab4829f-1edb-4286-9ea1-a459176209cb",
 				"type": "text/javascript",
 				"exec": [
 					"// Auto-set base URL if not set",
@@ -1057,6 +1058,7 @@
 		{
 			"listen": "test",
 			"script": {
+				"id": "d8a53b13-491f-4d22-9c96-a0582412d4fb",
 				"type": "text/javascript",
 				"exec": [
 					"// Auto-extract token from login response",
@@ -1092,13 +1094,11 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8000/api",
-			"type": "string"
+			"value": "http://localhost:8000/api"
 		},
 		{
 			"key": "token",
-			"value": "",
-			"type": "string"
+			"value": ""
 		}
 	]
 }
