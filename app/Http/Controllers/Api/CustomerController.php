@@ -26,7 +26,15 @@ class CustomerController extends Controller
             $perPage = $request->integer('per_page', 15);
             $customers = $this->customerService->getCustomersByUser($request->user(), $perPage);
 
-            return $this->success(CustomerResource::collection($customers));
+            return $this->success([
+                'customers' => CustomerResource::collection($customers->items()),
+                'pagination' => [
+                    'current_page' => $customers->currentPage(),
+                    'last_page' => $customers->lastPage(),
+                    'per_page' => $customers->perPage(),
+                    'total' => $customers->total(),
+                ],
+            ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }

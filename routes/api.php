@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Api\UserController;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Authentication routes (public)
@@ -64,30 +64,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
+    // Location routes for addresses
+    Route::prefix('locations')->group(function () {
+        Route::get('/divisions', [LocationController::class, 'getDivisions']);
+        Route::get('/districts/{division_id}', [LocationController::class, 'getDistricts']);
+        Route::get('/upazillas/{district_id}', [LocationController::class, 'getUpazillas']);
+    });
+
     // Dashboard and stats routes
     Route::prefix('dashboard')->group(function () {
-        Route::get('/stats', function (Request $request) {
-            $user = $request->user();
-
-            $stats = [
-                'total_subordinates' => $user->children()->count(),
-                'active_subordinates' => $user->children()->where('is_active', true)->count(),
-                'my_role' => $user->getRoleNames()->first(),
-                'hierarchy_level' => $user->getHierarchyLevel(),
-            ];
-
-            if ($user->hasRole('super_admin')) {
-                $stats['total_users'] = User::count();
-                $stats['active_users'] = User::where('is_active', true)->count();
-                $stats['roles_distribution'] = User::join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                    ->groupBy('roles.name')
-                    ->selectRaw('roles.name as role, count(*) as count')
-                    ->get();
-            }
-
-            return response()->json(['stats' => $stats]);
-        });
+        Route::get('/stats', [DashboardController::class, 'stats']);
     });
 });
 

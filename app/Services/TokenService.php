@@ -144,11 +144,27 @@ class TokenService
     }
 
     /**
+     * Get available tokens for a user with pagination
+     */
+    public function getAvailableTokensPaginated(User $user, int $perPage = 15, string $search = ''): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        return $this->tokenRepository->getAvailableTokensForUserPaginated($user, $perPage, $search);
+    }
+
+    /**
      * Get tokens created by user
      */
     public function getCreatedTokens(User $user): Collection
     {
         return $this->tokenRepository->getCreatedTokensByUser($user);
+    }
+
+    /**
+     * Get tokens created by user with pagination
+     */
+    public function getCreatedTokensPaginated(User $user, int $perPage = 15, string $search = ''): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        return $this->tokenRepository->getCreatedTokensByUserPaginated($user, $perPage, $search);
     }
 
     /**

@@ -49,16 +49,25 @@ class TokenController extends Controller
     {
         try {
             $user = $request->user();
-            $availableTokens = $this->tokenService->getAvailableTokens($user);
+            $perPage = $request->integer('per_page', 15);
+            $search = $request->string('search', '');
+
+            $availableTokens = $this->tokenService->getAvailableTokensPaginated($user, $perPage, $search);
             $createdTokens = collect();
 
-            if ($user->role === 'super_admin') {
-                $createdTokens = $this->tokenService->getCreatedTokens($user);
+            if ($user->hasRole('super_admin')) {
+                $createdTokens = $this->tokenService->getCreatedTokensPaginated($user, $perPage, $search);
             }
 
             return $this->success([
-                'available_tokens' => TokenResource::collection($availableTokens),
-                'created_tokens' => TokenResource::collection($createdTokens),
+                'available_tokens' => TokenResource::collection($availableTokens->items()),
+                'created_tokens' => TokenResource::collection($createdTokens instanceof \Illuminate\Pagination\LengthAwarePaginator ? $createdTokens->items() : $createdTokens),
+                'pagination' => [
+                    'current_page' => $availableTokens->currentPage(),
+                    'last_page' => $availableTokens->lastPage(),
+                    'per_page' => $availableTokens->perPage(),
+                    'total' => $availableTokens->total(),
+                ],
             ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());

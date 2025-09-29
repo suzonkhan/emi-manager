@@ -34,12 +34,38 @@ class TokenRepository implements TokenRepositoryInterface
             ->get();
     }
 
+    public function getAvailableTokensForUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator
+    {
+        $query = $this->getTokensQueryForUser($user)
+            ->where('status', 'available')
+            ->with(['creator']);
+
+        if (!empty($search)) {
+            $query->where('code', 'like', "%{$search}%");
+        }
+
+        return $query->paginate($perPage);
+    }
+
     public function getCreatedTokensByUser(User $user): Collection
     {
         return Token::where('created_by', $user->id)
             ->with(['assignedTo', 'usedBy'])
             ->latest()
             ->get();
+    }
+
+    public function getCreatedTokensByUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator
+    {
+        $query = Token::where('created_by', $user->id)
+            ->with(['assignedTo', 'usedBy'])
+            ->latest();
+
+        if (!empty($search)) {
+            $query->where('code', 'like', "%{$search}%");
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function getAssignedTokensByUser(User $user): Collection
