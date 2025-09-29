@@ -2,11 +2,10 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Api\UserController;
-use App\Models\District;
-use App\Models\Division;
-use App\Models\Upazilla;
+
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +20,13 @@ Route::prefix('auth')->group(function () {
         Route::get('/profile', [AuthController::class, 'profile']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
     });
+});
+
+// Location routes for addresses (public access for now)
+Route::prefix('locations')->group(function () {
+    Route::get('/divisions', [LocationController::class, 'getDivisions']);
+    Route::get('/districts/{division_id}', [LocationController::class, 'getDistricts']);
+    Route::get('/upazillas/{district_id}', [LocationController::class, 'getUpazillas']);
 });
 
 // Protected routes
@@ -56,26 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/documents', [CustomerController::class, 'uploadDocuments']);
     });
 
-    // Location routes for addresses
-    Route::prefix('locations')->group(function () {
-        Route::get('/divisions', function () {
-            return response()->json([
-                'divisions' => Division::active()->get(),
-            ]);
-        });
 
-        Route::get('/districts/{division_id}', function ($divisionId) {
-            return response()->json([
-                'districts' => District::where('division_id', $divisionId)->active()->get(),
-            ]);
-        });
-
-        Route::get('/upazillas/{district_id}', function ($districtId) {
-            return response()->json([
-                'upazillas' => Upazilla::where('district_id', $districtId)->active()->get(),
-            ]);
-        });
-    });
 
     // Dashboard and stats routes
     Route::prefix('dashboard')->group(function () {
