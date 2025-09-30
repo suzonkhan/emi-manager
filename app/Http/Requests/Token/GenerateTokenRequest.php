@@ -9,7 +9,8 @@ class GenerateTokenRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        return $user && $user->role === 'super_admin';
+        $userRole = $user ? $user->getRoleNames()->first() : null;
+        return $user && $userRole === 'super_admin';
     }
 
     public function rules(): array

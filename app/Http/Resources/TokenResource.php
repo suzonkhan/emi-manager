@@ -25,21 +25,21 @@ class TokenResource extends JsonResource
             'creator' => $this->creator ? [
                 'id' => $this->creator->id,
                 'name' => $this->creator->name,
-                'role' => $this->creator->role,
+                'role' => $this->creator->getRoleNames()->first(),
             ] : null,
 
             // Current assignment
             'assigned_to' => $this->when($this->assignedTo, [
                 'id' => $this->assignedTo?->id,
                 'name' => $this->assignedTo?->name,
-                'role' => $this->assignedTo?->role,
+                'role' => $this->assignedTo?->getRoleNames()->first(),
             ]),
 
             // Usage information
             'used_by' => $this->when($this->usedBy, [
                 'id' => $this->usedBy?->id,
                 'name' => $this->usedBy?->name,
-                'role' => $this->usedBy?->role,
+                'role' => $this->usedBy?->getRoleNames()->first(),
             ]),
 
             // Customer information if token is used

@@ -167,8 +167,8 @@ class TokenController extends Controller
             $user = $request->user();
             $assignableRoles = $this->roleHierarchyService->getAssignableRoles($user);
 
-            $assignableUsers = User::whereIn('role', $assignableRoles)
-                ->select(['id', 'name', 'email', 'role'])
+            $assignableUsers = User::role($assignableRoles)
+                ->select(['id', 'name', 'email'])
                 ->get();
 
             return $this->success([
@@ -176,7 +176,7 @@ class TokenController extends Controller
                     'id' => $u->id,
                     'name' => $u->name,
                     'email' => $u->email,
-                    'role' => $u->role,
+                    'role' => $u->getRoleNames()->first(),
                 ]),
             ]);
         } catch (\Exception $e) {

@@ -55,11 +55,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Customer management routes
     Route::prefix('customers')->group(function () {
         Route::get('/', [CustomerController::class, 'index']);
-        Route::post('/', [CustomerController::class, 'store']); // Salesman only
+        Route::post('/', [CustomerController::class, 'store']);
+        Route::get('/search', [CustomerController::class, 'search']);
         Route::get('/statistics', [CustomerController::class, 'statistics']);
+        Route::get('/overdue', [CustomerController::class, 'overdue']);
+        Route::get('/due-soon', [CustomerController::class, 'dueSoon']);
+        Route::get('/pending-amount', [CustomerController::class, 'pendingAmount']);
         Route::get('/{id}', [CustomerController::class, 'show']);
-        Route::patch('/{id}/status', [CustomerController::class, 'updateStatus']);
-        Route::post('/{id}/documents', [CustomerController::class, 'uploadDocuments']);
+        Route::put('/{id}', [CustomerController::class, 'update']);
+        Route::delete('/{id}', [CustomerController::class, 'destroy']);
     });
 
 

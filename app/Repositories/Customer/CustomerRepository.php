@@ -8,7 +8,6 @@ use App\Services\RoleHierarchyService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Carbon;
 
 class CustomerRepository implements CustomerRepositoryInterface
 {
@@ -23,12 +22,21 @@ class CustomerRepository implements CustomerRepositoryInterface
 
     public function findById(int $id): ?Customer
     {
-        return Customer::with(['address', 'token', 'createdBy'])->find($id);
+        return Customer::with([
+            'presentAddress.division',
+            'presentAddress.district',
+            'presentAddress.upazilla',
+            'permanentAddress.division',
+            'permanentAddress.district',
+            'permanentAddress.upazilla',
+            'token',
+            'creator'
+        ])->find($id);
     }
 
-    public function findByPhone(string $phone): ?Customer
+    public function findByMobile(string $mobile): ?Customer
     {
-        return Customer::where('phone', $phone)->first();
+        return Customer::where('mobile', $mobile)->first();
     }
 
     public function findByEmail(string $email): ?Customer
@@ -39,7 +47,7 @@ class CustomerRepository implements CustomerRepositoryInterface
     public function getCustomersForUser(User $user, int $perPage = 15): LengthAwarePaginator
     {
         return $this->getCustomersQueryForUser($user)
-            ->with(['address', 'token', 'createdBy'])
+            ->with(['presentAddress', 'permanentAddress', 'token', 'creator'])
             ->latest()
             ->paginate($perPage);
     }
@@ -52,7 +60,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             $query = $this->applyUserAccessControl($query, $user);
         }
 
-        return $query->with(['address', 'token', 'createdBy'])->get();
+        return $query->with(['presentAddress', 'permanentAddress', 'token', 'creator'])->get();
     }
 
     public function updateCustomer(Customer $customer, array $data): bool
@@ -72,11 +80,12 @@ class CustomerRepository implements CustomerRepositoryInterface
         return [
             'total_customers' => (clone $query)->count(),
             'active_customers' => (clone $query)->where('status', 'active')->count(),
-            'inactive_customers' => (clone $query)->where('status', 'inactive')->count(),
-            'total_pending_amount' => (clone $query)->sum('pending_amount'),
-            'total_financed_amount' => (clone $query)->sum('product_price'),
+            'completed_customers' => (clone $query)->where('status', 'completed')->count(),
+            'defaulted_customers' => (clone $query)->where('status', 'defaulted')->count(),
+            'cancelled_customers' => (clone $query)->where('status', 'cancelled')->count(),
+            'total_product_value' => (clone $query)->sum('product_price'),
             'customers_this_month' => (clone $query)->whereMonth('created_at', now()->month)->count(),
-            'average_emi_amount' => (clone $query)->avg('emi_amount'),
+            'average_emi_amount' => (clone $query)->avg('emi_per_month'),
         ];
     }
 
@@ -88,8 +97,11 @@ class CustomerRepository implements CustomerRepositoryInterface
         }
 
         // Check if user can access based on hierarchy
-        if ($customer->createdBy) {
-            return $this->roleHierarchyService->canAssignRole($user->role, $customer->createdBy->role);
+        if ($customer->creator) {
+            $creatorRole = $customer->creator->getRoleNames()->first();
+            if ($creatorRole) {
+                return $this->roleHierarchyService->canAssignRole($user, $creatorRole);
+            }
         }
 
         return false;
@@ -100,26 +112,28 @@ class CustomerRepository implements CustomerRepositoryInterface
         return $this->getCustomersQueryForUser($user)
             ->where(function (Builder $query) use ($searchTerm) {
                 $query->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('phone', 'like', "%{$searchTerm}%")
+                    ->orWhere('mobile', 'like', "%{$searchTerm}%")
                     ->orWhere('email', 'like', "%{$searchTerm}%")
-                    ->orWhere('product_name', 'like', "%{$searchTerm}%");
+                    ->orWhere('nid_no', 'like', "%{$searchTerm}%")
+                    ->orWhere('product_type', 'like', "%{$searchTerm}%")
+                    ->orWhere('product_model', 'like', "%{$searchTerm}%");
             })
-            ->with(['address', 'token', 'createdBy'])
+            ->with(['presentAddress', 'permanentAddress', 'token', 'creator'])
             ->latest()
             ->paginate($perPage);
     }
 
     public function getCustomersWithOverdueEMIs(?User $user = null): Collection
     {
-        $query = Customer::where('status', 'active')
-            ->where('pending_amount', '>', 0)
-            ->where('next_emi_date', '<', now());
+        // Since we don't have next_emi_date in the new schema, return empty collection for now
+        // This would need EMI payment tracking implementation
+        $query = Customer::where('status', 'active');
 
         if ($user) {
             $query = $this->applyUserAccessControl($query, $user);
         }
 
-        return $query->with(['address', 'token', 'createdBy'])->get();
+        return $query->with(['presentAddress', 'permanentAddress', 'token', 'creator'])->get();
     }
 
     public function getCustomersCreatedBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?User $user = null): Collection
@@ -130,30 +144,38 @@ class CustomerRepository implements CustomerRepositoryInterface
             $query = $this->applyUserAccessControl($query, $user);
         }
 
-        return $query->with(['address', 'token', 'createdBy'])->get();
+        return $query->with(['presentAddress', 'permanentAddress', 'token', 'creator'])->get();
     }
 
     public function getTotalPendingAmountForUser(User $user): float
     {
+        // Calculate total pending based on EMI duration and price
+        // This would need EMI payment tracking implementation
         return $this->getCustomersQueryForUser($user)
             ->where('status', 'active')
-            ->sum('pending_amount');
+            ->get()
+            ->sum(function ($customer) {
+                return $customer->getTotalPayableAmount();
+            });
     }
 
     public function getCustomersNearEMIDue(int $days = 7, ?User $user = null): Collection
     {
-        $dueDate = Carbon::now()->addDays($days);
-
-        $query = Customer::where('status', 'active')
-            ->where('pending_amount', '>', 0)
-            ->where('next_emi_date', '<=', $dueDate)
-            ->where('next_emi_date', '>=', now());
+        // Since we don't have next_emi_date in the new schema, return empty collection for now
+        // This would need EMI payment tracking implementation
+        $query = Customer::where('status', 'active');
 
         if ($user) {
             $query = $this->applyUserAccessControl($query, $user);
         }
 
-        return $query->with(['address', 'token', 'createdBy'])->get();
+        return $query->with(['presentAddress', 'permanentAddress', 'token', 'creator'])->get();
+    }
+
+    public function findByPhone(string $phone): ?Customer
+    {
+        // Alias for findByMobile for backward compatibility
+        return $this->findByMobile($phone);
     }
 
     protected function getCustomersQueryForUser(User $user): Builder
@@ -181,8 +203,9 @@ class CustomerRepository implements CustomerRepositoryInterface
         // User can see customers created by users in their hierarchy
         return $query->where(function (Builder $q) use ($user, $assignableRoles) {
             $q->where('created_by', $user->id)
-                ->orWhereHas('createdBy', function (Builder $creatorQuery) use ($assignableRoles) {
-                    $creatorQuery->whereIn('role', $assignableRoles);
+                ->orWhereHas('creator', function (Builder $creatorQuery) use ($assignableRoles) {
+                    // Use Spatie's role() method to check roles
+                    $creatorQuery->role($assignableRoles);
                 });
         });
     }

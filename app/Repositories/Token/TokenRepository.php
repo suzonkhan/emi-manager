@@ -145,7 +145,10 @@ class TokenRepository implements TokenRepositoryInterface
 
         // User can access tokens if they are in the hierarchy below the creator
         if ($token->creator) {
-            return $this->roleHierarchyService->canAssignRole($user->role, $token->creator->role);
+            $creatorRole = $token->creator->getRoleNames()->first();
+            if ($creatorRole) {
+                return $this->roleHierarchyService->canAssignRole($user, $creatorRole);
+            }
         }
 
         return false;
@@ -155,9 +158,9 @@ class TokenRepository implements TokenRepositoryInterface
     {
         return $this->getTokensQueryForUser($user)
             ->with([
-                'creator:id,name,email,role',
-                'assignedTo:id,name,email,role',
-                'usedBy:id,name,email,role'
+                'creator:id,name,email',
+                'assignedTo:id,name,email',
+                'usedBy:id,name,email'
             ])
             ->get();
     }
@@ -179,25 +182,28 @@ class TokenRepository implements TokenRepositoryInterface
     {
         $query = Token::query();
 
+        // Get user's role
+        $userRole = $user->getRoleNames()->first();
+
         // If user has no role, return empty query
-        if (!$user->role) {
+        if (!$userRole) {
             return $query->whereRaw('1 = 0'); // Returns no results
         }
 
         // Super admin can see all tokens
-        if ($user->role === 'super_admin') {
+        if ($userRole === 'super_admin') {
             return $query;
         }
 
         // Get assignable roles for the user
-        $assignableRoles = $this->roleHierarchyService->getAssignableRolesByRole($user->role);
+        $assignableRoles = $this->roleHierarchyService->getAssignableRolesByRole($userRole);
 
         // User can see tokens created by users in their hierarchy or assigned to them
         return $query->where(function (Builder $q) use ($user, $assignableRoles) {
             $q->where('created_by', $user->id)
               ->orWhere('assigned_to', $user->id)
               ->orWhereHas('creator', function (Builder $creatorQuery) use ($assignableRoles) {
-                  $creatorQuery->whereIn('role', $assignableRoles);
+                  $creatorQuery->role($assignableRoles);
               });
         });
     }

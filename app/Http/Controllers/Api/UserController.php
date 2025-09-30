@@ -25,6 +25,16 @@ class UserController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        // Check if filtering by role
+        if ($request->has('role')) {
+            $users = $this->userService->getUsersByRole($request->input('role'), $request->user());
+
+            return $this->success([
+                'data' => UserListResource::collection($users),
+                'message' => 'Users retrieved successfully',
+            ]);
+        }
+
         $users = $this->userService->getAllUsers($request->user(), 15);
 
         return $this->success([

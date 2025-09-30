@@ -14,7 +14,7 @@ class UpdateCustomerRequest extends FormRequest
 
     public function rules(): array
     {
-        $customerId = $this->route('customer');
+        $customerId = $this->route('id');
 
         return [
             'name' => [
@@ -24,7 +24,7 @@ class UpdateCustomerRequest extends FormRequest
                 'max:255',
                 'min:2',
             ],
-            'phone' => [
+            'mobile' => [
                 'sometimes',
                 'required',
                 'string',
@@ -38,60 +38,145 @@ class UpdateCustomerRequest extends FormRequest
                 'max:255',
                 Rule::unique('customers')->ignore($customerId),
             ],
-            'product_name' => [
+            'product_type' => [
                 'sometimes',
                 'required',
+                'string',
+                'max:255',
+            ],
+            'product_model' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'product_price' => [
+                'sometimes',
+                'required',
+                'numeric',
+                'min:1000',
+            ],
+            'emi_per_month' => [
+                'sometimes',
+                'required',
+                'numeric',
+                'min:100',
+            ],
+            'emi_duration_months' => [
+                'sometimes',
+                'required',
+                'integer',
+                'min:1',
+                'max:120',
+            ],
+            'imei_1' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'imei_2' => [
+                'sometimes',
+                'nullable',
                 'string',
                 'max:255',
             ],
             'status' => [
                 'sometimes',
                 'required',
-                Rule::in(['active', 'inactive', 'completed', 'defaulted']),
+                Rule::in(['active', 'completed', 'defaulted', 'cancelled']),
             ],
-            'document' => [
+            'documents' => [
                 'sometimes',
                 'nullable',
+                'array',
+            ],
+            'documents.*' => [
                 'file',
                 'mimes:pdf,jpg,jpeg,png',
                 'max:5120', // 5MB
             ],
-            // Address fields
-            'address_line_1' => [
+            // Present Address fields
+            'present_address' => [
+                'sometimes',
+                'array',
+            ],
+            'present_address.street_address' => [
                 'sometimes',
                 'required',
                 'string',
                 'max:255',
             ],
-            'address_line_2' => [
+            'present_address.landmark' => [
                 'sometimes',
                 'nullable',
                 'string',
                 'max:255',
             ],
-            'city' => [
+            'present_address.postal_code' => [
                 'sometimes',
-                'required',
+                'nullable',
                 'string',
-                'max:100',
+                'max:10',
             ],
-            'state' => [
+            'present_address.division_id' => [
                 'sometimes',
                 'required',
-                'string',
-                'max:100',
+                'integer',
+                'exists:divisions,id',
             ],
-            'postal_code' => [
+            'present_address.district_id' => [
                 'sometimes',
                 'required',
-                'string',
-                'max:20',
+                'integer',
+                'exists:districts,id',
             ],
-            'country' => [
+            'present_address.upazilla_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                'exists:upazillas,id',
+            ],
+            // Permanent Address fields
+            'permanent_address' => [
+                'sometimes',
+                'array',
+            ],
+            'permanent_address.street_address' => [
                 'sometimes',
                 'required',
                 'string',
-                'max:100',
+                'max:255',
+            ],
+            'permanent_address.landmark' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'permanent_address.postal_code' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:10',
+            ],
+            'permanent_address.division_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                'exists:divisions,id',
+            ],
+            'permanent_address.district_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                'exists:districts,id',
+            ],
+            'permanent_address.upazilla_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                'exists:upazillas,id',
             ],
         ];
     }
@@ -101,29 +186,26 @@ class UpdateCustomerRequest extends FormRequest
         return [
             'name.required' => 'Customer name is required.',
             'name.min' => 'Customer name must be at least 2 characters.',
-            'phone.required' => 'Phone number is required.',
-            'phone.regex' => 'Please enter a valid phone number.',
-            'phone.unique' => 'This phone number is already registered.',
+            'mobile.required' => 'Mobile number is required.',
+            'mobile.regex' => 'Please enter a valid mobile number.',
+            'mobile.unique' => 'This mobile number is already registered.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email address is already registered.',
-            'product_name.required' => 'Product name is required.',
-            'status.in' => 'Status must be one of: active, inactive, completed, defaulted.',
-            'document.mimes' => 'Document must be a PDF, JPG, JPEG, or PNG file.',
-            'document.max' => 'Document size cannot exceed 5MB.',
-            'address_line_1.required' => 'Address line 1 is required.',
-            'city.required' => 'City is required.',
-            'state.required' => 'State is required.',
-            'postal_code.required' => 'Postal code is required.',
-            'country.required' => 'Country is required.',
+            'product_type.required' => 'Product type is required.',
+            'status.in' => 'Status must be one of: active, completed, defaulted, cancelled.',
+            'documents.*.mimes' => 'Documents must be PDF, JPG, JPEG, or PNG files.',
+            'documents.*.max' => 'Document size cannot exceed 5MB.',
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'address_line_1' => 'address line 1',
-            'address_line_2' => 'address line 2',
-            'postal_code' => 'postal code',
+            'mobile' => 'mobile number',
+            'product_type' => 'product type',
+            'product_model' => 'product model',
+            'emi_per_month' => 'EMI per month',
+            'emi_duration_months' => 'EMI duration',
         ];
     }
 }

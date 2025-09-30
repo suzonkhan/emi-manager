@@ -298,12 +298,12 @@ class DataIntegrityTestSeeder extends Seeder
 
         foreach ($customers as $customer) {
             $totalPayable = $customer->emi_per_month * $customer->emi_duration_months;
-            $interestAmount = $totalPayable - $customer->product_price;
-            $interestRate = ($interestAmount / $customer->product_price) * 100;
+            $serviceChargeAmount = $totalPayable - $customer->product_price;
+            $serviceChargeRate = ($serviceChargeAmount / $customer->product_price) * 100;
 
-            // Check if interest rate is reasonable (5-25%)
-            if ($interestRate < 5 || $interestRate > 25) {
-                $warnings[] = "Customer {$customer->name} has unusual interest rate: ".round($interestRate, 2).'%';
+            // Check if service charge rate is reasonable (5-25%)
+            if ($serviceChargeRate < 5 || $serviceChargeRate > 25) {
+                $warnings[] = "Customer {$customer->name} has unusual service charge rate: ".round($serviceChargeRate, 2).'%';
             }
 
             // Check EMI duration is reasonable

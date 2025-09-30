@@ -26,6 +26,30 @@ class UserService
         return $this->userRepository->getUsersByHierarchy($currentUser, $perPage);
     }
 
+    public function getUsersByRole(string $role, User $currentUser): \Illuminate\Database\Eloquent\Collection
+    {
+        // Validate that the current user can access users with this role
+        if (!$this->roleHierarchyService->canAssignRole($currentUser, $role)) {
+            return collect(); // Return empty collection if not authorized
+        }
+
+        $query = User::role($role)->select(['id', 'name', 'email', 'phone']);
+
+        // Filter based on current user's role and hierarchy
+        $currentUserRole = $currentUser->getRoleNames()->first();
+
+        if ($currentUserRole === 'dealer' && $role === 'sub_dealer') {
+            // Dealer should see only their own created sub dealers
+            $query->where('parent_id', $currentUser->id);
+        } elseif ($currentUserRole === 'sub_dealer' && $role === 'salesman') {
+            // Sub Dealer should see only their own created salesmen
+            $query->where('parent_id', $currentUser->id);
+        }
+        // Super Admin can see all users of the requested role (no additional filtering)
+
+        return $query->get();
+    }
+
     public function getUserDetails(int $id, User $currentUser): ?User
     {
         $user = $this->userRepository->findUserWithDetails($id);
@@ -102,6 +126,25 @@ class UserService
             }
 
             $this->userRepository->updateUser($user, $updateData);
+
+            // Update addresses if provided
+            if ($presentAddressData = $request->getPresentAddressData()) {
+                if ($user->present_address_id && $user->presentAddress) {
+                    $user->presentAddress->update($presentAddressData);
+                } else {
+                    $presentAddress = Address::create($presentAddressData);
+                    $user->update(['present_address_id' => $presentAddress->id]);
+                }
+            }
+
+            if ($permanentAddressData = $request->getPermanentAddressData()) {
+                if ($user->permanent_address_id && $user->permanentAddress) {
+                    $user->permanentAddress->update($permanentAddressData);
+                } else {
+                    $permanentAddress = Address::create($permanentAddressData);
+                    $user->update(['permanent_address_id' => $permanentAddress->id]);
+                }
+            }
 
             if ($roleId = $request->getRoleId()) {
                 $user->syncRoles([$roleId]);

@@ -61,7 +61,7 @@ class Customer extends Model
         return $this->emi_per_month * $this->emi_duration_months;
     }
 
-    public function getInterestAmount(): float
+    public function getServiceChargeAmount(): float
     {
         return $this->getTotalPayableAmount() - $this->product_price;
     }

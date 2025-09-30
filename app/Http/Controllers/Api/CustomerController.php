@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CreateCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
-use App\Http\Resources\CustomerResource;
+use App\Http\Resources\CustomerDetailResource;
+use App\Http\Resources\CustomerListResource;
 use App\Services\CustomerService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,7 @@ class CustomerController extends Controller
     public function __construct(private CustomerService $customerService) {}
 
     /**
-     * Get customers list
+     * Get customers list (minimal data for listing)
      */
     public function index(Request $request): JsonResponse
     {
@@ -27,7 +28,7 @@ class CustomerController extends Controller
             $customers = $this->customerService->getCustomersByUser($request->user(), $perPage);
 
             return $this->success([
-                'customers' => CustomerResource::collection($customers->items()),
+                'customers' => CustomerListResource::collection($customers->items()),
                 'pagination' => [
                     'current_page' => $customers->currentPage(),
                     'last_page' => $customers->lastPage(),
@@ -41,7 +42,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Create new customer
+     * Create new customer (returns detailed data)
      */
     public function store(CreateCustomerRequest $request): JsonResponse
     {
@@ -52,7 +53,7 @@ class CustomerController extends Controller
             );
 
             return $this->success([
-                'customer' => new CustomerResource($customer),
+                'customer' => new CustomerDetailResource($customer),
                 'message' => 'Customer created successfully',
             ], 201);
         } catch (\Exception $e) {
@@ -61,7 +62,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Get customer details
+     * Get customer details (complete data)
      */
     public function show(Request $request, int $id): JsonResponse
     {
@@ -73,7 +74,7 @@ class CustomerController extends Controller
             }
 
             return $this->success([
-                'customer' => new CustomerResource($customer),
+                'customer' => new CustomerDetailResource($customer),
             ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -81,7 +82,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Update customer
+     * Update customer (returns detailed data)
      */
     public function update(UpdateCustomerRequest $request, int $id): JsonResponse
     {
@@ -97,7 +98,7 @@ class CustomerController extends Controller
             }
 
             return $this->success([
-                'customer' => new CustomerResource($customer),
+                'customer' => new CustomerDetailResource($customer),
                 'message' => 'Customer updated successfully',
             ]);
         } catch (\Exception $e) {
@@ -126,7 +127,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Search customers
+     * Search customers (returns list data)
      */
     public function search(Request $request): JsonResponse
     {
@@ -143,7 +144,15 @@ class CustomerController extends Controller
                 $perPage
             );
 
-            return $this->success(CustomerResource::collection($customers));
+            return $this->success([
+                'customers' => CustomerListResource::collection($customers->items()),
+                'pagination' => [
+                    'current_page' => $customers->currentPage(),
+                    'last_page' => $customers->lastPage(),
+                    'per_page' => $customers->perPage(),
+                    'total' => $customers->total(),
+                ],
+            ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -166,7 +175,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Get customers with overdue EMIs
+     * Get customers with overdue EMIs (returns list data)
      */
     public function overdue(Request $request): JsonResponse
     {
@@ -174,7 +183,7 @@ class CustomerController extends Controller
             $overdueCustomers = $this->customerService->getOverdueCustomers($request->user());
 
             return $this->success([
-                'customers' => CustomerResource::collection($overdueCustomers),
+                'customers' => CustomerListResource::collection($overdueCustomers),
                 'count' => $overdueCustomers->count(),
             ]);
         } catch (\Exception $e) {
@@ -183,7 +192,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Get customers with EMIs due soon
+     * Get customers with EMIs due soon (returns list data)
      */
     public function dueSoon(Request $request): JsonResponse
     {
@@ -196,7 +205,7 @@ class CustomerController extends Controller
             $dueSoonCustomers = $this->customerService->getCustomersNearEMIDue($request->user(), $days);
 
             return $this->success([
-                'customers' => CustomerResource::collection($dueSoonCustomers),
+                'customers' => CustomerListResource::collection($dueSoonCustomers),
                 'count' => $dueSoonCustomers->count(),
                 'days_ahead' => $days,
             ]);

@@ -54,11 +54,12 @@ class UserRepository implements UserRepositoryInterface
     public function getUsersByHierarchy(User $currentUser, int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->user->where('parent_id', $currentUser->id)
-            ->orWhere('id', $currentUser->id)
+            ->where('id', '!=', $currentUser->id) // Exclude current user
             ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
 
         if ($currentUser->hasRole('super_admin')) {
-            $query = $this->user->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+            $query = $this->user->where('id', '!=', $currentUser->id) // Exclude current user for super admin too
+                ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
         }
 
         return $query->paginate($perPage);

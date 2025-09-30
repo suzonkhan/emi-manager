@@ -32,74 +32,62 @@ class CustomerService
         $token = $this->tokenService->useTokenForCustomer($salesman, $customerData['token_code']);
 
         return DB::transaction(function () use ($customerData, $salesman, $token) {
-            // Create address
-            $address = Address::create([
-                'address_line_1' => $customerData['address_line_1'],
-                'address_line_2' => $customerData['address_line_2'] ?? null,
-                'city' => $customerData['city'],
-                'state' => $customerData['state'],
-                'postal_code' => $customerData['postal_code'],
-                'country' => $customerData['country'],
+            // Create present address
+            $presentAddress = Address::create([
+                'street_address' => $customerData['present_address']['street_address'],
+                'landmark' => $customerData['present_address']['landmark'] ?? null,
+                'postal_code' => $customerData['present_address']['postal_code'] ?? null,
+                'division_id' => $customerData['present_address']['division_id'],
+                'district_id' => $customerData['present_address']['district_id'],
+                'upazilla_id' => $customerData['present_address']['upazilla_id'],
             ]);
 
-            // Calculate financed amount and EMI
-            $financedAmount = $customerData['product_price'] - $customerData['down_payment'];
-            $emiAmount = $this->calculateEMI(
-                $financedAmount,
-                $customerData['interest_rate'],
-                $customerData['tenure_months']
-            );
+            // Create permanent address
+            $permanentAddress = Address::create([
+                'street_address' => $customerData['permanent_address']['street_address'],
+                'landmark' => $customerData['permanent_address']['landmark'] ?? null,
+                'postal_code' => $customerData['permanent_address']['postal_code'] ?? null,
+                'division_id' => $customerData['permanent_address']['division_id'],
+                'district_id' => $customerData['permanent_address']['district_id'],
+                'upazilla_id' => $customerData['permanent_address']['upazilla_id'],
+            ]);
 
-            // Handle document upload
-            $documentPath = null;
-            if (isset($customerData['document'])) {
-                $documentPath = $customerData['document']->store('customer-documents', 'public');
+            // Handle document uploads
+            $documents = [];
+            if (isset($customerData['documents']) && is_array($customerData['documents'])) {
+                foreach ($customerData['documents'] as $document) {
+                    if ($document instanceof \Illuminate\Http\UploadedFile) {
+                        $documents[] = $document->store('customer-documents', 'public');
+                    }
+                }
             }
 
             // Create customer
             $customer = $this->customerRepository->create([
+                'nid_no' => $customerData['nid_no'],
                 'name' => $customerData['name'],
-                'phone' => $customerData['phone'],
                 'email' => $customerData['email'] ?? null,
-                'product_name' => $customerData['product_name'],
-                'product_price' => $customerData['product_price'],
-                'down_payment' => $customerData['down_payment'],
-                'financed_amount' => $financedAmount,
-                'interest_rate' => $customerData['interest_rate'],
-                'tenure_months' => $customerData['tenure_months'],
-                'emi_amount' => $emiAmount,
-                'pending_amount' => $financedAmount,
-                'paid_amount' => 0,
-                'next_emi_date' => now()->addMonth(),
-                'status' => 'active',
-                'address_id' => $address->id,
+                'mobile' => $customerData['mobile'],
+                'present_address_id' => $presentAddress->id,
+                'permanent_address_id' => $permanentAddress->id,
                 'token_id' => $token->id,
+                'emi_duration_months' => $customerData['emi_duration_months'],
+                'product_type' => $customerData['product_type'],
+                'product_model' => $customerData['product_model'] ?? null,
+                'product_price' => $customerData['product_price'],
+                'emi_per_month' => $customerData['emi_per_month'],
+                'imei_1' => $customerData['imei_1'] ?? null,
+                'imei_2' => $customerData['imei_2'] ?? null,
                 'created_by' => $salesman->id,
-                'document_path' => $documentPath,
+                'documents' => $documents,
+                'status' => 'active',
             ]);
 
             // Complete token usage with assignment history tracking
             $this->tokenService->completeTokenUsage($token, $customer, $salesman);
 
-            return $customer->load(['address', 'token', 'createdBy']);
+            return $customer->load(['presentAddress', 'permanentAddress', 'token', 'creator']);
         });
-    }
-
-    /**
-     * Calculate EMI based on financed amount, interest rate, and tenure
-     */
-    private function calculateEMI(float $financedAmount, float $interestRate, int $tenureMonths): float
-    {
-        $monthlyRate = ($interestRate / 100) / 12;
-
-        if ($monthlyRate == 0) {
-            return $financedAmount / $tenureMonths;
-        }
-
-        $emi = $financedAmount * $monthlyRate * pow(1 + $monthlyRate, $tenureMonths) /
-            (pow(1 + $monthlyRate, $tenureMonths) - 1);
-
-        return round($emi, 2);
     }
 
     /**
@@ -135,39 +123,48 @@ class CustomerService
             return null;
         }
 
-        // Handle document upload if provided
-        if (isset($updateData['document'])) {
-            // Delete old document if exists
-            if ($customer->document_path) {
-                Storage::disk('public')->delete($customer->document_path);
+        return DB::transaction(function () use ($customer, $updateData) {
+            // Handle document uploads if provided
+            if (isset($updateData['documents']) && is_array($updateData['documents'])) {
+                $documents = $customer->documents ?? [];
+                foreach ($updateData['documents'] as $document) {
+                    if ($document instanceof \Illuminate\Http\UploadedFile) {
+                        $documents[] = $document->store('customer-documents', 'public');
+                    }
+                }
+                $updateData['documents'] = $documents;
             }
 
-            $updateData['document_path'] = $updateData['document']->store('customer-documents', 'public');
-            unset($updateData['document']);
-        }
+            // Update present address if provided
+            if (isset($updateData['present_address'])) {
+                $customer->presentAddress->update([
+                    'street_address' => $updateData['present_address']['street_address'] ?? $customer->presentAddress->street_address,
+                    'landmark' => $updateData['present_address']['landmark'] ?? $customer->presentAddress->landmark,
+                    'postal_code' => $updateData['present_address']['postal_code'] ?? $customer->presentAddress->postal_code,
+                    'division_id' => $updateData['present_address']['division_id'] ?? $customer->presentAddress->division_id,
+                    'district_id' => $updateData['present_address']['district_id'] ?? $customer->presentAddress->district_id,
+                    'upazilla_id' => $updateData['present_address']['upazilla_id'] ?? $customer->presentAddress->upazilla_id,
+                ]);
+                unset($updateData['present_address']);
+            }
 
-        // Update address if provided
-        if (isset($updateData['address_line_1'])) {
-            $addressData = [
-                'address_line_1' => $updateData['address_line_1'],
-                'address_line_2' => $updateData['address_line_2'] ?? null,
-                'city' => $updateData['city'],
-                'state' => $updateData['state'],
-                'postal_code' => $updateData['postal_code'],
-                'country' => $updateData['country'],
-            ];
+            // Update permanent address if provided
+            if (isset($updateData['permanent_address'])) {
+                $customer->permanentAddress->update([
+                    'street_address' => $updateData['permanent_address']['street_address'] ?? $customer->permanentAddress->street_address,
+                    'landmark' => $updateData['permanent_address']['landmark'] ?? $customer->permanentAddress->landmark,
+                    'postal_code' => $updateData['permanent_address']['postal_code'] ?? $customer->permanentAddress->postal_code,
+                    'division_id' => $updateData['permanent_address']['division_id'] ?? $customer->permanentAddress->division_id,
+                    'district_id' => $updateData['permanent_address']['district_id'] ?? $customer->permanentAddress->district_id,
+                    'upazilla_id' => $updateData['permanent_address']['upazilla_id'] ?? $customer->permanentAddress->upazilla_id,
+                ]);
+                unset($updateData['permanent_address']);
+            }
 
-            $customer->address->update($addressData);
+            $this->customerRepository->updateCustomer($customer, $updateData);
 
-            // Remove address data from customer update
-            unset($updateData['address_line_1'], $updateData['address_line_2'],
-                $updateData['city'], $updateData['state'],
-                $updateData['postal_code'], $updateData['country']);
-        }
-
-        $this->customerRepository->updateCustomer($customer, $updateData);
-
-        return $customer->fresh(['address', 'token', 'createdBy']);
+            return $customer->fresh(['presentAddress', 'permanentAddress', 'token', 'creator']);
+        });
     }
 
     /**
@@ -221,11 +218,15 @@ class CustomerService
             return false;
         }
 
-        // Delete associated document if exists
-        if ($customer->document_path) {
-            Storage::disk('public')->delete($customer->document_path);
-        }
+        return DB::transaction(function () use ($customer) {
+            // Delete associated documents if exist
+            if ($customer->documents && is_array($customer->documents)) {
+                foreach ($customer->documents as $document) {
+                    Storage::disk('public')->delete($document);
+                }
+            }
 
-        return $this->customerRepository->deleteCustomer($customer);
+            return $this->customerRepository->deleteCustomer($customer);
+        });
     }
 }

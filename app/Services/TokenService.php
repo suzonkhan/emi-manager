@@ -68,22 +68,35 @@ class TokenService
     public function assignToken(User $fromUser, User $toUser, string $tokenCode): Token
     {
         // Check if fromUser can assign to toUser based on hierarchy
-        if (! $this->roleHierarchyService->canAssignRole($fromUser->role, $toUser->role)) {
+        $toUserRole = $toUser->getRoleNames()->first();
+        if (! $this->roleHierarchyService->canAssignRole($fromUser, $toUserRole)) {
             throw new Exception('You cannot assign tokens to this user role');
         }
 
         return DB::transaction(function () use ($fromUser, $toUser, $tokenCode) {
-            // Find available token assigned to fromUser
+            // Find available token
             $token = $this->tokenRepository->findByCode($tokenCode);
 
-            if (! $token || $token->assigned_to !== $fromUser->id || $token->status !== 'assigned') {
-                throw new Exception('Token not found or not available for assignment');
+            if (! $token) {
+                throw new Exception('Token not found');
+            }
+
+            // Check if token is available or assigned to fromUser
+            if ($token->status === 'used') {
+                throw new Exception('Token has already been used');
+            }
+
+            // For available tokens, anyone with permission can assign
+            // For assigned tokens, only the current holder can reassign
+            if ($token->status === 'assigned' && $token->assigned_to !== $fromUser->id) {
+                throw new Exception('You do not have permission to assign this token');
             }
 
             // Transfer token
             $this->tokenRepository->updateToken($token, [
                 'assigned_to' => $toUser->id,
                 'assigned_at' => now(),
+                'status' => 'assigned',
             ]);
 
             // Record assignment history
