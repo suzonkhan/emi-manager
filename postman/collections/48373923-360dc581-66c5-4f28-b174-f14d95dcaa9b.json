@@ -26,7 +26,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"login\": \"superadmin@emimanager.com\",\n  \"password\": \"Superadmin@123\"\n}"
+							"raw": "{\n  \"login\": \"admin@emimanager.com\",\n  \"password\": \"Admin@123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
@@ -196,7 +196,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"01712345678\",\n  \"password\": \"password123\",\n  \"role\": \"customer\",\n  \"present_address\": {\n    \"street_address\": \"123 Main Street\",\n    \"landmark\": \"Near City Bank\",\n    \"postal_code\": \"1200\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"permanent_address\": {\n    \"street_address\": \"456 Home Street\",\n    \"landmark\": \"Near School\",\n    \"postal_code\": \"1201\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"bkash_merchant_number\": \"01712345678\",\n  \"nagad_merchant_number\": \"01712345679\"\n}"
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@examplee.com\",\n  \"phone\": \"01712345648\",\n  \"password\": \"password123\",\n  \"role\": \"salesman\",\n  \"present_address\": {\n    \"street_address\": \"123 Main Street\",\n    \"landmark\": \"Near City Bank\",\n    \"postal_code\": \"1200\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"permanent_address\": {\n    \"street_address\": \"456 Home Street\",\n    \"landmark\": \"Near School\",\n    \"postal_code\": \"1201\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"bkash_merchant_number\": \"01712345678\",\n  \"nagad_merchant_number\": \"01712345679\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/users",
@@ -1045,8 +1045,9 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "2ab4829f-1edb-4286-9ea1-a459176209cb",
+				"id": "9aad0e24-d793-4244-a168-b8325164864f",
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"// Auto-set base URL if not set",
 					"if (!pm.collectionVariables.get('base_url')) {",
@@ -1058,8 +1059,9 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "d8a53b13-491f-4d22-9c96-a0582412d4fb",
+				"id": "dede0286-a136-41c1-b41a-6ee0379bb3b9",
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"// Auto-extract token from login response",
 					"if (pm.info.requestName === 'Login' && pm.response.code === 200) {",
