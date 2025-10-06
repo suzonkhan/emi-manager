@@ -354,6 +354,9 @@
 					"name": "Get Tokens",
 					"id": "48373923-token-001",
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -616,7 +619,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"token\": \"ABC123DEF456\",\n  \"name\": \"রহিম উদ্দিন\",\n  \"email\": \"rahim@example.com\",\n  \"phone\": \"01712345678\",\n  \"nid_number\": \"1234567890123\",\n  \"father_name\": \"করিম উদ্দিন\",\n  \"mother_name\": \"ফাতেমা খাতুন\",\n  \"date_of_birth\": \"1985-06-15\",\n  \"occupation\": \"Business\",\n  \"monthly_income\": 35000,\n  \"present_address\": {\n    \"street_address\": \"১২৩ মুক্তিযোদ্ধা সরণি\",\n    \"landmark\": \"ঢাকা মেডিকেল কলেজের কাছে\",\n    \"postal_code\": \"1000\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"permanent_address\": {\n    \"street_address\": \"৪৫৬ পুরাতন ঢাকা\",\n    \"landmark\": \"লালবাগ কেল্লার পাশে\",\n    \"postal_code\": \"1211\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 2\n  },\n  \"product_name\": \"Samsung Galaxy S23\",\n  \"product_price\": 85000,\n  \"down_payment\": 15000,\n  \"loan_amount\": 70000,\n  \"interest_rate\": 15.5,\n  \"loan_term_months\": 12,\n  \"monthly_installment\": 6458.33,\n  \"guarantor_name\": \"আবদুল করিম\",\n  \"guarantor_phone\": \"01812345678\",\n  \"guarantor_nid\": \"9876543210987\",\n  \"guarantor_relation\": \"Brother\"\n}"
+							"raw": "\n{\n  \"token_code\": \"ABC123DEF456\",\n  \"name\": \"রহিম উদ্দিন\",\n  \"email\": \"rahim@example.com\",\n  \"mobile\": \"01712345678\",\n  \"nid_no\": \"1234567890123\",\n  \"father_name\": \"করিম উদ্দিন\",\n  \"mother_name\": \"ফাতেমা খাতুন\",\n  \"date_of_birth\": \"1985-06-15\",\n  \"occupation\": \"Business\",\n  \"monthly_income\": 35000,\n  \"present_address\": {\n    \"street_address\": \"১২৩ মুক্তিযোদ্ধা সরণি\",\n    \"landmark\": \"ঢাকা মেডিকেল কলেজের কাছে\",\n    \"postal_code\": \"1000\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 1\n  },\n  \"permanent_address\": {\n    \"street_address\": \"৪৫৬ পুরাতন ঢাকা\",\n    \"landmark\": \"লালবাগ কেল্লার পাশে\",\n    \"postal_code\": \"1211\",\n    \"division_id\": 1,\n    \"district_id\": 1,\n    \"upazilla_id\": 2\n  },\n  \"product_type\": \"\",\n\n  \"product_name\": \"Samsung Galaxy S23\",\n  \"product_price\": 85000,\n  \"down_payment\": 15000,\n  \"loan_amount\": 70000,\n  \"interest_rate\": 15.5,\n  \"emi_duration_months\": 12,\n  \"emi_per_month\": 6458.33,\n  \"guarantor_name\": \"আবদুল করিম\",\n  \"guarantor_phone\": \"01812345678\",\n  \"guarantor_nid\": \"9876543210987\",\n  \"guarantor_relation\": \"Brother\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/customers",
