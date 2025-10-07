@@ -143,7 +143,8 @@ class TokenService
                 throw new Exception("Not enough available tokens. You have {$availableTokens->count()} available, but requested {$quantity}");
             }
 
-            $assignedTokens = collect();
+            // Use Eloquent Collection instead of Support Collection
+            $assignedTokens = new Collection;
 
             foreach ($availableTokens as $token) {
                 // Transfer token
