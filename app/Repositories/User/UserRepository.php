@@ -55,11 +55,13 @@ class UserRepository implements UserRepositoryInterface
     {
         $query = $this->user->where('parent_id', $currentUser->id)
             ->where('id', '!=', $currentUser->id) // Exclude current user
-            ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+            ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
+            ->latest();
 
         if ($currentUser->hasRole('super_admin')) {
             $query = $this->user->where('id', '!=', $currentUser->id) // Exclude current user for super admin too
-                ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+                ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
+                ->latest();
         }
 
         return $query->paginate($perPage);

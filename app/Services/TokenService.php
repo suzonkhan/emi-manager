@@ -25,10 +25,10 @@ class TokenService
     public function generateTokens(User $user, int $quantity): Collection
     {
         // Validate user object completeness
-        if (!$user || !$user->name || !$user->email) {
+        if (! $user || ! $user->name || ! $user->email) {
             throw new Exception('User authentication error: incomplete user data. Please log out and log back in.');
         }
-        
+
         if (! $user->hasRole('super_admin')) {
             throw new Exception('Only super admin can generate tokens');
         }
@@ -181,18 +181,35 @@ class TokenService
     }
 
     /**
-     * Use token for customer creation (salesman function)
+     * Use token for customer creation
      */
     public function useTokenForCustomer(User $user, string $tokenCode): Token
     {
-        if (! $user->hasRole('salesman')) {
-            throw new Exception('Only salesman can use tokens for customers');
+        // Allow super_admin, dealer, sub_dealer, and salesman to use tokens
+        $allowedRoles = ['super_admin', 'dealer', 'sub_dealer', 'salesman'];
+        if (! $user->hasAnyRole($allowedRoles)) {
+            throw new Exception('You do not have permission to use tokens for customers');
         }
 
         $token = $this->tokenRepository->findByCode($tokenCode);
 
-        if (! $token || $token->assigned_to !== $user->id || $token->status !== 'assigned') {
-            throw new Exception('Token not found or not available for use');
+        if (! $token) {
+            throw new Exception('Token not found');
+        }
+
+        // Super Admin can use available tokens or tokens assigned to them
+        if ($user->hasRole('super_admin')) {
+            $canUse = ($token->status === 'available' && $token->assigned_to === null) ||
+                      ($token->status === 'assigned' && $token->assigned_to === $user->id);
+
+            if (! $canUse || $token->used_by !== null) {
+                throw new Exception('Token not available for use');
+            }
+        } else {
+            // Other users can only use tokens assigned to them
+            if ($token->assigned_to !== $user->id || $token->status !== 'assigned' || $token->used_by !== null) {
+                throw new Exception('Token not found or not available for use');
+            }
         }
 
         // Don't mark as used here - will be done when customer is created

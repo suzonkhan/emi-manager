@@ -3,10 +3,10 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\InstallmentController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Api\UserController;
-
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/distribute', [TokenController::class, 'distribute']); // Super Admin bulk distribution
         Route::get('/statistics', [TokenController::class, 'statistics']);
         Route::get('/assignable-users', [TokenController::class, 'assignableUsers']);
+        Route::get('/available-for-customer', [TokenController::class, 'availableForCustomer']); // Get available tokens for customer creation
     });
 
     // Customer management routes
@@ -66,7 +67,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [CustomerController::class, 'destroy']);
     });
 
-
+    // Installment management routes
+    Route::prefix('installments')->group(function () {
+        Route::get('/customers', [InstallmentController::class, 'getAllCustomersWithInstallments']); // Get all customers with installment summary
+        Route::get('/customer/{customer}', [InstallmentController::class, 'getCustomerInstallments']); // Get installment history for a customer
+        Route::post('/generate/{customer}', [InstallmentController::class, 'generateInstallments']); // Generate installments for a customer
+        Route::post('/payment/{installment}', [InstallmentController::class, 'recordPayment']); // Record payment for an installment
+        Route::post('/update-overdue', [InstallmentController::class, 'updateOverdueInstallments']); // Update overdue status
+    });
 
     // Location routes for addresses
     Route::prefix('locations')->group(function () {

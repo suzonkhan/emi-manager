@@ -210,4 +210,49 @@ class TokenController extends Controller
             return $this->error($e->getMessage());
         }
     }
+
+    /**
+     * Get available tokens for customer creation (assigned and unused)
+     */
+    public function availableForCustomer(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            // For Super Admin: Get all available tokens (not assigned to anyone) or assigned to them
+            if ($user->hasRole('super_admin')) {
+                $availableTokens = \App\Models\Token::where(function ($query) use ($user) {
+                    $query->where('status', 'available')
+                        ->whereNull('assigned_to')
+                        ->orWhere(function ($q) use ($user) {
+                            $q->where('assigned_to', $user->id)
+                                ->where('status', 'assigned');
+                        });
+                })
+                    ->whereNull('used_by')
+                    ->select(['id', 'code', 'status', 'assigned_to', 'created_at'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                // For other users: Get tokens that are assigned to this user and not yet used
+                $availableTokens = \App\Models\Token::where('assigned_to', $user->id)
+                    ->where('status', 'assigned')
+                    ->whereNull('used_by')
+                    ->select(['id', 'code', 'status', 'assigned_to', 'created_at'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+
+            return $this->success([
+                'tokens' => $availableTokens->map(fn ($token) => [
+                    'id' => $token->id,
+                    'code' => $token->code,
+                    'status' => $token->status,
+                ]),
+                'count' => $availableTokens->count(),
+            ]);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
 }

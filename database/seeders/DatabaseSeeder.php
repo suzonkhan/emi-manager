@@ -39,6 +39,11 @@ class DatabaseSeeder extends Seeder
         $this->call(CustomerDataSeeder::class);
         $this->command->newLine();
 
+        // 6. Installment Payment Data (Payment schedules and history)
+        $this->command->info('💰 Creating installment payment data...');
+        $this->call(InstallmentSeeder::class);
+        $this->command->newLine();
+
         $this->command->info('✅ EMI Manager Database Seeding Completed Successfully!');
         $this->command->newLine();
 
@@ -57,6 +62,7 @@ class DatabaseSeeder extends Seeder
                 ['User Hierarchy', '✅ Ready', 'Complete organizational structure created'],
                 ['Token System', '✅ Ready', '12-character tokens with full assignment chain'],
                 ['Customer Data', '✅ Ready', 'EMI customers with realistic product data'],
+                ['Installment System', '✅ Ready', 'Payment schedules with realistic payment history'],
             ]
         );
 

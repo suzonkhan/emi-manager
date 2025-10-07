@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Address;
 use App\Models\Customer;
+use App\Models\Installment;
 use App\Models\Token;
 use App\Models\User;
 use App\Repositories\Customer\CustomerRepositoryInterface;
@@ -86,8 +87,35 @@ class CustomerService
             // Complete token usage with assignment history tracking
             $this->tokenService->completeTokenUsage($token, $customer, $salesman);
 
+            // Generate installments for the customer
+            $this->generateInstallments($customer);
+
             return $customer->load(['presentAddress', 'permanentAddress', 'token', 'creator']);
         });
+    }
+
+    /**
+     * Generate installments for a customer
+     */
+    private function generateInstallments(Customer $customer): void
+    {
+        $installments = [];
+        $dueDate = now()->addMonth(); // First installment due next month
+
+        for ($i = 1; $i <= $customer->emi_duration_months; $i++) {
+            $installments[] = [
+                'customer_id' => $customer->id,
+                'installment_number' => $i,
+                'amount' => $customer->emi_per_month,
+                'due_date' => $dueDate->copy()->addMonths($i - 1),
+                'status' => 'pending',
+                'paid_amount' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        Installment::insert($installments);
     }
 
     /**

@@ -82,8 +82,26 @@ class CreateCustomerRequest extends FormRequest
                 'string',
                 'size:12',
                 Rule::exists('tokens', 'code')->where(function ($query) {
-                    $query->where('status', 'assigned')
-                          ->where('assigned_to', $this->user()->id);
+                    $user = $this->user();
+
+                    // Super Admin can use available tokens or tokens assigned to them
+                    if ($user->hasRole('super_admin')) {
+                        $query->where(function ($q) use ($user) {
+                            $q->where('status', 'available')
+                                ->whereNull('assigned_to')
+                                ->orWhere(function ($subQ) use ($user) {
+                                    $subQ->where('status', 'assigned')
+                                        ->where('assigned_to', $user->id);
+                                });
+                        });
+                    } else {
+                        // Other users can only use tokens assigned to them
+                        $query->where('status', 'assigned')
+                            ->where('assigned_to', $user->id);
+                    }
+
+                    // Token must not be already used
+                    $query->whereNull('used_by');
                 }),
             ],
             'documents' => [
@@ -189,7 +207,7 @@ class CreateCustomerRequest extends FormRequest
             'emi_duration_months.max' => 'EMI duration cannot exceed 120 months.',
             'token_code.required' => 'Token code is required.',
             'token_code.size' => 'Token code must be exactly 12 characters.',
-            'token_code.exists' => 'Invalid token code or token is not assigned to you.',
+            'token_code.exists' => 'Invalid token code, token is already used, or not available to you.',
             'documents.*.mimes' => 'Documents must be PDF, JPG, JPEG, or PNG files.',
             'documents.*.max' => 'Document size cannot exceed 5MB.',
             'present_address.street_address.required' => 'Present address street is required.',

@@ -11,6 +11,7 @@ class AssignTokenRequest extends FormRequest
     {
         $user = $this->user();
         $userRole = $user ? $user->getRoleNames()->first() : null;
+
         return in_array($userRole, ['super_admin', 'dealer', 'sub_dealer']);
     }
 
@@ -31,15 +32,16 @@ class AssignTokenRequest extends FormRequest
                 Rule::exists('users', 'id'),
                 function ($attribute, $value, $fail) {
                     $assignee = \App\Models\User::find($value);
-                    if (!$assignee) {
+                    if (! $assignee) {
                         $fail('The selected user does not exist.');
+
                         return;
                     }
 
                     $roleHierarchyService = app(\App\Services\RoleHierarchyService::class);
                     $assigneeRole = $assignee->getRoleNames()->first();
 
-                    if (!$roleHierarchyService->canAssignRole($this->user(), $assigneeRole)) {
+                    if (! $roleHierarchyService->canAssignRole($this->user(), $assigneeRole)) {
                         $currentUserRole = $this->user()->getRoleNames()->first();
                         $assignableRoles = $roleHierarchyService->getAssignableRoles($this->user());
 
