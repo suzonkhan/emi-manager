@@ -99,6 +99,45 @@ class TokenController extends Controller
     }
 
     /**
+     * Assign multiple tokens to user (bulk assignment)
+     */
+    public function assignBulk(Request $request): JsonResponse
+    {
+        $request->validate([
+            'assignee_id' => 'required|integer|exists:users,id',
+            'quantity' => 'required|integer|min:1|max:100',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $toUser = User::findOrFail($request->assignee_id);
+
+            // Check role hierarchy
+            $roleHierarchyService = app(RoleHierarchyService::class);
+            $assigneeRole = $toUser->getRoleNames()->first();
+
+            if (! $roleHierarchyService->canAssignRole($request->user(), $assigneeRole)) {
+                return $this->error('You cannot assign tokens to this user role', null, 403);
+            }
+
+            $tokens = $this->tokenService->assignTokens(
+                $request->user(),
+                $toUser,
+                $request->quantity
+            );
+
+            return $this->success([
+                'tokens' => TokenResource::collection($tokens->load(['creator', 'assignedTo'])),
+                'message' => "{$tokens->count()} tokens assigned to {$toUser->name} successfully",
+                'assigned_count' => $tokens->count(),
+                'token_codes' => $tokens->pluck('code')->toArray(),
+            ]);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 400);
+        }
+    }
+
+    /**
      * Distribute tokens to dealers (Super Admin only)
      */
     public function distribute(Request $request): JsonResponse

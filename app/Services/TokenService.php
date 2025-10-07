@@ -107,6 +107,63 @@ class TokenService
     }
 
     /**
+     * Assign multiple available tokens to a user (bulk assignment)
+     */
+    public function assignTokens(User $fromUser, User $toUser, int $quantity): Collection
+    {
+        // Check if fromUser can assign to toUser based on hierarchy
+        $toUserRole = $toUser->getRoleNames()->first();
+        if (! $this->roleHierarchyService->canAssignRole($fromUser, $toUserRole)) {
+            throw new Exception('You cannot assign tokens to this user role');
+        }
+
+        return DB::transaction(function () use ($fromUser, $toUser, $quantity) {
+            // Get available tokens for the current user
+            $availableTokens = Token::where(function ($query) use ($fromUser) {
+                $query->where('status', 'available')
+                    ->where(function ($q) use ($fromUser) {
+                        // Super admin can assign any available token
+                        if ($fromUser->hasRole('super_admin')) {
+                            $q->whereNull('assigned_to')
+                                ->orWhere('assigned_to', $fromUser->id);
+                        } else {
+                            // Others can only assign tokens assigned to them
+                            $q->where('assigned_to', $fromUser->id);
+                        }
+                    });
+            })
+                ->orWhere(function ($query) use ($fromUser) {
+                    $query->where('status', 'assigned')
+                        ->where('assigned_to', $fromUser->id);
+                })
+                ->limit($quantity)
+                ->get();
+
+            if ($availableTokens->count() < $quantity) {
+                throw new Exception("Not enough available tokens. You have {$availableTokens->count()} available, but requested {$quantity}");
+            }
+
+            $assignedTokens = collect();
+
+            foreach ($availableTokens as $token) {
+                // Transfer token
+                $this->tokenRepository->updateToken($token, [
+                    'assigned_to' => $toUser->id,
+                    'assigned_at' => now(),
+                    'status' => 'assigned',
+                ]);
+
+                // Record assignment history
+                $this->tokenAssignmentRepository->recordAssignment($token, $fromUser, $toUser);
+
+                $assignedTokens->push($token->fresh());
+            }
+
+            return $assignedTokens;
+        });
+    }
+
+    /**
      * Distribute initial tokens to dealers (super admin function)
      */
     public function distributeTokensToDealers(User $superAdmin, array $dealerTokens): array

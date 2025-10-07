@@ -46,7 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('tokens')->group(function () {
         Route::get('/', [TokenController::class, 'index']);
         Route::post('/generate', [TokenController::class, 'generate']); // Super Admin only
-        Route::post('/assign', [TokenController::class, 'assign']); // Assign to subordinates
+        Route::post('/assign', [TokenController::class, 'assign']); // Assign single token
+        Route::post('/assign-bulk', [TokenController::class, 'assignBulk']); // Assign multiple tokens by quantity
         Route::post('/distribute', [TokenController::class, 'distribute']); // Super Admin bulk distribution
         Route::get('/statistics', [TokenController::class, 'statistics']);
         Route::get('/assignable-users', [TokenController::class, 'assignableUsers']);
