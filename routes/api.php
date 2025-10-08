@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\InstallmentController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\TokenController;
@@ -28,6 +29,9 @@ Route::prefix('locations')->group(function () {
     Route::get('/districts/{division_id}', [LocationController::class, 'getDistricts']);
     Route::get('/upazillas/{district_id}', [LocationController::class, 'getUpazillas']);
 });
+
+// Public device registration (for automatic app installation)
+Route::post('/devices/register', [DeviceController::class, 'register']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -87,6 +91,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard and stats routes
     Route::prefix('dashboard')->group(function () {
         Route::get('/stats', [DashboardController::class, 'stats']);
+    });
+
+    // Device management routes
+    Route::prefix('devices')->group(function () {
+        Route::get('/commands', [DeviceController::class, 'availableCommands']); // List all available commands
+        Route::get('/{customer}', [DeviceController::class, 'show']); // Get device info
+        Route::get('/{customer}/history', [DeviceController::class, 'commandHistory']); // Get command history
+        Route::post('/command/{command}', [DeviceController::class, 'sendCommand']); // Send device command
     });
 });
 

@@ -30,7 +30,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             'permanentAddress.district',
             'permanentAddress.upazilla',
             'token',
-            'creator'
+            'creator',
         ])->find($id);
     }
 
@@ -188,7 +188,7 @@ class CustomerRepository implements CustomerRepositoryInterface
     protected function applyUserAccessControl(Builder $query, User $user): Builder
     {
         // If user has no role, return empty query
-        if (!$user->role) {
+        if (! $user->role) {
             return $query->whereRaw('1 = 0'); // Returns no results
         }
 

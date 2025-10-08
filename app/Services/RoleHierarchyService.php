@@ -34,7 +34,7 @@ class RoleHierarchyService
         if ($role === null) {
             return [];
         }
-        
+
         return $this->hierarchy[$role] ?? [];
     }
 

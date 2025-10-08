@@ -371,10 +371,10 @@ class UserHierarchySeeder extends Seeder
         // Generate postal code based on upazilla and district
         $districtId = $upazilla['district_id'];
         $upazillaId = $upazilla['id'];
-        
+
         // Create a 4-digit postal code: first 2 digits from district, last 2 from upazilla
-        $postalCode = str_pad($districtId, 2, '0', STR_PAD_LEFT) . str_pad($upazillaId % 100, 2, '0', STR_PAD_LEFT);
-        
+        $postalCode = str_pad($districtId, 2, '0', STR_PAD_LEFT).str_pad($upazillaId % 100, 2, '0', STR_PAD_LEFT);
+
         return $postalCode;
     }
 }

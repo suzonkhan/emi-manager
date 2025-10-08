@@ -56,14 +56,14 @@ class UpdateUserRequest extends FormRequest
             'password',
             'bkash_merchant_number',
             'nagad_merchant_number',
-            'is_active'
+            'is_active',
         ]);
     }
 
     public function getPresentAddressData(): ?array
     {
         $presentAddress = $this->input('present_address');
-        if (!$presentAddress) {
+        if (! $presentAddress) {
             return null;
         }
 
@@ -80,7 +80,7 @@ class UpdateUserRequest extends FormRequest
     public function getPermanentAddressData(): ?array
     {
         $permanentAddress = $this->input('permanent_address');
-        if (!$permanentAddress) {
+        if (! $permanentAddress) {
             return null;
         }
 

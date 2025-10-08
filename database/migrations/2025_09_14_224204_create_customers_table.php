@@ -34,6 +34,18 @@ return new class extends Migration
             $table->string('imei_1')->nullable();
             $table->string('imei_2')->nullable();
 
+            // Device Information
+            $table->string('serial_number')->nullable()->unique();
+            $table->text('fcm_token')->nullable();
+
+            // Device Control States (boolean fields for device features)
+            $table->boolean('is_device_locked')->default(false);
+            $table->boolean('is_camera_disabled')->default(false);
+            $table->boolean('is_bluetooth_disabled')->default(false);
+            $table->boolean('is_app_hidden')->default(false);
+            $table->boolean('has_password')->default(false);
+            $table->timestamp('last_command_sent_at')->nullable();
+
             // Who created this customer
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
 

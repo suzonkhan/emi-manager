@@ -19,7 +19,7 @@ interface CustomerRepositoryInterface
 
     public function getCustomersForUser(User $user, int $perPage = 15): LengthAwarePaginator;
 
-    public function getCustomersByStatus(string $status, User $user = null): Collection;
+    public function getCustomersByStatus(string $status, ?User $user = null): Collection;
 
     public function updateCustomer(Customer $customer, array $data): bool;
 
@@ -31,11 +31,11 @@ interface CustomerRepositoryInterface
 
     public function searchCustomers(string $searchTerm, User $user, int $perPage = 15): LengthAwarePaginator;
 
-    public function getCustomersWithOverdueEMIs(User $user = null): Collection;
+    public function getCustomersWithOverdueEMIs(?User $user = null): Collection;
 
-    public function getCustomersCreatedBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate, User $user = null): Collection;
+    public function getCustomersCreatedBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?User $user = null): Collection;
 
     public function getTotalPendingAmountForUser(User $user): float;
 
-    public function getCustomersNearEMIDue(int $days = 7, User $user = null): Collection;
+    public function getCustomersNearEMIDue(int $days = 7, ?User $user = null): Collection;
 }

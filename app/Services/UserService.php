@@ -29,7 +29,7 @@ class UserService
     public function getUsersByRole(string $role, User $currentUser): \Illuminate\Database\Eloquent\Collection
     {
         // Validate that the current user can access users with this role
-        if (!$this->roleHierarchyService->canAssignRole($currentUser, $role)) {
+        if (! $this->roleHierarchyService->canAssignRole($currentUser, $role)) {
             return collect(); // Return empty collection if not authorized
         }
 

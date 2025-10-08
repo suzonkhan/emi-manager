@@ -26,16 +26,33 @@ class Customer extends Model
         'emi_per_month',
         'imei_1',
         'imei_2',
+        'serial_number',
+        'fcm_token',
+        'is_device_locked',
+        'is_camera_disabled',
+        'is_bluetooth_disabled',
+        'is_app_hidden',
+        'has_password',
+        'last_command_sent_at',
         'created_by',
         'documents',
         'status',
     ];
 
-    protected $casts = [
-        'product_price' => 'decimal:2',
-        'emi_per_month' => 'decimal:2',
-        'documents' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'product_price' => 'decimal:2',
+            'emi_per_month' => 'decimal:2',
+            'documents' => 'array',
+            'is_device_locked' => 'boolean',
+            'is_camera_disabled' => 'boolean',
+            'is_bluetooth_disabled' => 'boolean',
+            'is_app_hidden' => 'boolean',
+            'has_password' => 'boolean',
+            'last_command_sent_at' => 'datetime',
+        ];
+    }
 
     public function presentAddress(): BelongsTo
     {
@@ -60,6 +77,11 @@ class Customer extends Model
     public function installments(): HasMany
     {
         return $this->hasMany(Installment::class);
+    }
+
+    public function deviceCommandLogs(): HasMany
+    {
+        return $this->hasMany(DeviceCommandLog::class);
     }
 
     public function getTotalPayableAmount(): float
@@ -90,5 +112,15 @@ class Customer extends Model
     public function isCancelled(): bool
     {
         return $this->status === 'cancelled';
+    }
+
+    public function hasDevice(): bool
+    {
+        return ! empty($this->serial_number) && ! empty($this->fcm_token);
+    }
+
+    public function canReceiveCommands(): bool
+    {
+        return $this->hasDevice() && $this->isActive();
     }
 }

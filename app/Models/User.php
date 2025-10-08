@@ -54,6 +54,7 @@ class User extends Authenticatable
     public function getRoleAttribute(): ?string
     {
         $role = $this->getRoleNames()->first();
+
         return $role ?: null;
     }
 

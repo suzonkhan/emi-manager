@@ -22,19 +22,19 @@ class DashboardController extends Controller
             $user = $request->user();
 
             $stats = [
-                'total_subordinates'  => $user->children()->count(),
+                'total_subordinates' => $user->children()->count(),
                 'active_subordinates' => $user->children()->where('is_active', true)->count(),
-                'my_role'             => $user->getRoleNames()->first(),
-                'hierarchy_level'     => $user->getHierarchyLevel(),
+                'my_role' => $user->getRoleNames()->first(),
+                'hierarchy_level' => $user->getHierarchyLevel(),
             ];
 
             if ($user->hasRole('super_admin')) {
-                $stats['total_users']        = User::count();
-                $stats['active_users']       = User::where('is_active', true)->count();
+                $stats['total_users'] = User::count();
+                $stats['active_users'] = User::where('is_active', true)->count();
                 $stats['roles_distribution'] = DB::table('users')
-                    ->join('model_has_roles', function($join) {
+                    ->join('model_has_roles', function ($join) {
                         $join->on('users.id', '=', 'model_has_roles.model_id')
-                             ->where('model_has_roles.model_type', '=', 'App\\Models\\User');
+                            ->where('model_has_roles.model_type', '=', 'App\\Models\\User');
                     })
                     ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
                     ->groupBy('roles.name')
@@ -44,7 +44,7 @@ class DashboardController extends Controller
 
             return $this->success($stats);
         } catch (\Exception $e) {
-            return $this->error('Failed to fetch dashboard statistics: ' . $e->getMessage());
+            return $this->error('Failed to fetch dashboard statistics: '.$e->getMessage());
         }
     }
 }

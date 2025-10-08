@@ -10,6 +10,7 @@ class GenerateTokenRequest extends FormRequest
     {
         $user = $this->user();
         $userRole = $user ? $user->getRoleNames()->first() : null;
+
         return $user && $userRole === 'super_admin';
     }
 

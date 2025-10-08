@@ -394,7 +394,7 @@ class CustomerDataSeeder extends Seeder
     {
         $districtId = str_pad($upazilla['district_id'], 2, '0', STR_PAD_LEFT);
         $upazillaId = str_pad($upazilla['id'], 2, '0', STR_PAD_LEFT);
-        
-        return $districtId . $upazillaId;
+
+        return $districtId.$upazillaId;
     }
 }

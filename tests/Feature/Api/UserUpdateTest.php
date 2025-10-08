@@ -4,8 +4,8 @@ namespace Tests\Feature\Api;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 class UserUpdateTest extends TestCase
 {
@@ -65,8 +65,8 @@ class UserUpdateTest extends TestCase
                         'phone',
                         'bkash_merchant_number',
                         'nagad_merchant_number',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         // Verify the user was updated
@@ -110,13 +110,13 @@ class UserUpdateTest extends TestCase
             ->getJson('/api/users');
 
         $response->assertStatus(200);
-        
+
         $users = $response->json('data.users');
-        
+
         // Verify current user is not in the list
         $userIds = collect($users)->pluck('id')->toArray();
         $this->assertNotContains($superAdmin->id, $userIds);
-        
+
         // Verify other users are in the list
         $this->assertContains($user1->id, $userIds);
         $this->assertContains($user2->id, $userIds);

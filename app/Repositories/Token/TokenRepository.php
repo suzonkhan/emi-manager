@@ -40,7 +40,7 @@ class TokenRepository implements TokenRepositoryInterface
             ->where('status', 'available')
             ->with(['creator']);
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where('code', 'like', "%{$search}%");
         }
 
@@ -61,7 +61,7 @@ class TokenRepository implements TokenRepositoryInterface
             ->with(['assignedTo', 'usedBy'])
             ->latest();
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where('code', 'like', "%{$search}%");
         }
 
@@ -160,14 +160,14 @@ class TokenRepository implements TokenRepositoryInterface
             ->with([
                 'creator:id,name,email',
                 'assignedTo:id,name,email',
-                'usedBy:id,name,email'
+                'usedBy:id,name,email',
             ])
             ->get();
     }
 
     public function bulkCreateTokens(array $tokensData): Collection
     {
-        $tokens = new Collection();
+        $tokens = new Collection;
 
         DB::transaction(function () use ($tokensData, &$tokens) {
             foreach ($tokensData as $tokenData) {
@@ -186,7 +186,7 @@ class TokenRepository implements TokenRepositoryInterface
         $userRole = $user->getRoleNames()->first();
 
         // If user has no role, return empty query
-        if (!$userRole) {
+        if (! $userRole) {
             return $query->whereRaw('1 = 0'); // Returns no results
         }
 
@@ -201,10 +201,10 @@ class TokenRepository implements TokenRepositoryInterface
         // User can see tokens created by users in their hierarchy or assigned to them
         return $query->where(function (Builder $q) use ($user, $assignableRoles) {
             $q->where('created_by', $user->id)
-              ->orWhere('assigned_to', $user->id)
-              ->orWhereHas('creator', function (Builder $creatorQuery) use ($assignableRoles) {
-                  $creatorQuery->role($assignableRoles);
-              });
+                ->orWhere('assigned_to', $user->id)
+                ->orWhereHas('creator', function (Builder $creatorQuery) use ($assignableRoles) {
+                    $creatorQuery->role($assignableRoles);
+                });
         });
     }
 }
