@@ -11,7 +11,6 @@
 			"item": [
 				{
 					"name": "Login",
-					"id": "48373923-6fc7fc1b-4aac-43b0-b7b0-b6311bb5ee80",
 					"event": [
 						{
 							"listen": "test",
@@ -58,6 +57,7 @@
 							}
 						}
 					],
+					"id": "48373923-6fc7fc1b-4aac-43b0-b7b0-b6311bb5ee80",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -2041,6 +2041,14 @@
 		},
 		{
 			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "user_name",
 			"value": ""
 		}
 	]
