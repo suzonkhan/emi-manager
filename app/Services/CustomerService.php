@@ -21,7 +21,7 @@ class CustomerService
     ) {}
 
     /**
-     * Create customer with token (salesman function)
+     * Create customer with auto-assigned token
      */
     public function createCustomer(array $customerData, User $salesman): Customer
     {
@@ -29,8 +29,15 @@ class CustomerService
             throw new Exception('User role cannot create customers');
         }
 
-        // Validate token
-        $token = $this->tokenService->useTokenForCustomer($salesman, $customerData['token_code']);
+        // Auto-assign an available token for the user
+        $token = $this->tokenService->getAvailableTokenForUser($salesman);
+
+        if (! $token) {
+            throw new Exception('No available tokens found. Please request tokens from your administrator.');
+        }
+
+        // Mark token as used
+        $token->update(['customer_id' => 0]); // Temporary, will be updated after customer creation
 
         return DB::transaction(function () use ($customerData, $salesman, $token) {
             // Create present address
@@ -63,6 +70,12 @@ class CustomerService
                 }
             }
 
+            // Calculate remaining amount after down payment
+            $remainingAmount = $customerData['product_price'] - $customerData['down_payment'];
+
+            // Calculate EMI per month (remaining amount / duration)
+            $emiPerMonth = $remainingAmount / $customerData['emi_duration_months'];
+
             // Create customer
             $customer = $this->customerRepository->create([
                 'nid_no' => $customerData['nid_no'],
@@ -76,9 +89,11 @@ class CustomerService
                 'product_type' => $customerData['product_type'],
                 'product_model' => $customerData['product_model'] ?? null,
                 'product_price' => $customerData['product_price'],
-                'emi_per_month' => $customerData['emi_per_month'],
+                'down_payment' => $customerData['down_payment'],
+                'emi_per_month' => round($emiPerMonth, 2),
                 'imei_1' => $customerData['imei_1'] ?? null,
                 'imei_2' => $customerData['imei_2'] ?? null,
+                'serial_number' => $customerData['serial_number'],
                 'created_by' => $salesman->id,
                 'documents' => $documents,
                 'status' => 'active',

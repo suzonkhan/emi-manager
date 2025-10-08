@@ -241,6 +241,32 @@ class TokenService
     /**
      * Use token for customer creation
      */
+    /**
+     * Get an available token for the user (auto-assign)
+     */
+    public function getAvailableTokenForUser(User $user): ?Token
+    {
+        // Allow super_admin, dealer, sub_dealer, and salesman to use tokens
+        $allowedRoles = ['super_admin', 'dealer', 'sub_dealer', 'salesman'];
+        if (! $user->hasAnyRole($allowedRoles)) {
+            throw new Exception('You do not have permission to use tokens for customers');
+        }
+
+        // For Super Admin, get any available token
+        if ($user->hasRole('super_admin')) {
+            return Token::where('status', 'available')
+                ->whereNull('assigned_to')
+                ->whereNull('customer_id')
+                ->first();
+        }
+
+        // For other users, get tokens assigned to them
+        return Token::where('assigned_to', $user->id)
+            ->where('status', 'assigned')
+            ->whereNull('customer_id')
+            ->first();
+    }
+
     public function useTokenForCustomer(User $user, string $tokenCode): Token
     {
         // Allow super_admin, dealer, sub_dealer, and salesman to use tokens

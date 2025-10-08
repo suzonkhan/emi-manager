@@ -55,11 +55,11 @@ class CreateCustomerRequest extends FormRequest
                 'min:1000',
                 'max:10000000',
             ],
-            'emi_per_month' => [
+            'down_payment' => [
                 'required',
                 'numeric',
-                'min:100',
-                'max:1000000',
+                'min:0',
+                'max:10000000',
             ],
             'emi_duration_months' => [
                 'required',
@@ -77,32 +77,11 @@ class CreateCustomerRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'token_code' => [
+            'serial_number' => [
                 'required',
                 'string',
-                'size:12',
-                Rule::exists('tokens', 'code')->where(function ($query) {
-                    $user = $this->user();
-
-                    // Super Admin can use available tokens or tokens assigned to them
-                    if ($user->hasRole('super_admin')) {
-                        $query->where(function ($q) use ($user) {
-                            $q->where('status', 'available')
-                                ->whereNull('assigned_to')
-                                ->orWhere(function ($subQ) use ($user) {
-                                    $subQ->where('status', 'assigned')
-                                        ->where('assigned_to', $user->id);
-                                });
-                        });
-                    } else {
-                        // Other users can only use tokens assigned to them
-                        $query->where('status', 'assigned')
-                            ->where('assigned_to', $user->id);
-                    }
-
-                    // Token must not be already used
-                    $query->whereNull('used_by');
-                }),
+                'max:255',
+                Rule::unique('customers'),
             ],
             'documents' => [
                 'nullable',
@@ -205,9 +184,11 @@ class CreateCustomerRequest extends FormRequest
             'emi_per_month.required' => 'EMI per month is required.',
             'emi_duration_months.required' => 'EMI duration in months is required.',
             'emi_duration_months.max' => 'EMI duration cannot exceed 120 months.',
-            'token_code.required' => 'Token code is required.',
-            'token_code.size' => 'Token code must be exactly 12 characters.',
-            'token_code.exists' => 'Invalid token code, token is already used, or not available to you.',
+            'down_payment.required' => 'Down payment is required.',
+            'down_payment.min' => 'Down payment must be at least ৳0.',
+            'down_payment.max' => 'Down payment cannot exceed ৳1,00,00,000.',
+            'serial_number.required' => 'Serial number is required.',
+            'serial_number.unique' => 'This serial number is already registered.',
             'documents.*.mimes' => 'Documents must be PDF, JPG, JPEG, or PNG files.',
             'documents.*.max' => 'Document size cannot exceed 5MB.',
             'present_address.street_address.required' => 'Present address street is required.',
@@ -229,9 +210,10 @@ class CreateCustomerRequest extends FormRequest
             'product_type' => 'product type',
             'product_model' => 'product model',
             'product_price' => 'product price',
+            'down_payment' => 'down payment',
             'emi_per_month' => 'EMI per month',
             'emi_duration_months' => 'EMI duration',
-            'token_code' => 'token code',
+            'serial_number' => 'serial number',
         ];
     }
 }

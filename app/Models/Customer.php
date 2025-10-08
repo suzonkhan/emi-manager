@@ -23,6 +23,7 @@ class Customer extends Model
         'product_type',
         'product_model',
         'product_price',
+        'down_payment',
         'emi_per_month',
         'imei_1',
         'imei_2',
@@ -43,6 +44,7 @@ class Customer extends Model
     {
         return [
             'product_price' => 'decimal:2',
+            'down_payment' => 'decimal:2',
             'emi_per_month' => 'decimal:2',
             'documents' => 'array',
             'is_device_locked' => 'boolean',

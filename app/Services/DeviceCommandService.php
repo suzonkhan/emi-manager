@@ -14,16 +14,17 @@ class DeviceCommandService
 
     /**
      * Register device for customer
-     * Find customer by IMEI1 (which should be pre-registered during customer creation)
+     * Find customer by serial_number OR IMEI1 (which should be pre-registered during customer creation)
      */
     public function registerDevice(string $serialNumber, string $imei1, string $fcmToken): Customer
     {
-        // Find customer by IMEI1
-        $customer = Customer::where('imei_1', $imei1)->firstOrFail();
+        // Find customer by serial_number OR IMEI1
+        $customer = Customer::where('serial_number', $serialNumber)
+            ->orWhere('imei_1', $imei1)
+            ->firstOrFail();
 
-        // Update device information
+        // Update only FCM token
         $customer->update([
-            'serial_number' => $serialNumber,
             'fcm_token' => $fcmToken,
         ]);
 
