@@ -1034,16 +1034,857 @@
 			"id": "48373923-74f6a62b-cfa5-4514-9bdb-e4497ec12206"
 		},
 		{
-			"name": "New Request",
-			"id": "48373923-12e427af-fe21-438c-8648-3eaa5f78990b",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": []
-			},
-			"response": []
+			"name": "Device Control",
+			"item": [
+				{
+					"name": "Register Device",
+					"id": "48373923-device-001",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"serial_number\": \"R2Q5X08F00Y\",\n  \"imei1\": \"356740000000000\",\n  \"fcm_token\": \"eXXX...firebase_cloud_messaging_token...XXXe\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"register"
+							]
+						},
+						"description": "Register device with FCM token. Public endpoint - no authentication required. Device finds customer by IMEI1 match."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Device Info",
+					"id": "48373923-device-002",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/devices/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"1"
+							]
+						},
+						"description": "Get device information for a specific customer including device status and capabilities."
+					},
+					"response": []
+				},
+				{
+					"name": "Lock Device",
+					"id": "48373923-device-003",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/lock",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"lock"
+							]
+						},
+						"description": "Lock the customer's device remotely via FCM."
+					},
+					"response": []
+				},
+				{
+					"name": "Unlock Device",
+					"id": "48373923-device-004",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/unlock",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"unlock"
+							]
+						},
+						"description": "Unlock the customer's device remotely via FCM."
+					},
+					"response": []
+				},
+				{
+					"name": "Disable Camera",
+					"id": "48373923-device-005",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/disable-camera",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"disable-camera"
+							]
+						},
+						"description": "Disable device camera remotely."
+					},
+					"response": []
+				},
+				{
+					"name": "Enable Camera",
+					"id": "48373923-device-006",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/enable-camera",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"enable-camera"
+							]
+						},
+						"description": "Enable device camera remotely."
+					},
+					"response": []
+				},
+				{
+					"name": "Disable Bluetooth",
+					"id": "48373923-device-007",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/disable-bluetooth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"disable-bluetooth"
+							]
+						},
+						"description": "Disable device bluetooth remotely."
+					},
+					"response": []
+				},
+				{
+					"name": "Enable Bluetooth",
+					"id": "48373923-device-008",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/enable-bluetooth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"enable-bluetooth"
+							]
+						},
+						"description": "Enable device bluetooth remotely."
+					},
+					"response": []
+				},
+				{
+					"name": "Hide App",
+					"id": "48373923-device-009",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"package_name\": \"com.facebook.katana\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/hide-app",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"hide-app"
+							]
+						},
+						"description": "Hide an app on the device. Package name is optional - hides the EMI manager app if not provided."
+					},
+					"response": []
+				},
+				{
+					"name": "Unhide App",
+					"id": "48373923-device-010",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"package_name\": \"com.facebook.katana\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/unhide-app",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"unhide-app"
+							]
+						},
+						"description": "Unhide an app on the device. Package name is optional."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"id": "48373923-device-011",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"password\": \"1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"reset-password"
+							]
+						},
+						"description": "Set or reset device lock screen password remotely."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Password",
+					"id": "48373923-device-012",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/remove-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"remove-password"
+							]
+						},
+						"description": "Remove device lock screen password."
+					},
+					"response": []
+				},
+				{
+					"name": "Reboot Device",
+					"id": "48373923-device-013",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/reboot",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"reboot"
+							]
+						},
+						"description": "Reboot the device remotely."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove App",
+					"id": "48373923-device-014",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"package_name\": \"com.example.app\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/remove-app",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"remove-app"
+							]
+						},
+						"description": "Uninstall an app from the device remotely. Requires package name."
+					},
+					"response": []
+				},
+				{
+					"name": "Wipe Device",
+					"id": "48373923-device-015",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/wipe",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"wipe"
+							]
+						},
+						"description": "Wipe device data (factory reset). USE WITH CAUTION - this will erase all data!"
+					},
+					"response": []
+				},
+				{
+					"name": "Show Message",
+					"id": "48373923-device-016",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"title\": \"Payment Reminder\",\n  \"message\": \"আপনার এই মাসের কিস্তি বাকি আছে। অনুগ্রহ করে ৫ তারিখের মধ্যে পরিশোধ করুন।\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/show-message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"show-message"
+							]
+						},
+						"description": "Show a custom message on the device screen. Supports Bangla text."
+					},
+					"response": []
+				},
+				{
+					"name": "Show Reminder Screen",
+					"id": "48373923-device-017",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"message\": \"আপনার কিস্তির সময় হয়ে গেছে। অবিলম্বে পেমেন্ট করুন।\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/reminder-screen",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"reminder-screen"
+							]
+						},
+						"description": "Show a full-screen reminder that user must acknowledge. Supports Bangla text."
+					},
+					"response": []
+				},
+				{
+					"name": "Play Reminder Audio",
+					"id": "48373923-device-018",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"audio_url\": \"https://example.com/reminder.mp3\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/reminder-audio",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"reminder-audio"
+							]
+						},
+						"description": "Play a reminder audio on the device. Audio URL is optional - plays default reminder if not provided."
+					},
+					"response": []
+				},
+				{
+					"name": "Set Wallpaper",
+					"id": "48373923-device-019",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"image_url\": \"https://example.com/reminder-wallpaper.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/set-wallpaper",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"set-wallpaper"
+							]
+						},
+						"description": "Set device wallpaper to a custom image (e.g., payment reminder). Requires image URL."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Wallpaper",
+					"id": "48373923-device-020",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/remove-wallpaper",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"remove-wallpaper"
+							]
+						},
+						"description": "Remove custom wallpaper and restore default."
+					},
+					"response": []
+				},
+				{
+					"name": "Request Location",
+					"id": "48373923-device-021",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/request-location",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"request-location"
+							]
+						},
+						"description": "Request device's current GPS location. Device will send location back to server."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Command History",
+					"id": "48373923-device-022",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/devices/1/history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"1",
+								"history"
+							]
+						},
+						"description": "Get command history for a specific customer's device. Shows all sent commands with status."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Commands",
+					"id": "48373923-device-023",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/devices/commands",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"commands"
+							]
+						},
+						"description": "Get list of all available device control commands with their parameters and descriptions."
+					},
+					"response": []
+				}
+			],
+			"id": "48373923-device-group",
+			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration and 19 remote control commands."
 		}
 	],
 	"auth": {
