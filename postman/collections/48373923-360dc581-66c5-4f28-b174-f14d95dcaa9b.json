@@ -1056,7 +1056,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"serial_number\": \"R2Q5X08F00Y\",\n  \"imei1\": \"356740000000000\",\n  \"fcm_token\": \"eXXX...firebase_cloud_messaging_token...XXXe\"\n}"
+							"raw": "{\n  \"serial_number\": \"R2Q5X08F00Y\",\n  \"imei1\": \"223762838218759\",\n  \"fcm_token\": \"eXXX...firebase_cloud_messaging_token...XXXe\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/devices/register",
