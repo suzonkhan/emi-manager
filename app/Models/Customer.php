@@ -37,6 +37,8 @@ class Customer extends Model
         'custom_wallpaper_url',
         'last_command_sent_at',
         'created_by',
+        'dealer_id',
+        'dealer_customer_id',
         'documents',
         'status',
     ];
@@ -75,6 +77,11 @@ class Customer extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function dealer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dealer_id');
     }
 
     public function installments(): HasMany
@@ -125,5 +132,29 @@ class Customer extends Model
     public function canReceiveCommands(): bool
     {
         return $this->hasDevice() && $this->isActive();
+    }
+
+    /**
+     * Get formatted dealer customer ID (e.g., "D-001", "D-1234")
+     */
+    public function getFormattedDealerCustomerId(): ?string
+    {
+        if (! $this->dealer_customer_id) {
+            return null;
+        }
+
+        return 'D-'.str_pad($this->dealer_customer_id, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get the next dealer customer ID for a specific dealer
+     */
+    public static function getNextDealerCustomerId(int $dealerId): int
+    {
+        $lastCustomer = self::where('dealer_id', $dealerId)
+            ->orderBy('dealer_customer_id', 'desc')
+            ->first();
+
+        return $lastCustomer ? $lastCustomer->dealer_customer_id + 1 : 1;
     }
 }

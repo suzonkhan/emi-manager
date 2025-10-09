@@ -83,6 +83,11 @@ class TokenController extends Controller
             $validated = $request->validated();
             $toUser = User::findOrFail($validated['assignee_id']);
 
+            // Prevent assigning tokens to salesmen
+            if ($toUser->hasRole('salesman')) {
+                return $this->error('Salesmen cannot receive token assignments. They automatically use tokens from their parent (dealer or sub-dealer).', null, 400);
+            }
+
             $token = $this->tokenService->assignToken(
                 $request->user(),
                 $toUser,
@@ -111,6 +116,11 @@ class TokenController extends Controller
 
         try {
             $toUser = User::findOrFail($request->assignee_id);
+
+            // Prevent assigning tokens to salesmen
+            if ($toUser->hasRole('salesman')) {
+                return $this->error('Salesmen cannot receive token assignments. They automatically use tokens from their parent (dealer or sub-dealer).', null, 400);
+            }
 
             // Check role hierarchy
             $roleHierarchyService = app(RoleHierarchyService::class);
@@ -205,6 +215,10 @@ class TokenController extends Controller
         try {
             $user = $request->user();
             $assignableRoles = $this->roleHierarchyService->getAssignableRoles($user);
+
+            // Remove 'salesman' from assignable roles if present
+            // Salesmen use their parent's tokens and don't receive assignments
+            $assignableRoles = array_filter($assignableRoles, fn ($role) => $role !== 'salesman');
 
             $assignableUsers = User::role($assignableRoles)
                 ->select(['id', 'name', 'email'])

@@ -16,6 +16,8 @@ class CustomerDetailResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'dealer_customer_id' => $this->dealer_customer_id,
+            'formatted_dealer_customer_id' => $this->getFormattedDealerCustomerId(),
             'nid_no' => $this->nid_no,
             'name' => $this->name,
             'email' => $this->email,
@@ -59,6 +61,15 @@ class CustomerDetailResource extends JsonResource
                     'email' => $this->creator->email,
                     'phone' => $this->creator->phone,
                     'role' => $this->creator->getRoleNames()->first(),
+                ] : null;
+            }),
+
+            // Dealer Information
+            'dealer' => $this->whenLoaded('dealer', function () {
+                return $this->dealer ? [
+                    'id' => $this->dealer->id,
+                    'name' => $this->dealer->name,
+                    'phone' => $this->dealer->phone,
                 ] : null;
             }),
 

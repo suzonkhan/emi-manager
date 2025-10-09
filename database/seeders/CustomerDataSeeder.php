@@ -72,6 +72,17 @@ class CustomerDataSeeder extends Seeder
             $presentAddress = $this->createCustomerAddress($customerUpazilla, 'present');
             $permanentAddress = $this->createCustomerAddress($customerUpazilla, 'permanent');
 
+            // Determine dealer for this customer
+            $dealerId = $this->getDealerIdForSalesman($salesman);
+            if (! $dealerId) {
+                $this->command->warn("Could not determine dealer for salesman {$salesman->name}. Skipping.");
+
+                return null;
+            }
+
+            // Get next sequential customer ID for this dealer
+            $dealerCustomerId = Customer::getNextDealerCustomerId($dealerId);
+
             // Create customer
             $customer = Customer::create([
                 'nid_no' => $this->generateNIDNumber(),
@@ -89,6 +100,8 @@ class CustomerDataSeeder extends Seeder
                 'imei_1' => $this->generateIMEI(),
                 'imei_2' => $this->generateIMEI(),
                 'created_by' => $salesman->id,
+                'dealer_id' => $dealerId,
+                'dealer_customer_id' => $dealerCustomerId,
                 'documents' => $this->generateDocuments(),
                 'status' => $this->assignCustomerStatus(),
                 'created_at' => $token->used_at ?? now()->subDays(rand(1, 15)),
@@ -389,6 +402,54 @@ class CustomerDataSeeder extends Seeder
 
     /**
      * Generate a postal code based on district and upazilla IDs
+     */
+    /**
+     * Get dealer ID for the given user
+     * - If user is dealer, return their ID
+     * - If user is sub_dealer or salesman, find their parent dealer
+     */
+    private function getDealerIdForSalesman(User $salesman): ?int
+    {
+        // If salesman is a dealer, they are the dealer
+        if ($salesman->role === 'dealer') {
+            return $salesman->id;
+        }
+
+        // If salesman is sub_dealer or salesman, find their parent dealer
+        if (in_array($salesman->role, ['sub_dealer', 'salesman'])) {
+            return $this->findDealerParent($salesman);
+        }
+
+        // Super admin case - return null
+        return null;
+    }
+
+    /**
+     * Recursively find the dealer parent for a user
+     */
+    private function findDealerParent(User $user): ?int
+    {
+        if (! $user->parent_id) {
+            return null;
+        }
+
+        $parent = User::find($user->parent_id);
+
+        if (! $parent) {
+            return null;
+        }
+
+        // If parent is a dealer, we found it
+        if ($parent->role === 'dealer') {
+            return $parent->id;
+        }
+
+        // Otherwise, keep searching up the tree
+        return $this->findDealerParent($parent);
+    }
+
+    /**
+     * Generate a random NID number for testing
      */
     private function generatePostalCode(array $upazilla): string
     {

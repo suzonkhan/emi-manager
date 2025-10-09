@@ -67,6 +67,11 @@ class TokenService
      */
     public function assignToken(User $fromUser, User $toUser, string $tokenCode): Token
     {
+        // Salesmen cannot receive token assignments - they use parent's tokens
+        if ($toUser->hasRole('salesman')) {
+            throw new Exception('Salesmen cannot receive token assignments. They automatically use tokens from their parent (dealer or sub-dealer).');
+        }
+
         // Check if fromUser can assign to toUser based on hierarchy
         $toUserRole = $toUser->getRoleNames()->first();
         if (! $this->roleHierarchyService->canAssignRole($fromUser, $toUserRole)) {
@@ -111,6 +116,11 @@ class TokenService
      */
     public function assignTokens(User $fromUser, User $toUser, int $quantity): Collection
     {
+        // Salesmen cannot receive token assignments - they use parent's tokens
+        if ($toUser->hasRole('salesman')) {
+            throw new Exception('Salesmen cannot receive token assignments. They automatically use tokens from their parent (dealer or sub-dealer).');
+        }
+
         // Check if fromUser can assign to toUser based on hierarchy
         $toUserRole = $toUser->getRoleNames()->first();
         if (! $this->roleHierarchyService->canAssignRole($fromUser, $toUserRole)) {
@@ -243,6 +253,7 @@ class TokenService
      */
     /**
      * Get an available token for the user (auto-assign)
+     * Salesmen automatically use tokens from their parent (dealer or sub-dealer)
      */
     public function getAvailableTokenForUser(User $user): ?Token
     {
@@ -260,11 +271,55 @@ class TokenService
                 ->first();
         }
 
-        // For other users, get tokens assigned to them that haven't been used
+        // For Salesman: Use tokens from parent (dealer or sub-dealer)
+        // Salesmen don't receive token assignments - they use their parent's tokens
+        if ($user->hasRole('salesman')) {
+            return $this->getTokenFromParentHierarchy($user);
+        }
+
+        // For Dealer and Sub-Dealer: get tokens assigned to them that haven't been used
         return Token::where('assigned_to', $user->id)
             ->where('status', 'assigned')
             ->whereNull('used_by')
             ->first();
+    }
+
+    /**
+     * Recursively find available tokens from parent hierarchy
+     * Used by salesmen to access their dealer's or sub-dealer's tokens
+     */
+    private function getTokenFromParentHierarchy(User $user): ?Token
+    {
+        // If no parent, can't get tokens
+        if (! $user->parent_id) {
+            return null;
+        }
+
+        $parent = User::find($user->parent_id);
+
+        if (! $parent) {
+            return null;
+        }
+
+        // Try to get an available token from this parent
+        $token = Token::where('assigned_to', $parent->id)
+            ->where('status', 'assigned')
+            ->whereNull('used_by')
+            ->first();
+
+        // If found, return it
+        if ($token) {
+            return $token;
+        }
+
+        // If parent is also a salesman or sub-dealer, check their parent
+        // This handles cases where salesman → sub-dealer → dealer
+        if (in_array($parent->role, ['salesman', 'sub_dealer'])) {
+            return $this->getTokenFromParentHierarchy($parent);
+        }
+
+        // No tokens available in hierarchy
+        return null;
     }
 
     public function useTokenForCustomer(User $user, string $tokenCode): Token

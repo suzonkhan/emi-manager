@@ -37,6 +37,14 @@ class CustomerService
         }
 
         return DB::transaction(function () use ($customerData, $salesman, $token) {
+            // Determine the dealer for this customer
+            // If salesman is dealer, they are the dealer
+            // If salesman is sub_dealer or salesman, find their parent dealer
+            $dealerId = $this->getDealerIdForSalesman($salesman);
+
+            // Get next sequential customer ID for this dealer
+            $dealerCustomerId = Customer::getNextDealerCustomerId($dealerId);
+
             // Create present address
             $presentAddress = Address::create([
                 'street_address' => $customerData['present_address']['street_address'],
@@ -92,6 +100,8 @@ class CustomerService
                 'imei_2' => $customerData['imei_2'] ?? null,
                 'serial_number' => $customerData['serial_number'],
                 'created_by' => $salesman->id,
+                'dealer_id' => $dealerId,
+                'dealer_customer_id' => $dealerCustomerId,
                 'documents' => $documents,
                 'status' => 'active',
             ]);
@@ -268,5 +278,51 @@ class CustomerService
 
             return $this->customerRepository->deleteCustomer($customer);
         });
+    }
+
+    /**
+     * Get dealer ID for the given user
+     * - If user is dealer, return their ID
+     * - If user is sub_dealer or salesman, find their parent dealer
+     * - If super_admin, return null (handled separately)
+     */
+    private function getDealerIdForSalesman(User $salesman): ?int
+    {
+        // If salesman is a dealer, they are the dealer
+        if ($salesman->role === 'dealer') {
+            return $salesman->id;
+        }
+
+        // If salesman is sub_dealer or salesman, find their parent dealer
+        if (in_array($salesman->role, ['sub_dealer', 'salesman'])) {
+            return $this->findDealerParent($salesman);
+        }
+
+        // Super admin case - return null or handle specially
+        return null;
+    }
+
+    /**
+     * Recursively find the dealer parent for a user
+     */
+    private function findDealerParent(User $user): ?int
+    {
+        if (! $user->parent_id) {
+            return null;
+        }
+
+        $parent = User::find($user->parent_id);
+
+        if (! $parent) {
+            return null;
+        }
+
+        // If parent is a dealer, we found it
+        if ($parent->role === 'dealer') {
+            return $parent->id;
+        }
+
+        // Otherwise, keep searching up the tree
+        return $this->findDealerParent($parent);
     }
 }

@@ -41,13 +41,13 @@ class TokenManagementSeeder extends Seeder
         $this->command->info('Assigning tokens to sub-dealers...');
         $subDealerTokens = $this->assignTokensToSubDealers($dealerTokens);
 
-        // Assign tokens to salesmen (Sub-Dealers → Salesmen)
-        $this->command->info('Assigning tokens to salesmen...');
-        $salesmenTokens = $this->assignTokensToSalesmen($subDealerTokens);
+        // NOTE: Salesmen do NOT receive token assignments
+        // They automatically use tokens from their parent (dealer or sub-dealer)
+        $this->command->info('Salesmen will use tokens from their parent hierarchy (no direct assignment needed)');
 
-        // Some tokens used by salesmen (for customers that will be created later)
-        $this->command->info('Marking some tokens as used by salesmen...');
-        $this->markSomeTokensAsUsed($salesmenTokens);
+        // Mark some sub-dealer tokens as used (simulate customer creation by salesmen)
+        $this->command->info('Marking some tokens as used for customer registrations...');
+        $this->markSomeTokensAsUsedByHierarchy($subDealerTokens, $salesmen);
 
         $this->command->info('Token management system seeded successfully!');
         $this->printTokenSummary();
@@ -186,99 +186,67 @@ class TokenManagementSeeder extends Seeder
         return $subDealerTokens;
     }
 
-    private function assignTokensToSalesmen(array $subDealerTokens): array
-    {
-        $salesmenTokens = [];
-
-        foreach ($subDealerTokens as $subDealerId => $tokens) {
-            $subDealer = User::find($subDealerId);
-            $salesmen = User::role('salesman')->where('parent_id', $subDealerId)->get();
-
-            if ($salesmen->isEmpty()) {
-                continue;
-            }
-
-            $tokensPerSalesman = intval(count($tokens) / $salesmen->count());
-
-            foreach ($salesmen as $index => $salesman) {
-                $startIndex = $index * $tokensPerSalesman;
-                $endIndex = min($startIndex + $tokensPerSalesman, count($tokens));
-
-                $salesmenTokens[$salesman->id] = [];
-
-                for ($i = $startIndex; $i < $endIndex; $i++) {
-                    $token = $tokens[$i];
-
-                    // Assign token to salesman
-                    $token->update([
-                        'assigned_to' => $salesman->id,
-                        'assigned_at' => now()->subDays(rand(1, 20)),
-                    ]);
-
-                    // Record assignment
-                    TokenAssignment::create([
-                        'token_id' => $token->id,
-                        'from_user_id' => $subDealer->id,
-                        'from_role' => 'sub_dealer',
-                        'to_user_id' => $salesman->id,
-                        'to_role' => 'salesman',
-                        'action' => 'assigned',
-                        'metadata' => [
-                            'assignment_reason' => 'Field sales distribution',
-                            'territory' => $this->getSalesmanTerritory($salesman),
-                        ],
-                    ]);
-
-                    $salesmenTokens[$salesman->id][] = $token;
-                }
-
-                $assignedCount = $endIndex - $startIndex;
-                $this->command->info("Assigned {$assignedCount} tokens to salesman: {$salesman->name}");
-            }
-        }
-
-        return $salesmenTokens;
-    }
-
-    private function markSomeTokensAsUsed(array $salesmenTokens): void
+    /**
+     * Mark some tokens as used by salesmen (who use their parent's tokens)
+     * This simulates customer creation by salesmen using their parent's token pool
+     */
+    private function markSomeTokensAsUsedByHierarchy(array $subDealerTokens, $salesmen): void
     {
         $usedCount = 0;
 
-        foreach ($salesmenTokens as $salesmanId => $tokens) {
-            $salesman = User::find($salesmanId);
+        foreach ($subDealerTokens as $subDealerId => $tokens) {
+            $subDealer = User::find($subDealerId);
 
-            // Use 20-40% of each salesman's tokens
+            // Get salesmen under this sub-dealer
+            $subDealerSalesmen = $salesmen->where('parent_id', $subDealerId);
+
+            if ($subDealerSalesmen->isEmpty()) {
+                continue;
+            }
+
+            // Use 20-40% of sub-dealer's tokens (simulating usage by their salesmen)
             $tokensToUse = intval(count($tokens) * (rand(20, 40) / 100));
 
-            for ($i = 0; $i < $tokensToUse; $i++) {
-                $token = $tokens[$i];
+            foreach ($subDealerSalesmen as $salesman) {
+                $salesmanTokensToUse = intval($tokensToUse / $subDealerSalesmen->count());
 
-                // Mark token as used
-                $token->update([
-                    'used_by' => $salesman->id,
-                    'status' => 'used',
-                    'used_at' => now()->subDays(rand(1, 15)),
-                ]);
+                for ($i = 0; $i < $salesmanTokensToUse && $i < count($tokens); $i++) {
+                    $token = $tokens[$i];
 
-                // Record usage
-                TokenAssignment::create([
-                    'token_id' => $token->id,
-                    'from_user_id' => $salesman->id,
-                    'from_role' => 'salesman',
-                    'to_user_id' => null,
-                    'to_role' => null,
-                    'action' => 'used',
-                    'metadata' => [
-                        'usage_reason' => 'Customer onboarding',
-                        'note' => 'Token used for EMI customer registration',
-                    ],
-                ]);
+                    // Skip if already used
+                    if ($token->status === 'used') {
+                        continue;
+                    }
 
-                $usedCount++;
+                    // Mark token as used by the salesman
+                    $token->update([
+                        'used_by' => $salesman->id,
+                        'status' => 'used',
+                        'used_at' => now()->subDays(rand(1, 15)),
+                    ]);
+
+                    // Record usage (salesman used parent's token)
+                    TokenAssignment::create([
+                        'token_id' => $token->id,
+                        'from_user_id' => $salesman->id,
+                        'from_role' => 'salesman',
+                        'to_user_id' => null,
+                        'to_role' => null,
+                        'action' => 'used',
+                        'metadata' => [
+                            'usage_reason' => 'Customer onboarding',
+                            'note' => "Salesman used parent's (sub-dealer) token",
+                            'parent_id' => $subDealer->id,
+                            'parent_role' => 'sub_dealer',
+                        ],
+                    ]);
+
+                    $usedCount++;
+                }
             }
         }
 
-        $this->command->info("Marked {$usedCount} tokens as used for customer registrations");
+        $this->command->info("Marked {$usedCount} tokens as used for customer registrations (salesmen using parent tokens)");
     }
 
     private function getDealerTerritory(User $dealer): string
@@ -339,12 +307,13 @@ class TokenManagementSeeder extends Seeder
             'Super Admin Created' => Token::where('created_by', User::role('super_admin')->first()?->id)->count(),
             'Assigned to Dealers' => Token::whereIn('assigned_to', User::role('dealer')->pluck('id'))->count(),
             'Assigned to Sub-Dealers' => Token::whereIn('assigned_to', User::role('sub_dealer')->pluck('id'))->count(),
-            'Assigned to Salesmen' => Token::whereIn('assigned_to', User::role('salesman')->pluck('id'))->count(),
         ];
 
         $this->command->info("\nToken Distribution by Role:");
         foreach ($roleDistribution as $role => $count) {
             $this->command->line("  {$role}: {$count}");
         }
+
+        $this->command->info("\nNote: Salesmen use tokens from their parent hierarchy (no direct assignments)");
     }
 }

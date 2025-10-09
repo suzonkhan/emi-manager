@@ -16,6 +16,8 @@ class CustomerListResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'dealer_customer_id' => $this->dealer_customer_id,
+            'formatted_dealer_customer_id' => $this->getFormattedDealerCustomerId(),
             'nid_no' => $this->nid_no,
             'name' => $this->name,
             'mobile' => $this->mobile,
