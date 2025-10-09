@@ -258,16 +258,28 @@ class CustomerRepository implements CustomerRepositoryInterface
             return $query;
         }
 
-        // Get assignable roles for the user
-        $assignableRoles = $this->roleHierarchyService->getAssignableRolesByRole($user->role);
+        // Get all users in this user's hierarchy (downline)
+        $hierarchyUserIds = $this->getUserHierarchyIds($user);
 
-        // User can see customers created by users in their hierarchy
-        return $query->where(function (Builder $q) use ($user, $assignableRoles) {
-            $q->where('created_by', $user->id)
-                ->orWhereHas('creator', function (Builder $creatorQuery) use ($assignableRoles) {
-                    // Use Spatie's role() method to check roles
-                    $creatorQuery->role($assignableRoles);
-                });
-        });
+        // User can see customers created by themselves or their downline users
+        return $query->whereIn('created_by', $hierarchyUserIds);
+    }
+
+    /**
+     * Get all user IDs in the user's hierarchy (including themselves)
+     */
+    protected function getUserHierarchyIds(User $user): array
+    {
+        $userIds = [$user->id]; // Include the user themselves
+
+        // Get direct children
+        $children = User::where('parent_id', $user->id)->get();
+
+        foreach ($children as $child) {
+            // Recursively get all descendants
+            $userIds = array_merge($userIds, $this->getUserHierarchyIds($child));
+        }
+
+        return array_unique($userIds);
     }
 }

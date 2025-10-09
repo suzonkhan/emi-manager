@@ -53,13 +53,18 @@ class UserRepository implements UserRepositoryInterface
 
     public function getUsersByHierarchy(User $currentUser, int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->user->where('parent_id', $currentUser->id)
-            ->where('id', '!=', $currentUser->id) // Exclude current user
-            ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
-            ->latest();
-
         if ($currentUser->hasRole('super_admin')) {
-            $query = $this->user->where('id', '!=', $currentUser->id) // Exclude current user for super admin too
+            // Super admin sees all users except themselves
+            $query = $this->user->where('id', '!=', $currentUser->id)
+                ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
+                ->latest();
+        } else {
+            // Other users see only their hierarchy (all descendants)
+            $hierarchyUserIds = $this->getUserHierarchyIds($currentUser);
+            // Remove current user from the list
+            $hierarchyUserIds = array_diff($hierarchyUserIds, [$currentUser->id]);
+
+            $query = $this->user->whereIn('id', $hierarchyUserIds)
                 ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
                 ->latest();
         }
@@ -75,8 +80,12 @@ class UserRepository implements UserRepositoryInterface
         if ($currentUser->hasRole('super_admin')) {
             $query->where('id', '!=', $currentUser->id);
         } else {
-            $query->where('parent_id', $currentUser->id)
-                ->where('id', '!=', $currentUser->id);
+            // Get all users in hierarchy (all descendants)
+            $hierarchyUserIds = $this->getUserHierarchyIds($currentUser);
+            // Remove current user from the list
+            $hierarchyUserIds = array_diff($hierarchyUserIds, [$currentUser->id]);
+
+            $query->whereIn('id', $hierarchyUserIds);
         }
 
         // Apply individual filters
@@ -169,6 +178,27 @@ class UserRepository implements UserRepositoryInterface
             return true;
         }
 
-        return $targetUser->parent_id === $currentUser->id || $targetUser->id === $currentUser->id;
+        // Check if target user is in current user's hierarchy
+        $hierarchyUserIds = $this->getUserHierarchyIds($currentUser);
+
+        return in_array($targetUser->id, $hierarchyUserIds);
+    }
+
+    /**
+     * Get all user IDs in the user's hierarchy (including themselves)
+     */
+    protected function getUserHierarchyIds(User $user): array
+    {
+        $userIds = [$user->id]; // Include the user themselves
+
+        // Get direct children
+        $children = User::where('parent_id', $user->id)->get();
+
+        foreach ($children as $child) {
+            // Recursively get all descendants
+            $userIds = array_merge($userIds, $this->getUserHierarchyIds($child));
+        }
+
+        return array_unique($userIds);
     }
 }
