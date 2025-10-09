@@ -30,6 +30,7 @@ class DeviceResource extends JsonResource
                 'is_bluetooth_disabled' => $this->is_bluetooth_disabled,
                 'is_app_hidden' => $this->is_app_hidden,
                 'has_password' => $this->has_password,
+                'custom_wallpaper_url' => $this->custom_wallpaper_url,
                 'last_command_sent_at' => $this->last_command_sent_at?->toIso8601String(),
             ],
             'product' => [

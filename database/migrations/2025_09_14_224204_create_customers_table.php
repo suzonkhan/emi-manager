@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('product_type');
             $table->string('product_model')->nullable();
             $table->decimal('product_price', 10, 2);
+            $table->decimal('down_payment', 10, 2)->default(0);
             $table->decimal('emi_per_month', 8, 2);
             $table->string('imei_1')->nullable();
             $table->string('imei_2')->nullable();
@@ -44,6 +45,7 @@ return new class extends Migration
             $table->boolean('is_bluetooth_disabled')->default(false);
             $table->boolean('is_app_hidden')->default(false);
             $table->boolean('has_password')->default(false);
+            $table->string('custom_wallpaper_url')->nullable();
             $table->timestamp('last_command_sent_at')->nullable();
 
             // Who created this customer

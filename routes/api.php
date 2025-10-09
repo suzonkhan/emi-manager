@@ -98,7 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/commands', [DeviceController::class, 'availableCommands']); // List all available commands
         Route::get('/{customer}', [DeviceController::class, 'show']); // Get device info
         Route::get('/{customer}/history', [DeviceController::class, 'commandHistory']); // Get command history
+        Route::post('/send-message', [DeviceController::class, 'sendMessage']); // Send message only (no command)
         Route::post('/command/{command}', [DeviceController::class, 'sendCommand']); // Send device command
+        Route::post('/command-with-message/{command}', [DeviceController::class, 'sendCommandWithMessage']); // Send command + display message
     });
 });
 

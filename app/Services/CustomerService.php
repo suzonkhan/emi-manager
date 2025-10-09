@@ -36,9 +36,6 @@ class CustomerService
             throw new Exception('No available tokens found. Please request tokens from your administrator.');
         }
 
-        // Mark token as used
-        $token->update(['customer_id' => 0]); // Temporary, will be updated after customer creation
-
         return DB::transaction(function () use ($customerData, $salesman, $token) {
             // Create present address
             $presentAddress = Address::create([

@@ -377,13 +377,19 @@ class DeviceCommandService
      */
     public function setWallpaper(Customer $customer, User $user, string $imageUrl): array
     {
-        return $this->sendCommand(
+        $result = $this->sendCommand(
             $customer,
             'SET_WALLPAPER',
             ['image_url' => $imageUrl],
             $user,
             fn ($token) => $this->firebaseService->setWallpaper($token, $imageUrl)
         );
+
+        if ($result['success']) {
+            $customer->update(['custom_wallpaper_url' => $imageUrl]);
+        }
+
+        return $result;
     }
 
     /**
@@ -391,13 +397,19 @@ class DeviceCommandService
      */
     public function removeWallpaper(Customer $customer, User $user): array
     {
-        return $this->sendCommand(
+        $result = $this->sendCommand(
             $customer,
             'REMOVE_WALLPAPER',
             [],
             $user,
             fn ($token) => $this->firebaseService->removeWallpaper($token)
         );
+
+        if ($result['success']) {
+            $customer->update(['custom_wallpaper_url' => null]);
+        }
+
+        return $result;
     }
 
     /**

@@ -15,7 +15,11 @@ interface TokenRepositoryInterface
 
     public function getAvailableTokensForUser(User $user): Collection;
 
+    public function getAvailableTokensForUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator;
+
     public function getCreatedTokensByUser(User $user): Collection;
+
+    public function getCreatedTokensByUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator;
 
     public function getAssignedTokensByUser(User $user): Collection;
 
@@ -23,7 +27,7 @@ interface TokenRepositoryInterface
 
     public function assignTokenToUser(Token $token, User $user): bool;
 
-    public function markTokenAsUsed(Token $token): bool;
+    public function markTokenAsUsed(Token $token, ?User $user = null): bool;
 
     public function getTokensByStatus(string $status, int $perPage = 15): LengthAwarePaginator;
 

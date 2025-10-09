@@ -252,18 +252,18 @@ class TokenService
             throw new Exception('You do not have permission to use tokens for customers');
         }
 
-        // For Super Admin, get any available token
+        // For Super Admin, get any available token that hasn't been used
         if ($user->hasRole('super_admin')) {
             return Token::where('status', 'available')
                 ->whereNull('assigned_to')
-                ->whereNull('customer_id')
+                ->whereNull('used_by')
                 ->first();
         }
 
-        // For other users, get tokens assigned to them
+        // For other users, get tokens assigned to them that haven't been used
         return Token::where('assigned_to', $user->id)
             ->where('status', 'assigned')
-            ->whereNull('customer_id')
+            ->whereNull('used_by')
             ->first();
     }
 
@@ -306,15 +306,15 @@ class TokenService
     public function completeTokenUsage(Token $token, Customer $customer, User $user): void
     {
         DB::transaction(function () use ($token, $customer, $user) {
-            // Update token to used status
-            $this->tokenRepository->markTokenAsUsed($token, $customer);
+            // Update token to used status with user who used it
+            $this->tokenRepository->markTokenAsUsed($token, $user);
 
             // Record token usage in assignment history
             $this->tokenAssignmentRepository->recordUsage($token, $user, [
                 'customer_id' => $customer->id,
-                'customer_name' => $customer->full_name,
-                'customer_phone' => $customer->phone,
-                'financed_amount' => $customer->financed_amount,
+                'customer_name' => $customer->name,
+                'customer_mobile' => $customer->mobile,
+                'product_price' => $customer->product_price,
             ]);
         });
     }

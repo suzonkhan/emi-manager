@@ -34,7 +34,8 @@ class FirebaseService
                 'command' => $command,
             ], $data);
 
-            $message = CloudMessage::withTarget('token', $fcmToken)
+            $message = CloudMessage::new()
+                ->toToken($fcmToken)
                 ->withData($messageData)
                 ->withAndroidConfig(
                     AndroidConfig::fromArray([

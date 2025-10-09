@@ -94,6 +94,88 @@ class DeviceController extends Controller
     }
 
     /**
+     * Send message only (no command execution)
+     * Just displays a message/notification on the device screen
+     */
+    public function sendMessage(DeviceCommandRequest $request): JsonResponse
+    {
+        try {
+            $customer = Customer::findOrFail($request->input('customer_id'));
+            $user = $request->user();
+            $message = $request->input('message');
+            $title = $request->input('title', 'Notification');
+
+            $result = $this->deviceCommandService->showMessage($customer, $user, $message, $title);
+
+            if ($result['success']) {
+                return $this->success($result);
+            }
+
+            return $this->error($result['message'], $result, 400);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Send command with custom message display
+     * This executes the command AND shows a message on device screen
+     */
+    public function sendCommandWithMessage(DeviceCommandRequest $request, string $command): JsonResponse
+    {
+        try {
+            $customer = Customer::findOrFail($request->input('customer_id'));
+            $user = $request->user();
+            $displayMessage = $request->input('display_message', '');
+            $displayTitle = $request->input('display_title', 'Notification');
+
+            // Execute the primary command first
+            $result = match ($command) {
+                'lock' => $this->deviceCommandService->lockDevice($customer, $user),
+                'unlock' => $this->deviceCommandService->unlockDevice($customer, $user),
+                'disable-camera' => $this->deviceCommandService->disableCamera($customer, $user),
+                'enable-camera' => $this->deviceCommandService->enableCamera($customer, $user),
+                'disable-bluetooth' => $this->deviceCommandService->disableBluetooth($customer, $user),
+                'enable-bluetooth' => $this->deviceCommandService->enableBluetooth($customer, $user),
+                'hide-app' => $this->deviceCommandService->hideApp($customer, $user, $request->input('package_name')),
+                'unhide-app' => $this->deviceCommandService->unhideApp($customer, $user, $request->input('package_name')),
+                'reset-password' => $this->deviceCommandService->resetPassword($customer, $user, $request->input('password')),
+                'remove-password' => $this->deviceCommandService->removePassword($customer, $user),
+                'reboot' => $this->deviceCommandService->rebootDevice($customer, $user),
+                'remove-app' => $this->deviceCommandService->removeApp($customer, $user, $request->input('package_name')),
+                'wipe' => $this->deviceCommandService->wipeDevice($customer, $user),
+                'set-wallpaper' => $this->deviceCommandService->setWallpaper($customer, $user, $request->input('image_url')),
+                'remove-wallpaper' => $this->deviceCommandService->removeWallpaper($customer, $user),
+                'request-location' => $this->deviceCommandService->requestLocation($customer, $user),
+                default => throw new Exception('Invalid command: '.$command),
+            };
+
+            // If primary command succeeded and message is provided, send message too
+            if ($result['success'] && ! empty($displayMessage)) {
+                $messageResult = $this->deviceCommandService->showMessage(
+                    $customer,
+                    $user,
+                    $displayMessage,
+                    $displayTitle
+                );
+
+                // Add message result to response
+                $result['message_sent'] = $messageResult['success'];
+                $result['display_message'] = $displayMessage;
+                $result['display_title'] = $displayTitle;
+            }
+
+            if ($result['success']) {
+                return $this->success($result);
+            }
+
+            return $this->error($result['message'], $result, 400);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), null, 500);
+        }
+    }
+
+    /**
      * Get command history for a customer
      */
     public function commandHistory(Customer $customer): JsonResponse

@@ -34,6 +34,7 @@ class Customer extends Model
         'is_bluetooth_disabled',
         'is_app_hidden',
         'has_password',
+        'custom_wallpaper_url',
         'last_command_sent_at',
         'created_by',
         'documents',

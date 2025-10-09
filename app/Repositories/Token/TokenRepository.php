@@ -93,12 +93,18 @@ class TokenRepository implements TokenRepositoryInterface
         ]);
     }
 
-    public function markTokenAsUsed(Token $token): bool
+    public function markTokenAsUsed(Token $token, ?User $user = null): bool
     {
-        return $token->update([
+        $data = [
             'status' => 'used',
             'used_at' => now(),
-        ]);
+        ];
+
+        if ($user) {
+            $data['used_by'] = $user->id;
+        }
+
+        return $token->update($data);
     }
 
     public function getTokensByStatus(string $status, int $perPage = 15): LengthAwarePaginator
