@@ -664,7 +664,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/customers?page=1&per_page=15&status=pending",
+							"raw": "{{base_url}}/customers?page=1&per_page=10&nid_no=2428907302&name=Shirin+Begum&email=Shirin%40gmail.com&phone=013696359658&mobile=A34&division_id=1&district_id=3&upazilla_id=35&product_type=phone",
 							"host": [
 								"{{base_url}}"
 							],
@@ -678,11 +678,43 @@
 								},
 								{
 									"key": "per_page",
-									"value": "15"
+									"value": "10"
 								},
 								{
-									"key": "status",
-									"value": "pending"
+									"key": "nid_no",
+									"value": "2428907302"
+								},
+								{
+									"key": "name",
+									"value": "Shirin+Begum"
+								},
+								{
+									"key": "email",
+									"value": "Shirin%40gmail.com"
+								},
+								{
+									"key": "phone",
+									"value": "013696359658"
+								},
+								{
+									"key": "mobile",
+									"value": "A34"
+								},
+								{
+									"key": "division_id",
+									"value": "1"
+								},
+								{
+									"key": "district_id",
+									"value": "3"
+								},
+								{
+									"key": "upazilla_id",
+									"value": "35"
+								},
+								{
+									"key": "product_type",
+									"value": "phone"
 								}
 							]
 						},
