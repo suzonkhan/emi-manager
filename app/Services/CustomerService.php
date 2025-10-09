@@ -38,12 +38,18 @@ class CustomerService
 
         return DB::transaction(function () use ($customerData, $salesman, $token) {
             // Determine the dealer for this customer
+            // Super admin creates customers without dealer hierarchy
             // If salesman is dealer, they are the dealer
             // If salesman is sub_dealer or salesman, find their parent dealer
             $dealerId = $this->getDealerIdForSalesman($salesman);
 
-            // Get next sequential customer ID for this dealer
-            $dealerCustomerId = Customer::getNextDealerCustomerId($dealerId);
+            // Get next sequential customer ID for this dealer (or system-wide for super_admin)
+            if ($dealerId !== null) {
+                $dealerCustomerId = Customer::getNextDealerCustomerId($dealerId);
+            } else {
+                // For super_admin, use system-wide sequential ID
+                $dealerCustomerId = Customer::max('dealer_customer_id') + 1;
+            }
 
             // Create present address
             $presentAddress = Address::create([
