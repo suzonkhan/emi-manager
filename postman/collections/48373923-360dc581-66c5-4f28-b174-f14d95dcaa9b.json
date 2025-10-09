@@ -215,6 +215,63 @@
 							],
 							"path": [
 								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "unique_id",
+									"value": "9KYGSOHJ",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Tohi",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "tohi%40emimanager.com",
+									"disabled": true
+								},
+								{
+									"key": "phone",
+									"value": "013696359658",
+									"disabled": true
+								},
+								{
+									"key": "role",
+									"value": "dealer",
+									"disabled": true
+								},
+								{
+									"key": "division_id",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "district_id",
+									"value": "3",
+									"disabled": true
+								},
+								{
+									"key": "upazilla_id",
+									"value": "35",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"disabled": true
+								}
 							]
 						},
 						"description": "Get paginated list of users based on hierarchy. Super admins see all users, others see their subordinates."
@@ -618,7 +675,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/customers?page=1&per_page=15&status=pending",
+							"raw": "{{base_url}}/customers",
 							"host": [
 								"{{base_url}}"
 							],
@@ -628,15 +685,58 @@
 							"query": [
 								{
 									"key": "page",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "per_page",
-									"value": "15"
+									"value": "10",
+									"disabled": true
 								},
 								{
-									"key": "status",
-									"value": "pending"
+									"key": "nid_no",
+									"value": "2428907302",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Shirin+Begum",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "Shirin%40gmail.com",
+									"disabled": true
+								},
+								{
+									"key": "phone",
+									"value": "013696359658",
+									"disabled": true
+								},
+								{
+									"key": "mobile",
+									"value": "A34",
+									"disabled": true
+								},
+								{
+									"key": "division_id",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "district_id",
+									"value": "3",
+									"disabled": true
+								},
+								{
+									"key": "upazilla_id",
+									"value": "35",
+									"disabled": true
+								},
+								{
+									"key": "product_type",
+									"value": "phone",
+									"disabled": true
 								}
 							]
 						},
@@ -1947,8 +2047,9 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "8eb5a7e4-4475-4417-9d72-ca6223bdd46b",
+				"id": "8dd3d30d-76d0-4ea8-b7a1-ddcd8eb5062a",
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"// Auto-set base URL if not set",
 					"if (!pm.collectionVariables.get('base_url')) {",
@@ -1980,8 +2081,9 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "a84e173e-e799-4e36-9e50-1345fd72a49e",
+				"id": "a8bf6b8f-568b-4053-a59d-8e5e2e166268",
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"// Collection-level response tests",
 					"",
