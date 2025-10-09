@@ -2047,8 +2047,9 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "8eb5a7e4-4475-4417-9d72-ca6223bdd46b",
+				"id": "8dd3d30d-76d0-4ea8-b7a1-ddcd8eb5062a",
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"// Auto-set base URL if not set",
 					"if (!pm.collectionVariables.get('base_url')) {",
@@ -2080,8 +2081,9 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "a84e173e-e799-4e36-9e50-1345fd72a49e",
+				"id": "a8bf6b8f-568b-4053-a59d-8e5e2e166268",
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"// Collection-level response tests",
 					"",
