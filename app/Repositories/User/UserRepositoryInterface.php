@@ -21,6 +21,8 @@ interface UserRepositoryInterface
 
     public function getUsersByHierarchy(User $currentUser, int $perPage = 15): LengthAwarePaginator;
 
+    public function searchUsersWithFilters(array $filters, User $currentUser, int $perPage = 15): LengthAwarePaginator;
+
     public function findUserWithDetails(int $id): ?User;
 
     public function createUser(array $userData, int $parentId): User;

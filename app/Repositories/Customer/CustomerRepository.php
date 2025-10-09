@@ -123,6 +123,67 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->paginate($perPage);
     }
 
+    public function searchCustomersWithFilters(array $filters, User $user, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = $this->getCustomersQueryForUser($user);
+
+        // Apply individual filters
+        if (! empty($filters['nid_no'])) {
+            $query->where('nid_no', 'like', '%'.$filters['nid_no'].'%');
+        }
+
+        if (! empty($filters['name'])) {
+            $query->where('name', 'like', '%'.$filters['name'].'%');
+        }
+
+        if (! empty($filters['email'])) {
+            $query->where('email', 'like', '%'.$filters['email'].'%');
+        }
+
+        if (! empty($filters['phone'])) {
+            $query->where('phone', 'like', '%'.$filters['phone'].'%');
+        }
+
+        if (! empty($filters['mobile'])) {
+            $query->where('mobile', 'like', '%'.$filters['mobile'].'%');
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['product_type'])) {
+            $query->where('product_type', 'like', '%'.$filters['product_type'].'%');
+        }
+
+        if (! empty($filters['created_by'])) {
+            $query->where('created_by', $filters['created_by']);
+        }
+
+        if (! empty($filters['dealer_id'])) {
+            $query->where('dealer_id', $filters['dealer_id']);
+        }
+
+        // Apply location filters through present address relationship
+        if (! empty($filters['division_id']) || ! empty($filters['district_id']) || ! empty($filters['upazilla_id'])) {
+            $query->whereHas('presentAddress', function ($q) use ($filters) {
+                if (! empty($filters['division_id'])) {
+                    $q->where('division_id', $filters['division_id']);
+                }
+                if (! empty($filters['district_id'])) {
+                    $q->where('district_id', $filters['district_id']);
+                }
+                if (! empty($filters['upazilla_id'])) {
+                    $q->where('upazilla_id', $filters['upazilla_id']);
+                }
+            });
+        }
+
+        return $query->with(['presentAddress', 'permanentAddress', 'token', 'creator'])
+            ->latest()
+            ->paginate($perPage);
+    }
+
     public function getCustomersWithOverdueEMIs(?User $user = null): Collection
     {
         // Since we don't have next_emi_date in the new schema, return empty collection for now

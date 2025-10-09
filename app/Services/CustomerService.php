@@ -218,7 +218,15 @@ class CustomerService
     }
 
     /**
-     * Search customers
+     * Search customers with comprehensive filters
+     */
+    public function searchCustomersWithFilters(array $filters, User $user, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->customerRepository->searchCustomersWithFilters($filters, $user, $perPage);
+    }
+
+    /**
+     * Search customers (legacy method - text search only)
      */
     public function searchCustomers(string $searchTerm, User $user, int $perPage = 15): LengthAwarePaginator
     {

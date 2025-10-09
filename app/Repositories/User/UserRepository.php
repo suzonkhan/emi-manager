@@ -67,6 +67,65 @@ class UserRepository implements UserRepositoryInterface
         return $query->paginate($perPage);
     }
 
+    public function searchUsersWithFilters(array $filters, User $currentUser, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = $this->user->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+
+        // Apply hierarchy filtering first
+        if ($currentUser->hasRole('super_admin')) {
+            $query->where('id', '!=', $currentUser->id);
+        } else {
+            $query->where('parent_id', $currentUser->id)
+                ->where('id', '!=', $currentUser->id);
+        }
+
+        // Apply individual filters
+        if (! empty($filters['unique_id'])) {
+            $query->where('unique_id', 'like', '%'.$filters['unique_id'].'%');
+        }
+
+        if (! empty($filters['name'])) {
+            $query->where('name', 'like', '%'.$filters['name'].'%');
+        }
+
+        if (! empty($filters['email'])) {
+            $query->where('email', 'like', '%'.$filters['email'].'%');
+        }
+
+        if (! empty($filters['phone'])) {
+            $query->where('phone', 'like', '%'.$filters['phone'].'%');
+        }
+
+        if (! empty($filters['role'])) {
+            $query->role($filters['role']); // Using Spatie's role method
+        }
+
+        if (! empty($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                $query->where('is_active', true);
+            } elseif ($filters['status'] === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        // Apply location filters through present address relationship
+        if (! empty($filters['division_id']) || ! empty($filters['district_id']) || ! empty($filters['upazilla_id'])) {
+            $query->whereHas('presentAddress', function ($q) use ($filters) {
+                if (! empty($filters['division_id'])) {
+                    $q->where('division_id', $filters['division_id']);
+                }
+                if (! empty($filters['district_id'])) {
+                    $q->where('district_id', $filters['district_id']);
+                }
+                if (! empty($filters['upazilla_id'])) {
+                    $q->where('upazilla_id', $filters['upazilla_id']);
+                }
+            });
+        }
+
+        return $query->latest()->paginate($perPage);
+    }
+
     public function findUserWithDetails(int $id): ?User
     {
         return $this->user->with([

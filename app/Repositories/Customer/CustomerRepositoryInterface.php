@@ -31,6 +31,8 @@ interface CustomerRepositoryInterface
 
     public function searchCustomers(string $searchTerm, User $user, int $perPage = 15): LengthAwarePaginator;
 
+    public function searchCustomersWithFilters(array $filters, User $user, int $perPage = 15): LengthAwarePaginator;
+
     public function getCustomersWithOverdueEMIs(?User $user = null): Collection;
 
     public function getCustomersCreatedBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?User $user = null): Collection;

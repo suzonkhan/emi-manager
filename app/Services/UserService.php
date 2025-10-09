@@ -26,6 +26,11 @@ class UserService
         return $this->userRepository->getUsersByHierarchy($currentUser, $perPage);
     }
 
+    public function searchUsers(array $filters, User $currentUser, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->userRepository->searchUsersWithFilters($filters, $currentUser, $perPage);
+    }
+
     public function getUsersByRole(string $role, User $currentUser): \Illuminate\Database\Eloquent\Collection
     {
         // Validate that the current user can access users with this role

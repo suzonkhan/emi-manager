@@ -25,27 +25,40 @@ class UserController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        // Check if filtering by role
-        if ($request->has('role')) {
-            $users = $this->userService->getUsersByRole($request->input('role'), $request->user());
+        try {
+            $perPage = $request->integer('per_page', 15);
+
+            // Build filters array
+            $filters = [
+                'unique_id' => $request->input('unique_id'),
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'phone' => $request->input('phone'),
+                'role' => $request->input('role'),
+                'division_id' => $request->input('division_id'),
+                'district_id' => $request->input('district_id'),
+                'upazilla_id' => $request->input('upazilla_id'),
+                'status' => $request->input('status'),
+            ];
+
+            // Remove null values
+            $filters = array_filter($filters, fn ($value) => $value !== null);
+
+            $users = $this->userService->searchUsers($filters, $request->user(), $perPage);
 
             return $this->success([
-                'data' => UserListResource::collection($users),
-                'message' => 'Users retrieved successfully',
+                'users' => UserListResource::collection($users->items()),
+                'pagination' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ],
+                'filters_applied' => $filters,
             ]);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
         }
-
-        $users = $this->userService->getAllUsers($request->user(), 15);
-
-        return $this->success([
-            'users' => UserListResource::collection($users->items()),
-            'pagination' => [
-                'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
-            ],
-        ]);
     }
 
     public function store(CreateUserRequest $request): JsonResponse

@@ -25,7 +25,27 @@ class CustomerController extends Controller
     {
         try {
             $perPage = $request->integer('per_page', 15);
-            $customers = $this->customerService->getCustomersByUser($request->user(), $perPage);
+
+            // Build filters array
+            $filters = [
+                'nid_no' => $request->input('nid_no'),
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'phone' => $request->input('phone'),
+                'mobile' => $request->input('mobile'),
+                'division_id' => $request->input('division_id'),
+                'district_id' => $request->input('district_id'),
+                'upazilla_id' => $request->input('upazilla_id'),
+                'status' => $request->input('status'),
+                'product_type' => $request->input('product_type'),
+                'created_by' => $request->input('created_by'),
+                'dealer_id' => $request->input('dealer_id'),
+            ];
+
+            // Remove null values
+            $filters = array_filter($filters, fn ($value) => $value !== null);
+
+            $customers = $this->customerService->searchCustomersWithFilters($filters, $request->user(), $perPage);
 
             return $this->success([
                 'customers' => CustomerListResource::collection($customers->items()),
@@ -35,6 +55,7 @@ class CustomerController extends Controller
                     'per_page' => $customers->perPage(),
                     'total' => $customers->total(),
                 ],
+                'filters_applied' => $filters,
             ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
