@@ -209,7 +209,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/users?page=1&per_page=10&unique_id=9KYGSOHJ&name=Tohi&email=tohi%40emimanager.com&phone=013696359658&role=dealer&division_id=1&district_id=3&upazilla_id=35&status=active",
+							"raw": "{{base_url}}/users",
 							"host": [
 								"{{base_url}}"
 							],
@@ -219,47 +219,58 @@
 							"query": [
 								{
 									"key": "page",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "per_page",
-									"value": "10"
+									"value": "10",
+									"disabled": true
 								},
 								{
 									"key": "unique_id",
-									"value": "9KYGSOHJ"
+									"value": "9KYGSOHJ",
+									"disabled": true
 								},
 								{
 									"key": "name",
-									"value": "Tohi"
+									"value": "Tohi",
+									"disabled": true
 								},
 								{
 									"key": "email",
-									"value": "tohi%40emimanager.com"
+									"value": "tohi%40emimanager.com",
+									"disabled": true
 								},
 								{
 									"key": "phone",
-									"value": "013696359658"
+									"value": "013696359658",
+									"disabled": true
 								},
 								{
 									"key": "role",
-									"value": "dealer"
+									"value": "dealer",
+									"disabled": true
 								},
 								{
 									"key": "division_id",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "district_id",
-									"value": "3"
+									"value": "3",
+									"disabled": true
 								},
 								{
 									"key": "upazilla_id",
-									"value": "35"
+									"value": "35",
+									"disabled": true
 								},
 								{
 									"key": "status",
-									"value": "active"
+									"value": "active",
+									"disabled": true
 								}
 							]
 						},
@@ -664,7 +675,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/customers?page=1&per_page=10&nid_no=2428907302&name=Shirin+Begum&email=Shirin%40gmail.com&phone=013696359658&mobile=A34&division_id=1&district_id=3&upazilla_id=35&product_type=phone",
+							"raw": "{{base_url}}/customers",
 							"host": [
 								"{{base_url}}"
 							],
@@ -674,47 +685,58 @@
 							"query": [
 								{
 									"key": "page",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "per_page",
-									"value": "10"
+									"value": "10",
+									"disabled": true
 								},
 								{
 									"key": "nid_no",
-									"value": "2428907302"
+									"value": "2428907302",
+									"disabled": true
 								},
 								{
 									"key": "name",
-									"value": "Shirin+Begum"
+									"value": "Shirin+Begum",
+									"disabled": true
 								},
 								{
 									"key": "email",
-									"value": "Shirin%40gmail.com"
+									"value": "Shirin%40gmail.com",
+									"disabled": true
 								},
 								{
 									"key": "phone",
-									"value": "013696359658"
+									"value": "013696359658",
+									"disabled": true
 								},
 								{
 									"key": "mobile",
-									"value": "A34"
+									"value": "A34",
+									"disabled": true
 								},
 								{
 									"key": "division_id",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "district_id",
-									"value": "3"
+									"value": "3",
+									"disabled": true
 								},
 								{
 									"key": "upazilla_id",
-									"value": "35"
+									"value": "35",
+									"disabled": true
 								},
 								{
 									"key": "product_type",
-									"value": "phone"
+									"value": "phone",
+									"disabled": true
 								}
 							]
 						},
