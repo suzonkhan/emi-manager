@@ -1648,7 +1648,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"customer_id\": 1\n}"
+							"raw": "{\n  \"customer_id\": 47\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/devices/command/reboot",
@@ -2047,7 +2047,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "8dd3d30d-76d0-4ea8-b7a1-ddcd8eb5062a",
+				"id": "13ddc92c-1188-43a9-8f2b-3f77ed4fec0b",
 				"type": "text/javascript",
 				"requests": {},
 				"exec": [
@@ -2081,7 +2081,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "a8bf6b8f-568b-4053-a59d-8e5e2e166268",
+				"id": "f4fa2d7d-ff9f-4166-bbc0-bd5a179eb12a",
 				"type": "text/javascript",
 				"requests": {},
 				"exec": [
