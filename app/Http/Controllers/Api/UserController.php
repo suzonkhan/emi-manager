@@ -130,19 +130,19 @@ class UserController extends Controller
 
     public function getPassword(Request $request, int $id): JsonResponse
     {
-        if (!$request->user()->hasRole('super_admin')) {
+        if (! $request->user()->hasRole('super_admin')) {
             return $this->forbidden('Only super admin can view user passwords');
         }
 
         $user = $this->userService->getUserDetails($id, $request->user());
 
-        if (!$user) {
+        if (! $user) {
             return $this->forbidden('You do not have permission to view this user');
         }
 
         $plainPassword = $user->getPlainPasswordForViewer($request->user());
 
-        if (!$plainPassword) {
+        if (! $plainPassword) {
             return $this->error('Password not available for this user', null, 404);
         }
 
@@ -150,7 +150,7 @@ class UserController extends Controller
             'password' => $plainPassword,
             'user_id' => $user->id,
             'user_name' => $user->name,
-            'message' => 'Password retrieved successfully'
+            'message' => 'Password retrieved successfully',
         ]);
     }
 }

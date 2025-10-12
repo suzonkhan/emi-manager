@@ -36,8 +36,12 @@ This application is a Laravel application and its main Laravel ecosystems packag
 ## Replies
 - Be concise in your explanations - focus on what's important rather than explaining obvious details.
 
-## Documentation Files
-- You must only create documentation files if explicitly requested by the user.
+## Documentation Files (CRITICAL RULE)
+- **NEVER create separate documentation MD files** (e.g., FEATURE_NAME.md, FIX_SUMMARY.md, etc.)
+- **ALWAYS update the existing README.md** with new features, fixes, and changes
+- All project documentation must be consolidated in the main README.md
+- The only exception is if the user explicitly requests a separate documentation file
+- Keep README.md as the single source of truth for all project documentation
 
 
 === boost rules ===

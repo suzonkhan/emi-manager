@@ -51,6 +51,12 @@ return new class extends Migration
             // Who created this customer
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
 
+            // Dealer tracking - which dealer this customer belongs to
+            $table->foreignId('dealer_id')->nullable()->constrained('users')->onDelete('cascade');
+
+            // Sequential customer number per dealer (1, 2, 3... for each dealer)
+            $table->unsignedInteger('dealer_customer_id')->nullable();
+
             // Document Archive
             $table->json('documents')->nullable(); // Store uploaded document paths
 
@@ -60,6 +66,10 @@ return new class extends Migration
             $table->index(['nid_no', 'mobile']); // Now safe with limited lengths
             $table->index(['created_by', 'status']);
             $table->index('token_id');
+            $table->index('dealer_customer_id');
+
+            // Ensure no duplicate customer IDs per dealer
+            $table->unique(['dealer_id', 'dealer_customer_id'], 'unique_dealer_customer');
         });
     }
 

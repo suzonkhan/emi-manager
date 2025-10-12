@@ -182,7 +182,7 @@ class User extends Authenticatable
      */
     public function getPlainPasswordForViewer(User $viewer): ?string
     {
-        if (!$this->canViewPassword($viewer)) {
+        if (! $this->canViewPassword($viewer)) {
             return null;
         }
 

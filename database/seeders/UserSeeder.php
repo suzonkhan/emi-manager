@@ -46,6 +46,7 @@ class UserSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'phone' => '+8801700000000',
                 'password' => Hash::make('SuperAdmin@123'),
+                'plain_password' => 'SuperAdmin@123',
                 'present_address_id' => $address->id,
                 'permanent_address_id' => $address->id,
                 'can_change_password' => true,

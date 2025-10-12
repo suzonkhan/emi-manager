@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('phone', 20);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->text('plain_password')->nullable();
 
             // Parent-child relationship for nested structure
             $table->foreignId('parent_id')->nullable()->constrained('users')->onDelete('cascade');
