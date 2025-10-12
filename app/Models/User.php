@@ -21,6 +21,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'plain_password',
         'parent_id',
         'present_address_id',
         'permanent_address_id',
@@ -33,6 +34,7 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
+        'plain_password',
         'remember_token',
     ];
 
@@ -164,5 +166,26 @@ class User extends Authenticatable
     public function updateLastLogin(): void
     {
         $this->update(['last_login_at' => now()]);
+    }
+
+    /**
+     * Check if the given user can view this user's password
+     */
+    public function canViewPassword(User $viewer): bool
+    {
+        // Only super admin can view passwords of other users
+        return $viewer->hasRole('super_admin');
+    }
+
+    /**
+     * Get the plain password if the viewer is authorized
+     */
+    public function getPlainPasswordForViewer(User $viewer): ?string
+    {
+        if (!$this->canViewPassword($viewer)) {
+            return null;
+        }
+
+        return $this->plain_password;
     }
 }

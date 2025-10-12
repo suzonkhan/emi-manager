@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [UserController::class, 'show']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::post('/{id}/reset-password', [UserController::class, 'resetPassword']);
+        Route::get('/{id}/password', [UserController::class, 'getPassword']);
     });
 
     // Token management routes

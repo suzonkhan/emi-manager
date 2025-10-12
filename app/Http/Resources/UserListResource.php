@@ -16,6 +16,7 @@ class UserListResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->getRoleNames()->first(),
+            'plain_password' => $this->when($request->user() && $this->canViewPassword($request->user()), $this->plain_password),
             'is_active' => $this->is_active,
             'present_address' => new AddressResource($this->whenLoaded('presentAddress')),
             'last_login_at' => $this->last_login_at,

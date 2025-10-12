@@ -16,6 +16,7 @@ class UserDetailResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->getRoleNames()->first(),
+            'plain_password' => $this->when($request->user() && $this->canViewPassword($request->user()), $this->plain_password),
             'parent' => $this->when($this->parent, function () {
                 return [
                     'id' => $this->parent->id,

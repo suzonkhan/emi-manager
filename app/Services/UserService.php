@@ -85,7 +85,9 @@ class UserService
 
             // Get user data and add address IDs
             $userData = $request->getCreateData();
+            $plainPassword = $userData['password'];
             $userData['password'] = Hash::make($userData['password']);
+            $userData['plain_password'] = $plainPassword; // Store plain password for admin viewing
             $userData['present_address_id'] = $presentAddress->id;
             $userData['permanent_address_id'] = $permanentAddress->id;
 
@@ -126,7 +128,9 @@ class UserService
             $updateData = $request->getUpdateData();
 
             if (isset($updateData['password'])) {
+                $plainPassword = $updateData['password'];
                 $updateData['password'] = Hash::make($updateData['password']);
+                $updateData['plain_password'] = $plainPassword; // Store plain password for admin viewing
                 $updateData['can_change_password'] = true;
             }
 
@@ -172,10 +176,18 @@ class UserService
             return false;
         }
 
-        $hashedPassword = Hash::make($request->getPassword());
+        $plainPassword = $request->getPassword();
+        $hashedPassword = Hash::make($plainPassword);
         $canChangePassword = $request->getCanChangePassword();
 
-        return $this->userRepository->resetUserPassword($user, $hashedPassword, $canChangePassword);
+        // Update both hashed and plain password
+        $user->update([
+            'password' => $hashedPassword,
+            'plain_password' => $plainPassword,
+            'can_change_password' => $canChangePassword,
+        ]);
+
+        return true;
     }
 
     public function canUserAccess(User $currentUser, User $targetUser): bool
