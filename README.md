@@ -22,7 +22,8 @@ A comprehensive Laravel 12 API system for managing EMI (Easy Monthly Installment
 14. [Development Tools](#-development--debugging-tools)
 15. [Testing](#-testing--quality-assurance)
 16. [Deployment Guide](#-deployment-guide)
-17. [Documentation Archive](#-documentation-archive)
+17. [Production Issues & Fixes](#-production-issues--fixes)
+18. [Documentation Archive](#-documentation-archive)
 
 ---
 
@@ -2234,7 +2235,83 @@ This comprehensive README was created by merging **25 separate documentation fil
 
 ---
 
-## 📚 Documentation Archive
+## � Production Issues & Fixes
+
+### Issue 1: CORS Error - "No 'Access-Control-Allow-Origin' header present"
+
+**Problem**: Frontend at `https://imelocker.com` cannot access API at `https://www.imelocker.com` due to CORS policy blocking.
+
+**Error Message**:
+```
+Access to fetch at 'https://www.imelocker.com/api/reports/generate' from origin 'https://imelocker.com' 
+has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
+No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+**Root Cause**: 
+- Different origins (`imelocker.com` vs `www.imelocker.com`) trigger CORS
+- Production `.env` missing CORS configuration
+- Laravel config cache is stale
+
+**Solution**: See [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) for complete instructions.
+
+**Quick Fix Steps**:
+
+1. **Update production `.env`**:
+```bash
+CORS_ALLOWED_ORIGINS=https://www.imelocker.com,https://imelocker.com
+SANCTUM_STATEFUL_DOMAINS=imelocker.com,www.imelocker.com
+SESSION_DOMAIN=.imelocker.com
+SESSION_SECURE_COOKIE=true
+APP_URL=https://www.imelocker.com
+```
+
+2. **Clear Laravel caches on production**:
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan config:cache
+php artisan optimize
+```
+
+3. **Restart services**:
+```bash
+sudo systemctl restart php8.3-fpm
+sudo systemctl restart nginx
+```
+
+4. **Rebuild frontend with HTTPS**:
+```bash
+cd emi-manager-frontend
+echo "VITE_REACT_APP_API_URL=https://www.imelocker.com/api" > .env
+npm run build
+# Upload dist/ folder to production
+```
+
+**Automated Deployment**: 
+- Run `bash deploy-cors-fix.sh` on production server for automated fix
+- Script checks config, clears caches, restarts services, and tests CORS
+
+**Files Modified**:
+- ✅ `config/cors.php` - Now reads from `CORS_ALLOWED_ORIGINS` env variable
+- ✅ `PRODUCTION_DEPLOYMENT.md` - Complete deployment guide with troubleshooting
+- ✅ `deploy-cors-fix.sh` - Automated deployment script with verification
+- ✅ `emi-manager-frontend/.env` - Updated to HTTPS API URL
+
+**Verification**:
+```bash
+# Test CORS headers
+curl -I -X OPTIONS https://www.imelocker.com/api/reports/generate \
+  -H "Origin: https://imelocker.com" \
+  -H "Access-Control-Request-Method: POST"
+
+# Should return:
+# Access-Control-Allow-Origin: https://imelocker.com
+```
+
+---
+
+## �📚 Documentation Archive
 
 ### Consolidation Complete ✅
 
