@@ -1070,6 +1070,153 @@
 			"id": "48373923-57aa09b1-258d-4280-b504-5e5d8fd7babb"
 		},
 		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Generate Report",
+					"id": "48373923-report-001",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"report_type\": \"sales\",\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2025-10-14\",\n  \"dealer_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reports/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"generate"
+							]
+						},
+						"description": "Generate a report based on type and date range. Available types: sales, installments, collections, products, customers, dealers, sub-dealers. Optional dealer_id for dealer-specific reports."
+					},
+					"response": []
+				},
+				{
+					"name": "Download Report PDF",
+					"id": "48373923-report-002",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/pdf"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"report_type\": \"sales\",\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2025-10-14\",\n  \"dealer_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reports/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"download"
+							]
+						},
+						"description": "Download report as PDF. Same parameters as Generate Report. Returns PDF file for download."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dealers for Report Filter",
+					"id": "48373923-report-003",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/dealers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"dealers"
+							]
+						},
+						"description": "Get list of dealers for report filtering. Returns dealers based on user hierarchy - Super Admin sees all, others see their subordinates."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sub-Dealers for Report Filter",
+					"id": "48373923-report-004",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/sub-dealers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"sub-dealers"
+							],
+							"query": [
+								{
+									"key": "dealer_id",
+									"value": "2",
+									"description": "Optional - filter sub-dealers by specific dealer",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of sub-dealers for report filtering. Optional dealer_id parameter to filter sub-dealers by specific dealer."
+					},
+					"response": []
+				}
+			],
+			"id": "48373923-report-group",
+			"description": "Report generation and download endpoints. Supports 7 report types: Sales, Installments, Collections, Products, Customers, Dealers, and Sub-Dealers. All reports can be previewed or downloaded as PDF."
+		},
+		{
 			"name": "System",
 			"item": [
 				{

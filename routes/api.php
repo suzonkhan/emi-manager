@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\InstallmentController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Api\UserController;
 use App\Models\User;
@@ -102,6 +103,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/send-message', [DeviceController::class, 'sendMessage']); // Send message only (no command)
         Route::post('/command/{command}', [DeviceController::class, 'sendCommand']); // Send device command
         Route::post('/command-with-message/{command}', [DeviceController::class, 'sendCommandWithMessage']); // Send command + display message
+    });
+
+    // Report management routes
+    Route::prefix('reports')->group(function () {
+        Route::post('/generate', [ReportController::class, 'generate']); // Generate report (JSON or PDF)
+        Route::get('/dealers', [ReportController::class, 'getDealers']); // Get dealers list for super admin
+        Route::get('/sub-dealers', [ReportController::class, 'getSubDealers']); // Get sub-dealers based on dealer selection
     });
 });
 

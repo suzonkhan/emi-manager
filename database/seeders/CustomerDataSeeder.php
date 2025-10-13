@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Token;
 use App\Models\Upazilla;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class CustomerDataSeeder extends Seeder
@@ -31,26 +32,29 @@ class CustomerDataSeeder extends Seeder
         }
 
         $createdCount = 0;
+        $progressBar = $this->command->getOutput()->createProgressBar($usedTokens->count());
 
         foreach ($usedTokens as $token) {
             $salesman = $token->usedBy;
 
             if (! $salesman || ! $salesman->hasRole('salesman')) {
+                $progressBar->advance();
+
                 continue;
             }
 
-            // Create customer with realistic data
+            // Create customer with realistic data and spread creation dates
             $customer = $this->createCustomerForToken($token, $salesman);
 
             if ($customer) {
                 $createdCount++;
-
-                if ($createdCount % 50 === 0) {
-                    $this->command->info("Created {$createdCount} customers...");
-                }
             }
+
+            $progressBar->advance();
         }
 
+        $progressBar->finish();
+        $this->command->newLine(2);
         $this->command->info('Customer data seeded successfully!');
         $this->printCustomerSummary();
     }
@@ -83,6 +87,10 @@ class CustomerDataSeeder extends Seeder
             // Get next sequential customer ID for this dealer
             $dealerCustomerId = Customer::getNextDealerCustomerId($dealerId);
 
+            // Generate realistic creation date (spread across time for better reports)
+            $createdAt = $this->getRandomCreationDate();
+            $updatedAt = $createdAt->copy()->addDays(rand(0, 30));
+
             // Create customer
             $customer = Customer::create([
                 'nid_no' => $this->generateNIDNumber(),
@@ -104,8 +112,8 @@ class CustomerDataSeeder extends Seeder
                 'dealer_customer_id' => $dealerCustomerId,
                 'documents' => $this->generateDocuments(),
                 'status' => $this->assignCustomerStatus(),
-                'created_at' => $token->used_at ?? now()->subDays(rand(1, 15)),
-                'updated_at' => now()->subDays(rand(0, 5)),
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
             ]);
 
             return $customer;
@@ -457,5 +465,37 @@ class CustomerDataSeeder extends Seeder
         $upazillaId = str_pad($upazilla['id'], 2, '0', STR_PAD_LEFT);
 
         return $districtId.$upazillaId;
+    }
+
+    /**
+     * Generate random creation date spread across time for better reports
+     * Distributes customer creation from January 2024 to October 2025
+     * This creates realistic time-series data for sales trends and analytics
+     */
+    private function getRandomCreationDate(): Carbon
+    {
+        $startDate = Carbon::create(2024, 1, 1);
+        $endDate = Carbon::create(2025, 10, 14); // Today
+
+        // Calculate total days between start and end
+        $daysDiff = $startDate->diffInDays($endDate);
+
+        // Get random day offset (weighted towards more recent dates)
+        // 60% of customers created in last 6 months for realistic growth pattern
+        if (rand(1, 100) <= 60) {
+            // Recent customers (last 6 months)
+            $recentStart = Carbon::create(2025, 4, 1);
+            $recentDaysDiff = $recentStart->diffInDays($endDate);
+            $randomDays = rand(0, $recentDaysDiff);
+
+            return $recentStart->copy()->addDays($randomDays)->setTime(rand(8, 18), rand(0, 59), rand(0, 59));
+        } else {
+            // Historical customers (older than 6 months)
+            $oldEndDate = Carbon::create(2025, 3, 31);
+            $oldDaysDiff = $startDate->diffInDays($oldEndDate);
+            $randomDays = rand(0, $oldDaysDiff);
+
+            return $startDate->copy()->addDays($randomDays)->setTime(rand(8, 18), rand(0, 59), rand(0, 59));
+        }
     }
 }

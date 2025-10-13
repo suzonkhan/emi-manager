@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Token;
 use App\Models\TokenAssignment;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class TokenManagementSeeder extends Seeder
@@ -222,7 +223,7 @@ class TokenManagementSeeder extends Seeder
                     $token->update([
                         'used_by' => $salesman->id,
                         'status' => 'used',
-                        'used_at' => now()->subDays(rand(1, 15)),
+                        'used_at' => $this->getRandomTokenUsageDate(),
                     ]);
 
                     // Record usage (salesman used parent's token)
@@ -315,5 +316,33 @@ class TokenManagementSeeder extends Seeder
         }
 
         $this->command->info("\nNote: Salesmen use tokens from their parent hierarchy (no direct assignments)");
+    }
+
+    /**
+     * Generate random token usage date spread across time
+     * Aligns with customer creation dates (January 2024 to October 2025)
+     * This creates realistic time-series data for token usage analytics
+     */
+    private function getRandomTokenUsageDate(): Carbon
+    {
+        $startDate = Carbon::create(2024, 1, 1);
+        $endDate = Carbon::create(2025, 10, 14); // Today
+
+        // 60% of tokens used in last 6 months (realistic growth pattern)
+        if (rand(1, 100) <= 60) {
+            // Recent usage (last 6 months)
+            $recentStart = Carbon::create(2025, 4, 1);
+            $recentDaysDiff = $recentStart->diffInDays($endDate);
+            $randomDays = rand(0, $recentDaysDiff);
+
+            return $recentStart->copy()->addDays($randomDays)->setTime(rand(8, 18), rand(0, 59), rand(0, 59));
+        } else {
+            // Historical usage (older than 6 months)
+            $oldEndDate = Carbon::create(2025, 3, 31);
+            $oldDaysDiff = $startDate->diffInDays($oldEndDate);
+            $randomDays = rand(0, $oldDaysDiff);
+
+            return $startDate->copy()->addDays($randomDays)->setTime(rand(8, 18), rand(0, 59), rand(0, 59));
+        }
     }
 }

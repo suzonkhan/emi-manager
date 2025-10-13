@@ -14,7 +14,7 @@ A comprehensive Laravel 12 API system for managing EMI (Easy Monthly Installment
 6. [Customer Management](#-customer-management)
 7. [Installment System](#-installment-system)
 8. [Device Control System](#-device-control-system)
-9. [Search & Filter APIs](#-search--filter-apis)
+9. [Report System](#-report-system)
 10. [Firebase Integration](#-firebase-integration)
 11. [API Reference](#-complete-api-reference)
 12. [Database Schema](#-complete-database-schema)
@@ -35,7 +35,8 @@ A comprehensive Laravel 12 API system for managing EMI (Easy Monthly Installment
 - 🔥 **Firebase Integration** - Cloud messaging for Android device management
 - 👥 **Customer Management** - Complete customer lifecycle with dealer-specific ID system
 - 🔍 **Advanced Search & Filter** - 21 filter parameters across users and customers
-- 📊 **Real-time Dashboard** - Statistics and monitoring
+- 📊 **Comprehensive Reporting** - 7 report types with PDF generation and hierarchy filtering
+- 📈 **Real-time Dashboard** - Statistics and monitoring
 - 🛡️ **Enterprise Security** - Sanctum authentication, role-based permissions
 - 🎯 **Salesman Token Hierarchy** - Automatic parent token access for salesmen
 
@@ -695,7 +696,517 @@ GET    /api/debug/routes         # List all registered routes
 
 ---
 
-## 🗄️ Complete Database Schema
+## � Report System
+
+### Overview
+Comprehensive reporting system with 7 report types, PDF generation, date filtering, and hierarchy-based access control.
+
+### Report Features
+- ✅ 7 distinct report types
+- ✅ PDF generation with DomPDF
+- ✅ Date range filtering (start_date, end_date)
+- ✅ Hierarchy-aware data access
+- ✅ Super admin dealer/sub-dealer filtering
+- ✅ JSON and PDF format support
+- ✅ A4 landscape PDF layout
+- ✅ Real-time data aggregation
+
+### Available Report Types
+
+#### 1. Sales Report
+**Purpose**: Track all sales transactions with dealer and product details
+
+**Data Structure**:
+```json
+{
+  "report_type": "Sales Report",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "data": [
+    {
+      "date": "2025-01-15",
+      "dealer_name": "John Dealer",
+      "product_name": "Samsung Galaxy S23",
+      "price": 85000
+    }
+  ],
+  "total": 850000
+}
+```
+
+**Columns**:
+- Date (sale date)
+- Dealer Name
+- Product Name
+- Price (BDT)
+
+#### 2. Installments Report
+**Purpose**: View all customer installments with payment status
+
+**Data Structure**:
+```json
+{
+  "report_type": "Installments Report",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "data": [
+    {
+      "date": "2025-01-15",
+      "token": "ABC123XYZ789",
+      "product_type": "Mobile",
+      "product_name": "iPhone 15 Pro",
+      "duration": 12,
+      "price": 135000,
+      "paid": 45000,
+      "remaining": 90000
+    }
+  ],
+  "total_price": 1350000,
+  "total_paid": 450000,
+  "total_remaining": 900000
+}
+```
+
+**Columns**:
+- Date (installment start date)
+- Token
+- Product Type
+- Product Name
+- Duration (months)
+- Price (total)
+- Paid (amount paid)
+- Remaining (due amount)
+
+#### 3. Collections Report
+**Purpose**: Track all installment payments and collections
+
+**Data Structure**:
+```json
+{
+  "report_type": "Collections Report",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "data": [
+    {
+      "date": "2025-01-20",
+      "token": "ABC123XYZ789",
+      "product_type": "Mobile",
+      "product_name": "iPhone 15 Pro",
+      "installment_no": "1st Installment",
+      "paid": 11250
+    }
+  ],
+  "total": 112500
+}
+```
+
+**Columns**:
+- Date (payment date)
+- Token
+- Product Type
+- Product Name
+- Installment No (1st, 2nd, 3rd, etc.)
+- Paid (amount)
+
+#### 4. Products Report
+**Purpose**: Aggregate sales statistics by product type
+
+**Data Structure**:
+```json
+{
+  "report_type": "Products Report",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "data": [
+    {
+      "product_type": "Mobile",
+      "sales_qty": 45,
+      "price": 3825000
+    },
+    {
+      "product_type": "Laptop",
+      "sales_qty": 12,
+      "price": 780000
+    }
+  ],
+  "total_qty": 57,
+  "total_price": 4605000
+}
+```
+
+**Columns**:
+- Product Type
+- Sales Quantity
+- Total Price (BDT)
+
+#### 5. Customers Report
+**Purpose**: Complete customer list with payment status
+
+**Data Structure**:
+```json
+{
+  "report_type": "Customers Report",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "data": [
+    {
+      "name": "Ahmed Hassan",
+      "mobile": "01712345678",
+      "district": "Dhaka",
+      "upazila": "Dhanmondi",
+      "product_name": "iPhone 15 Pro",
+      "price": 135000,
+      "paid": 45000,
+      "due": 90000
+    }
+  ],
+  "total_price": 1350000,
+  "total_paid": 450000,
+  "total_due": 900000
+}
+```
+
+**Columns**:
+- Name
+- Mobile
+- District
+- Upazila
+- Product Name
+- Price
+- Paid
+- Due
+
+#### 6. Dealers Report
+**Purpose**: Track dealer token usage and availability
+
+**Data Structure**:
+```json
+{
+  "report_type": "Dealers Report",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "data": [
+    {
+      "id": "DLR-00001",
+      "name": "Main Dealer Ltd",
+      "mobile": "01700000001",
+      "district": "Dhaka",
+      "upazila": "Gulshan",
+      "used_token": 45,
+      "available_token": 155
+    }
+  ]
+}
+```
+
+**Columns**:
+- ID (dealer unique ID)
+- Name
+- Mobile
+- District
+- Upazila
+- Used Token
+- Available Token
+
+#### 7. Sub-Dealers Report
+**Purpose**: Track sub-dealer token usage (same structure as dealers)
+
+**Data Structure**: Same as Dealers Report
+
+**Columns**: Same as Dealers Report
+
+### Report API Endpoints
+
+#### Generate Report
+```http
+POST /api/reports/generate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "report_type": "sales",
+  "start_date": "2025-01-01",
+  "end_date": "2025-12-31",
+  "dealer_id": 2,  // Optional (super admin only)
+  "sub_dealer_id": 5,  // Optional (super admin only)
+  "format": "pdf"  // Optional: "pdf" or "json" (default: json)
+}
+```
+
+**Response (JSON format)**:
+```json
+{
+  "success": true,
+  "message": "Report generated successfully",
+  "data": {
+    "report_type": "Sales Report",
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "data": [...],
+    "total": 850000
+  }
+}
+```
+
+**Response (PDF format)**:
+- Content-Type: application/pdf
+- Content-Disposition: attachment; filename="sales-report-2025-10-14.pdf"
+- Binary PDF file download
+
+#### Get Dealers List
+```http
+GET /api/reports/dealers
+Authorization: Bearer {token}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 2,
+      "name": "Main Dealer Ltd",
+      "unique_id": "DLR-00001"
+    }
+  ]
+}
+```
+
+**Access**: Super Admin only
+
+#### Get Sub-Dealers List
+```http
+GET /api/reports/sub-dealers?dealer_id=2
+Authorization: Bearer {token}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "name": "Regional Sub-Dealer",
+      "unique_id": "SUB-00001"
+    }
+  ]
+}
+```
+
+**Access**: Super Admin and Dealers
+
+### Hierarchy Access Control
+
+#### Super Admin
+- Can generate all report types
+- Can see all data across the system
+- Can filter by specific dealer_id or sub_dealer_id
+- Access to dealer/sub-dealer filter dropdowns
+
+#### Dealer
+- Can generate all report types
+- Can see own hierarchy (self + sub-dealers + salesmen + customers)
+- Cannot filter by other dealers
+- Auto-filtered to own hierarchy
+
+#### Sub-Dealer
+- Can generate all report types
+- Can see own hierarchy (self + salesmen + customers)
+- Auto-filtered to own hierarchy
+
+#### Salesman
+- Can generate all report types
+- Can see only own customers
+- Auto-filtered to own data
+
+### PDF Configuration
+
+**Paper Settings**:
+- Paper: A4 Landscape
+- Margins: 10mm all sides
+- Orientation: Landscape (for wide tables)
+
+**File Naming**:
+- Format: `{report-type}-report-{YYYY-MM-DD}.pdf`
+- Example: `sales-report-2025-10-14.pdf`
+
+**View Templates**:
+- Location: `resources/views/reports/`
+- Files:
+  * `sales.blade.php`
+  * `installments.blade.php`
+  * `collections.blade.php`
+  * `products.blade.php`
+  * `customers.blade.php`
+  * `dealers.blade.php`
+  * `sub-dealers.blade.php`
+
+### Validation Rules
+
+**Required Fields**:
+- `report_type`: Must be one of: sales, installments, collections, products, customers, dealers, sub_dealers
+- `start_date`: Valid date, must be before or equal to end_date
+- `end_date`: Valid date, must be after or equal to start_date
+
+**Optional Fields**:
+- `dealer_id`: Must exist in users table (super admin only)
+- `sub_dealer_id`: Must exist in users table (super admin only)
+- `format`: Must be "pdf" or "json" (default: json)
+
+**Date Range Validation**:
+- start_date cannot be after end_date
+- Both dates are required
+- Dates are parsed with Carbon and set to start/end of day
+
+### Report Data Aggregation
+
+**Sales Report**:
+- Joins: customers → users (dealer)
+- Filters: Date range, hierarchy
+- Groups: None (raw transactions)
+- Orders: Date DESC
+
+**Installments Report**:
+- Source: customers table
+- Filters: Date range (created_at), hierarchy
+- Calculations: paid = down_payment, remaining = total_price - down_payment
+- Orders: Date DESC
+
+**Collections Report**:
+- Joins: installments → customers
+- Filters: Date range (payment_date), hierarchy, paid installments only
+- Calculations: Installment position (1st, 2nd, 3rd, etc.)
+- Orders: Date DESC
+
+**Products Report**:
+- Source: customers table
+- Filters: Date range, hierarchy
+- Groups: product_type
+- Aggregates: COUNT(id) as sales_qty, SUM(total_price) as price
+- Orders: sales_qty DESC
+
+**Customers Report**:
+- Joins: customers → districts → upazillas
+- Filters: Date range, hierarchy
+- Calculations: paid = down_payment, due = total_price - down_payment
+- Orders: created_at DESC
+
+**Dealers Report**:
+- Source: users with role 'dealer'
+- Joins: addresses → districts → upazillas
+- Filters: Date range (user creation), hierarchy
+- Calculations: Token usage from token_assignments
+- Orders: created_at DESC
+
+**Sub-Dealers Report**:
+- Source: users with role 'sub_dealer'
+- Same structure as dealers report
+- Additional filter: parent_id = dealer_id (if specified)
+
+### Implementation Files
+
+**Backend**:
+- `app/Http/Requests/Report/GenerateReportRequest.php` - Request validation
+- `app/Services/ReportService.php` - Report generation logic (401 lines)
+- `app/Http/Controllers/Api/ReportController.php` - API endpoints (142 lines)
+- `resources/views/reports/*.blade.php` - PDF templates (7 files)
+- `routes/api.php` - Route registration
+
+**Package Dependencies**:
+- `barryvdh/laravel-dompdf` v3.1.1 - PDF generation
+- `dompdf/dompdf` v3.1.2 - Core PDF library
+
+**Frontend** (To be implemented):
+- `src/pages/Reports.jsx` - Report generation UI
+- `src/features/report/reportApi.js` - RTK Query endpoints
+
+### Usage Example
+
+#### Generate Sales Report (JSON)
+```bash
+curl -X POST http://api.imelocker.com/api/reports/generate \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_type": "sales",
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31"
+  }'
+```
+
+#### Generate Installments Report (PDF)
+```bash
+curl -X POST http://api.imelocker.com/api/reports/generate \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_type": "installments",
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "format": "pdf"
+  }' \
+  --output installments-report.pdf
+```
+
+#### Super Admin: Generate Dealer-Specific Report
+```bash
+curl -X POST http://api.imelocker.com/api/reports/generate \
+  -H "Authorization: Bearer SUPER_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_type": "customers",
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "dealer_id": 2,
+    "format": "pdf"
+  }' \
+  --output dealer-customers-report.pdf
+```
+
+### Testing Reports
+
+#### Test with Artisan Tinker
+```php
+php artisan tinker
+
+// Get authenticated user
+$user = User::find(1); // Super admin
+
+// Generate sales report
+$service = new \App\Services\ReportService();
+$report = $service->generateSalesReport([
+    'start_date' => '2025-01-01',
+    'end_date' => '2025-12-31'
+], $user);
+
+// View report data
+dd($report);
+```
+
+#### Test PDF Generation
+```php
+// In Tinker
+$controller = new \App\Http\Controllers\Api\ReportController(
+    new \App\Services\ReportService()
+);
+
+$reportData = [
+    'report_type' => 'Sales Report',
+    'start_date' => '2025-01-01',
+    'end_date' => '2025-12-31',
+    'data' => [...],
+    'total' => 850000
+];
+
+// Generate PDF (will download)
+return $controller->generatePDF($reportData, 'sales');
+```
+
+---
+
+## �🗄️ Complete Database Schema
 
 ### Users Table
 ```sql
@@ -1065,6 +1576,89 @@ php artisan device:test 1
 php artisan device:test 1 lock
 php artisan device:test 1 unlock
 ```
+
+### Enhanced Database Seeders
+
+#### Realistic Data Generation
+The database seeders generate **time-distributed** data for meaningful reports and analytics.
+
+**Key Features**:
+- 📅 **Date Distribution**: Data spread from January 2024 to October 2025
+- 💰 **Payment Patterns**: 5 realistic behavior types (excellent to defaulted)
+- 📊 **Weighted Distribution**: 60% recent data, 40% historical
+- 💳 **Payment Methods**: Realistic distribution (40% cash, 35% mobile banking, etc.)
+- 📈 **Time-Series Ready**: Enables trend analysis and growth tracking
+
+#### Seeding the Database
+```bash
+# Fresh seed with all data
+php artisan migrate:fresh --seed
+
+# Seed only (without migrations)
+php artisan db:seed
+
+# Seed specific seeder
+php artisan db:seed --class=CustomerDataSeeder
+```
+
+#### Generated Data Overview
+**After seeding, you'll have**:
+- 117 users (1 super admin, 4 dealers, 16 sub-dealers, 96 salesmen)
+- 1,000 tokens with realistic assignment chain
+- 38-40 customers with varied creation dates
+- 1,000+ installments with realistic payment history
+- Complete Bangladesh location data (divisions, districts, upazillas)
+
+#### Data Distribution Pattern
+
+**Customer Creation** (January 2024 - October 2025):
+```
+2024: 40% of customers (older data)
+2025: 60% of customers (recent growth)
+```
+
+**Payment Patterns** (weighted distribution):
+```
+Excellent (20%): 90-100% payments, 95% on-time
+Good (40%):      70-90% payments, 80% on-time
+Average (25%):   50-70% payments, 60% on-time
+Poor (10%):      30-50% payments, 40% on-time
+Defaulted (5%):  0-30% payments, 20% on-time
+```
+
+**Payment Methods**:
+```
+Cash:            40%
+Mobile Banking:  35%
+Bank Transfer:   15%
+Card:            8%
+Cheque:          2%
+```
+
+#### Seeder Summary Output
+After seeding, you'll see comprehensive statistics:
+- Installment status breakdown (paid/partial/overdue/pending)
+- Financial summary (total, collected, remaining, collection rate)
+- Customer status distribution (active/completed/defaulted/cancelled)
+- Payment method breakdown (count + amount per method)
+
+#### Testing Date Distribution
+```bash
+# Verify date spread
+php test-date-distribution.php
+```
+
+**Expected Output**:
+- Customer creation spread across 20+ months
+- Token usage distributed over time
+- Payment dates aligned with customer creation + EMI schedule
+
+#### Benefits for Reports
+✅ **Time-series trends** instead of flat snapshots  
+✅ **Seasonal patterns** visible in data  
+✅ **Growth metrics** calculable over quarters  
+✅ **Collection rate trends** over time  
+✅ **Customer acquisition patterns** analysis
 
 ---
 
@@ -1660,25 +2254,26 @@ All separate documentation files have been successfully merged into this single 
 5. ✅ DEALER_CUSTOMER_ID_SYSTEM.md - Per-dealer sequential numbering
 6. ✅ CUSTOMER_API_IMPROVEMENTS.md - Auto token assignment & down payment
 7. ✅ SEEDER_DEALER_ID_FIX.md - Database seeder updates
+8. ✅ SEEDER_ENHANCEMENT_COMPLETE.md - Time-distributed data for reports
 
 #### Device Control Documentation  
-8. ✅ DEVICE_API_TESTING_GUIDE.md - Complete testing guide
-9. ✅ DEVICE_COMMAND_ARCHITECTURE.md - Command system architecture
-10. ✅ DEVICE_COMMAND_FLOW_DIAGRAM.md - Visual flow diagrams
-11. ✅ SIMPLE_MESSAGE_API.md - Message display API
-12. ✅ API_COMMAND_WITH_MESSAGE.md - Combined command+message API
+9. ✅ DEVICE_API_TESTING_GUIDE.md - Complete testing guide
+10. ✅ DEVICE_COMMAND_ARCHITECTURE.md - Command system architecture
+11. ✅ DEVICE_COMMAND_FLOW_DIAGRAM.md - Visual flow diagrams
+12. ✅ SIMPLE_MESSAGE_API.md - Message display API
+13. ✅ API_COMMAND_WITH_MESSAGE.md - Combined command+message API
 
 #### Search & Filter Documentation
-13. ✅ SEARCH_FILTER_API_DOCUMENTATION.md - Complete API reference (600+ lines)
-14. ✅ SEARCH_FILTER_ARCHITECTURE_DIAGRAM.md - System architecture (300+ lines)
-15. ✅ SEARCH_FILTER_COMPLETE.md - Implementation summary (350+ lines)
-16. ✅ SEARCH_FILTER_IMPLEMENTATION_SUMMARY.md - Technical details (400+ lines)
-17. ✅ SEARCH_FILTER_QUICK_REFERENCE.md - Quick guide (100+ lines)
+14. ✅ SEARCH_FILTER_API_DOCUMENTATION.md - Complete API reference (600+ lines)
+15. ✅ SEARCH_FILTER_ARCHITECTURE_DIAGRAM.md - System architecture (300+ lines)
+16. ✅ SEARCH_FILTER_COMPLETE.md - Implementation summary (350+ lines)
+17. ✅ SEARCH_FILTER_IMPLEMENTATION_SUMMARY.md - Technical details (400+ lines)
+18. ✅ SEARCH_FILTER_QUICK_REFERENCE.md - Quick guide (100+ lines)
 
 #### Migration & Database Documentation
-18. ✅ MIGRATION_CLEANUP_SUMMARY.md - Migration consolidation
-19. ✅ BEFORE_AFTER_MIGRATION_COMPARISON.md - Schema comparison
-20. ✅ FINANCIAL_CALCULATION_EXPLANATION.md - EMI calculations
+19. ✅ MIGRATION_CLEANUP_SUMMARY.md - Migration consolidation
+20. ✅ BEFORE_AFTER_MIGRATION_COMPARISON.md - Schema comparison
+21. ✅ FINANCIAL_CALCULATION_EXPLANATION.md - EMI calculations
 
 ### Documentation Benefits
 
@@ -1756,9 +2351,11 @@ This project is proprietary software developed for EMI management operations.
 The EMI Manager system is a **complete, production-ready** application with:
 
 ✅ **238+ customers** actively managed  
+✅ **238+ customers** actively managed  
 ✅ **117 users** across 5 role levels  
 ✅ **5,844+ installments** tracked  
 ✅ **23 device control endpoints** operational  
+✅ **7 comprehensive reports** with PDF generation  
 ✅ **Firebase FCM** connected and tested  
 ✅ **Complete test suite** with multiple testing approaches  
 ✅ **Comprehensive documentation** - 20 files merged into single README  
@@ -1776,8 +2373,8 @@ This README now serves as the complete technical reference, API documentation, d
 
 ---
 
-**Last Updated**: October 9, 2025  
-**Version**: 1.0.0  
+**Last Updated**: October 14, 2025  
+**Version**: 1.1.0  
 **Status**: Production Ready ✅  
 **Documentation**: Fully Consolidated (20 files merged, original files deleted)
 
@@ -1797,6 +2394,7 @@ The EMI Manager system is a **complete, production-ready** application with:
 ✅ **117 users** across 5 role levels  
 ✅ **5,844 installments** tracked  
 ✅ **23 device control endpoints** operational  
+✅ **7 comprehensive reports** with PDF generation  
 ✅ **Firebase FCM** connected and tested  
 ✅ **Complete test suite** with 3 testing approaches  
 ✅ **Comprehensive documentation** - all 25 files merged into single README  
@@ -1807,6 +2405,13 @@ The system successfully combines **financial management** with **remote device c
 📚 **All documentation consolidated** - This README now serves as the complete technical reference, API documentation, deployment manual, testing guide, and architecture overview. The original 25 separate documentation files have been successfully merged.
 
 **Ready for production deployment!** 🚀
+
+---
+
+**Last Updated**: October 14, 2025  
+**Version**: 1.1.0  
+**Status**: Production Ready ✅  
+**Documentation**: Fully Consolidated (25 files merged)
 
 ---
 

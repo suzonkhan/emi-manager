@@ -15,7 +15,7 @@ return [
     |
      */
 
-    'stateful'     => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s%s',
         'localhost,localhost:3000,localhost:5173,127.0.0.1,127.0.0.1:8000,127.0.0.1:5173,::1,',
         'imelocker.com,www.imelocker.com,',
@@ -35,7 +35,7 @@ return [
     |
      */
 
-    'guard'        => ['web'],
+    'guard' => ['web'],
 
     /*
     |--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ return [
     |
      */
 
-    'expiration'   => 1440, // Expires in 1440 minutes (24 hours)
+    'expiration' => 1440, // Expires in 1440 minutes (24 hours)
 
     /*
     |--------------------------------------------------------------------------
@@ -76,10 +76,10 @@ return [
     |
      */
 
-    'middleware'   => [
+    'middleware' => [
         'authenticate_session' => Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
-        'encrypt_cookies'      => Illuminate\Cookie\Middleware\EncryptCookies::class,
-        'validate_csrf_token'  => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+        'encrypt_cookies' => Illuminate\Cookie\Middleware\EncryptCookies::class,
+        'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
     ],
 
 ];
