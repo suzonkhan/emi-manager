@@ -1,0 +1,90 @@
+# 🚀 Production Deployment Commands - Copy & Paste
+
+## Step 1: SSH to Server
+```bash
+ssh imelocker@server2
+cd /home/imelocker/data.imelocker.com
+```
+
+## Step 2: Pull Latest Code
+```bash
+git pull origin master
+```
+
+## Step 3: Update .env File
+```bash
+nano .env
+```
+
+### Add these lines (or replace existing Firebase config):
+```env
+FIREBASE_PROJECT_ID=ime-locker-app
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@ime-locker-app.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDWeFx81K3JMF1K\n/d8sLe8PhUxiXFdAfBeYrfsBu1aHnNG1dJtKVXVb65zSbCnHmO8U+YR2Prjo27rh\nYMWd4EUiyIYLyLEl5/Z5PfD+JMGvprbnvXnM+RBsUL3M16IdPi178pUSpae3C9BP\n98B2gOqipK9fk+YhBCdXQ/948daMi7AeT1uTlCKCKUbQvaV3ajn6iapsci1j1XR4\nOONxz70TQXuko45Kr2IY3TS1vMBW3pTnhkAPo7SGGfvhTcGs8WH69UwhP6aOytDV\nV01haxtnhbVIYxK3/Wb5AbFmgbx4LbxDlhFBN8Sy6j56FCcA9ddzuSAniZU0gTqi\nWvZQWPuRAgMBAAECggEAB5G96eXzsDsVv9TP8JY6brjMplgN+Eeo6YmSZ1A+UJD3\nUckoxenYN4NMSJzqqJG8NmhMBYRXMFi48sVglB7bMcwT9wyBPA5Aw6ys+btAXruq\njulACDzuGHSNDlK59QBByLMaEcto7Ovs0TW0RDpujYj0a5IjuByWat0KgjE+2jzv\nTcRO1FJmYQuDgDp0tc6p6tvuY2xc9lZrBGzjXVGtMYZgaC65e+T68fOAQs2HZN4n\n/IvnwqHY6n4b0XxWo3VhLqZ7GT9uB1nXkudUJWSI8yp2ICa0b+jSfxP7DHEA0ty1\nT+Ie67ktok6mkf2YkQpg+vg1vLRb3Qz5wA17VCXJ8QKBgQD2bYouvWcjFAth8rlv\nXXIJMQ/z3HcD++Z+E2J1BO70kjLfDlr96Fw1EFXSU3cnw+fsuuQfXVD0CPhrpmEr\n5TtfcEWwXiBNhXmBwljEMe7aEhfi2x82JHnLXAamcbrJutYl8i8PS0vvIOTDT3Te\n31oZPU9YjpaOtcZKzGYSv3M+XQKBgQDezQlJixw1K7isVsWS7orCfjsKo5lHbt02\n79xSEZBDVdRKn3SKVsNPrvC6HlaeZWnjwJ9v/mcqs+oUNEQeRP9RrHr0ANKd5yHW\nBQ8+LRXzOkRlVyXpyikjbVYBuR2UkR9X1GXsLJXocVb0Se0G+1HOqkXXbxokjek4\n/cZ46aYWxQKBgFJsEOvRLc3txmDcbmlxN9MbNdq6wpPyjQVeNnAtVj83Jwy0IHsM\nXMriy9GtWQ1T2R6049gZvhnhZjWbUKT95v3k72ouEV/cZOehuU7l5J3Lr3GRGL9j\nM9lwzkidgXw3oajPeC4FYUB6IAmzacOhsOEAQKm+B110Lv6Vnw5mOoWBAoGAacyx\nuVOuzGz7oBMAdVqDWAJ7ZPz1H5+8uobCd9JRUDhkvB7mR38V9jPbqnYXqdX8p6Nj\n0tnbAcM3x+pd4oXfPFiMdmwhl8wXHDuA1oSwZLTpn7n3jgJq8KDN87mFG3SijqGU\n2Mb/VMblhNHKFcOoQFxJGBlxL6SX+HFCG07QiQUCgYB5NPO8p7fPi6ID0LP8OLXj\nNl3oEOZoR0YbpKa00F6ctyAFT5ky8kQJd2p3/PoSnQFTBLKcBx3j2hdujtB5Iz1N\njvSjrCl8u4l4ds4Rw+RXNOuK2jtXE4HDScmIQVw8zE2TBkUGwNWW7M5nOWkA0LVr\n2zG+Oup8+ZAutM8USWJ6rQ==\n-----END PRIVATE KEY-----\n"
+```
+
+### Remove or comment out this line if it exists:
+```env
+# FIREBASE_CREDENTIALS=/var/www/yourapp/storage/app/firebase/ime-locker-app-credentials.json
+```
+
+**Save:** Press `Ctrl+X`, then `Y`, then `Enter`
+
+## Step 4: Clear All Caches
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+```
+
+## Step 5: Verify Configuration
+```bash
+php artisan config:show firebase
+```
+
+**Expected output:**
+```
+firebase
+  project_id ......... ime-locker-app
+  client_email ....... firebase-adminsdk-fbsvc@ime-locker-app.iam.gserviceaccount.com
+  private_key ........ -----BEGIN PRIVATE KEY----- (truncated)
+```
+
+## Step 6: Test Composer (Should work now!)
+```bash
+composer dump-autoload
+```
+
+✅ **Success Indicator:** No Firebase errors during composer dump-autoload
+
+## Step 7: Test PDF Generation
+Go to your frontend and try downloading a report as PDF.
+
+---
+
+## 🎯 Quick Copy-Paste All Commands:
+
+```bash
+ssh imelocker@server2
+cd /home/imelocker/data.imelocker.com
+git pull origin master
+nano .env
+# [Add Firebase credentials as shown above]
+php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan route:clear
+php artisan config:show firebase
+composer dump-autoload
+```
+
+---
+
+## ✅ What This Fixes:
+
+1. ✅ **DomPDF**: Now installed and working
+2. ✅ **Firebase**: Configured using direct env credentials
+3. ✅ **PDF Generation**: Should work perfectly
+4. ✅ **Device Commands**: Will work with FCM
+
+---
+
+**Need help?** Check `PRODUCTION_FIREBASE_FIX.md` for detailed troubleshooting.
