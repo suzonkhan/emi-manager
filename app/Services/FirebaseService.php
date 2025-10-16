@@ -14,8 +14,23 @@ class FirebaseService
 
     public function __construct()
     {
-        $credentialsPath = config('firebase.credentials')
-            ?? storage_path('app/firebase/ime-locker-app-credentials.json');
+        $credentialsPath = config('firebase.credentials');
+
+        // If no path in config, use default storage path
+        if (! $credentialsPath) {
+            $credentialsPath = storage_path('app/firebase/ime-locker-app-credentials.json');
+        }
+
+        // If path is relative (doesn't start with / or C:), resolve it
+        // Check if it's not already an absolute path
+        if (! str_starts_with($credentialsPath, '/') && ! preg_match('/^[A-Z]:/i', $credentialsPath)) {
+            // If path starts with 'storage/', strip it and use storage_path()
+            if (str_starts_with($credentialsPath, 'storage/')) {
+                $credentialsPath = storage_path(substr($credentialsPath, 8)); // Remove 'storage/' prefix
+            } else {
+                $credentialsPath = base_path($credentialsPath);
+            }
+        }
 
         if (! file_exists($credentialsPath)) {
             throw new Exception('Firebase credentials file not found at: '.$credentialsPath);
