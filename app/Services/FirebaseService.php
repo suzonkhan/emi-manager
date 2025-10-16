@@ -14,7 +14,8 @@ class FirebaseService
 
     public function __construct()
     {
-        $credentialsPath = storage_path('app/firebase/ime-locker-app-credentials.json');
+        $credentialsPath = config('firebase.credentials')
+            ?? storage_path('app/firebase/ime-locker-app-credentials.json');
 
         if (! file_exists($credentialsPath)) {
             throw new Exception('Firebase credentials file not found at: '.$credentialsPath);
@@ -160,9 +161,9 @@ class FirebaseService
     /**
      * Send command to remove app
      */
-    public function removeApp(string $fcmToken, string $packageName): array
+    public function removeApp(string $fcmToken): array
     {
-        return $this->sendDataMessage($fcmToken, 'REMOVE_APP', ['package_name' => $packageName]);
+        return $this->sendDataMessage($fcmToken, 'REMOVE_APP');
     }
 
     /**
@@ -227,6 +228,22 @@ class FirebaseService
     public function requestLocation(string $fcmToken): array
     {
         return $this->sendDataMessage($fcmToken, 'REQUEST_LOCATION');
+    }
+
+    /**
+     * Send command to enable calls
+     */
+    public function enableCall(string $fcmToken): array
+    {
+        return $this->sendDataMessage($fcmToken, 'ENABLE_CALL', ['state' => 'false']);
+    }
+
+    /**
+     * Send command to disable calls
+     */
+    public function disableCall(string $fcmToken): array
+    {
+        return $this->sendDataMessage($fcmToken, 'DISABLE_CALL', ['state' => 'true']);
     }
 
     /**

@@ -17,6 +17,7 @@ class DeviceCommandLogResource extends JsonResource
             'command' => $this->command,
             'command_data' => $this->command_data,
             'status' => $this->status,
+            'metadata' => $this->metadata,
             'error_message' => $this->error_message,
             'sent_at' => $this->sent_at?->toIso8601String(),
             'sent_by' => $this->whenLoaded('sentBy', function () {
@@ -26,6 +27,7 @@ class DeviceCommandLogResource extends JsonResource
                     'email' => $this->sentBy->email,
                 ];
             }),
+            'has_location_response' => $this->command === 'REQUEST_LOCATION' ? $this->hasLocationResponse() : null,
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

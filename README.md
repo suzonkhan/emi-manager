@@ -33,7 +33,8 @@ A comprehensive Laravel 12 API system for managing EMI (Easy Monthly Installment
 - 🎫 **Token Distribution System** - 12-character unique tokens with assignment tracking
 - 💰 **Installment Management** - Complete EMI tracking with payment history
 - 📱 **Remote Device Control** - Lock/unlock devices, camera control, messaging via FCM
-- 🔥 **Firebase Integration** - Cloud messaging for Android device management
+- � **Real-time Location Tracking** - GPS tracking with location history and Google Maps integration
+- �🔥 **Firebase Integration** - Cloud messaging for Android device management
 - 👥 **Customer Management** - Complete customer lifecycle with dealer-specific ID system
 - 🔍 **Advanced Search & Filter** - 21 filter parameters across users and customers
 - 📊 **Comprehensive Reporting** - 7 report types with PDF generation and hierarchy filtering
@@ -463,13 +464,23 @@ GET    /api/devices/commands            # List available commands
 
 #### Device Command Logs Table
 - `customer_id` - Foreign key to customer
-- `command` - Command name (e.g., LOCK_DEVICE)
-- `command_data` - JSON parameters
+- `command` - Command name (e.g., LOCK_DEVICE, REQUEST_LOCATION)
+- `command_data` - JSON parameters sent with command
 - `status` - pending, sent, delivered, failed
 - `fcm_response` - FCM API response
+- `metadata` - **JSON response data from device** (e.g., location, device info)
 - `error_message` - Error details
 - `sent_at` - Timestamp
 - `sent_by` - User who sent command
+
+**Note:** The `metadata` column stores the device's response data, creating a complete request-response audit trail.
+
+#### Migrations
+The device command logs table is created using two migrations:
+1. **`2025_10_08_164033_create_device_command_logs_table.php`** - Creates the base table structure
+2. **`2025_10_16_021140_add_metadata_to_device_command_logs_table.php`** - Adds the `metadata` JSON column
+
+This separation allows for clean migration history and easier rollback if needed.
 
 ---
 
@@ -538,6 +549,204 @@ php test-firebase-connection.php
 #### Option 3: Physical Device (Simplest if available - 5 minutes)
 1. Install test app on Android device
 2. App generates and displays FCM token
+3. Test directly with working device
+
+---
+
+## 📍 Device Location Tracking System
+
+### Overview
+Real-time GPS location tracking for devices, enabling geo-monitoring of customer devices and compliance verification.
+
+### Location Tracking Features
+- ✅ Real-time location updates from devices
+- ✅ Location history tracking (up to 50 recent locations)
+- ✅ Google Maps integration
+- ✅ Distance calculation between locations
+- ✅ High accuracy GPS data (latitude/longitude with 8 decimal precision)
+- ✅ Device identification via serial number or IMEI
+- ✅ Location timestamp tracking
+- ✅ Public endpoint for device updates
+- ✅ Protected endpoints for viewing location data
+
+### Device Integration - Unified Command Response
+
+All device responses (including location data) are now sent through a single unified endpoint for simplicity.
+
+#### Android Device Implementation
+```kotlin
+// When receiving any FCM command
+override fun onMessageReceived(remoteMessage: RemoteMessage) {
+    val command = remoteMessage.data["command"]
+    
+    when (command) {
+        "REQUEST_LOCATION" -> {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                sendCommandResponse(
+                    command = "REQUEST_LOCATION",
+                    data = mapOf(
+                        "latitude" to location.latitude,
+                        "longitude" to location.longitude,
+                        "accuracy" to location.accuracy,
+                        "timestamp" to ISO8601.format(Date())
+                    )
+                )
+            }
+        }
+        "LOCK_DEVICE" -> {
+            lockDevice()
+            sendCommandResponse(
+                command = "LOCK_DEVICE",
+                data = mapOf("locked" to true, "timestamp" to ISO8601.format(Date()))
+            )
+        }
+    }
+}
+
+fun sendCommandResponse(command: String, data: Map<String, Any>) {
+    val request = JSONObject().apply {
+        put("device_id", Build.SERIAL) // or IMEI
+        put("command", command)
+        put("data", JSONObject(data))
+    }
+    
+    // POST to /api/devices/command-response
+    apiService.sendCommandResponse(request)
+}
+```
+
+**Unified Endpoint:**
+```http
+POST /api/devices/command-response
+Content-Type: application/json
+
+{
+  "device_id": "R2Q5X08F00Y",
+  "command": "REQUEST_LOCATION",
+  "data": {
+    "latitude": 23.8103,
+    "longitude": 90.4125,
+    "accuracy": 12.5,
+    "timestamp": "2025-10-15T13:25:42Z"
+  }
+}
+```
+
+**No need to:**
+- ❌ Track log_id from FCM
+- ❌ Pass command_log_id back
+- ❌ Use different endpoints for different responses
+
+**System handles:**
+- ✅ Finding the correct command log
+- ✅ Updating status automatically
+- ✅ Storing response in metadata
+```
+
+### Command-Response Tracking
+
+#### How It Works (Simplified with Metadata Column)
+
+1. **Admin sends REQUEST_LOCATION command**
+   ```http
+   POST /api/devices/command/request-location
+   { "customer_id": 42 }
+   ```
+   - System creates `DeviceCommandLog` with `status='sent'`
+   - Returns `log_id=123` in response
+   - FCM sends command to device
+
+2. **Device receives FCM and sends response**
+   ```http
+   POST /api/devices/command-response
+   {
+     "device_id": "R2Q5X08F00Y",
+     "command": "REQUEST_LOCATION",
+     "data": {
+       "latitude": 23.8103,
+       "longitude": 90.4125,
+       "accuracy": 12.5,
+       "timestamp": "2025-10-15T13:25:42Z"
+     }
+   }
+   ```
+
+3. **API processes response**
+   - Finds customer by `device_id`
+   - Finds latest `REQUEST_LOCATION` command log with `status='sent'`
+   - Updates command log:
+     - `status` → `'delivered'`
+     - `metadata` → stores the entire response data
+
+4. **Admin views results**
+   ```http
+   GET /api/devices/{customer}/history
+   ```
+   - Shows all commands with their metadata
+   - For REQUEST_LOCATION commands:
+     - `metadata` contains location data (latitude, longitude, accuracy, timestamp)
+     - `has_location_response: true`
+
+#### Benefits
+- ✅ **Single Endpoint**: One endpoint handles all command responses
+- ✅ **Automatic Matching**: System finds the correct command log automatically
+- ✅ **Metadata Storage**: Response data stored directly in command log
+- ✅ **Simple Architecture**: No separate location table needed
+- ✅ **Flexible**: Works for any command type, not just location
+- ✅ **Full Audit Trail**: Complete request-response tracking
+
+### Location Data Access
+
+#### Accessing Location from Metadata
+```php
+$commandLog = DeviceCommandLog::find(123);
+
+// Check if location response exists
+if ($commandLog->hasLocationResponse()) {
+    // Get location data
+    $location = $commandLog->getLocationData();
+    // Returns: ['latitude' => 23.8103, 'longitude' => 90.4125, ...]
+}
+```
+
+#### Command History with Location
+```php
+$customer = Customer::find(1);
+$commands = $customer->deviceCommandLogs()
+    ->where('command', 'REQUEST_LOCATION')
+    ->where('status', 'delivered')
+    ->get();
+
+foreach ($commands as $log) {
+    if ($log->hasLocationResponse()) {
+        $location = $log->getLocationData();
+        echo "Lat: {$location['latitude']}, Lng: {$location['longitude']}";
+    }
+}
+```
+
+### Testing Command-Response Flow
+
+Run tests for command response functionality:
+```bash
+php artisan test --filter=DeviceCommandTest
+```
+
+**Test Coverage:**
+- ✅ Command sending and logging
+- ✅ Device command response handling
+- ✅ Metadata storage in command logs
+- ✅ Automatic command matching
+- ✅ Command status auto-update on response
+- ✅ Location data extraction from metadata
+
+### Security Notes
+- Command response endpoint is **public** (no authentication required)
+- Device identification via serial/IMEI prevents unauthorized updates
+- Viewing command history requires authentication
+- All command queries are scoped to user's accessible customers
+
+---
 3. Copy token for testing
 
 ---
@@ -653,6 +862,7 @@ POST   /api/installments/update-overdue     # Update overdue installments
 ### Device Control (Firebase FCM)
 ```
 POST   /api/devices/register            # Device registration (PUBLIC)
+POST   /api/devices/location            # Update device location (PUBLIC)
 POST   /api/devices/command/lock        # Lock device
 POST   /api/devices/command/unlock      # Unlock device
 POST   /api/devices/command/disable-camera   # Disable camera
@@ -672,8 +882,10 @@ POST   /api/devices/command/disable-kiosk    # Disable kiosk mode
 POST   /api/devices/command/request-location # Request GPS location
 POST   /api/devices/command/force-restart    # Force device restart
 POST   /api/devices/command/play-sound       # Play alert sound
-GET    /api/devices/{customer}          # Get device info
-GET    /api/devices/{customer}/history  # Get command history
+GET    /api/devices/{customer}               # Get device info
+GET    /api/devices/{customer}/history       # Get command history
+GET    /api/devices/{customer}/location-history    # Get location history
+GET    /api/devices/{customer}/latest-location     # Get latest location
 GET    /api/devices/commands            # List available commands
 ```
 

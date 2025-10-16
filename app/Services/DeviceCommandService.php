@@ -305,14 +305,14 @@ class DeviceCommandService
     /**
      * Remove app
      */
-    public function removeApp(Customer $customer, User $user, string $packageName): array
+    public function removeApp(Customer $customer, User $user): array
     {
         return $this->sendCommand(
             $customer,
             'REMOVE_APP',
-            ['package_name' => $packageName],
+            [],
             $user,
-            fn ($token) => $this->firebaseService->removeApp($token, $packageName)
+            fn ($token) => $this->firebaseService->removeApp($token)
         );
     }
 
@@ -427,12 +427,52 @@ class DeviceCommandService
     }
 
     /**
+     * Enable calls
+     */
+    public function enableCall(Customer $customer, User $user): array
+    {
+        $result = $this->sendCommand(
+            $customer,
+            'ENABLE_CALL',
+            ['state' => 'false'],
+            $user,
+            fn ($token) => $this->firebaseService->enableCall($token)
+        );
+
+        if ($result['success']) {
+            $customer->update(['is_call_disabled' => false]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Disable calls
+     */
+    public function disableCall(Customer $customer, User $user): array
+    {
+        $result = $this->sendCommand(
+            $customer,
+            'DISABLE_CALL',
+            ['state' => 'true'],
+            $user,
+            fn ($token) => $this->firebaseService->disableCall($token)
+        );
+
+        if ($result['success']) {
+            $customer->update(['is_call_disabled' => true]);
+        }
+
+        return $result;
+    }
+
+    /**
      * Get command history for customer
      */
     public function getCommandHistory(Customer $customer, int $limit = 50): \Illuminate\Database\Eloquent\Collection
     {
         return $customer->deviceCommandLogs()
-            ->with('sentBy')
+            ->with(['sentBy', 'locationResponse'])
             ->latest()
             ->limit($limit)
             ->get();

@@ -72,7 +72,7 @@ class DeviceController extends Controller
                 'reset-password' => $this->deviceCommandService->resetPassword($customer, $user, $request->input('password')),
                 'remove-password' => $this->deviceCommandService->removePassword($customer, $user),
                 'reboot' => $this->deviceCommandService->rebootDevice($customer, $user),
-                'remove-app' => $this->deviceCommandService->removeApp($customer, $user, $request->input('package_name')),
+                'remove-app' => $this->deviceCommandService->removeApp($customer, $user),
                 'wipe' => $this->deviceCommandService->wipeDevice($customer, $user),
                 'show-message' => $this->deviceCommandService->showMessage($customer, $user, $request->input('message'), $request->input('title', '')),
                 'reminder-screen' => $this->deviceCommandService->showReminderScreen($customer, $user, $request->input('message')),
@@ -80,6 +80,8 @@ class DeviceController extends Controller
                 'set-wallpaper' => $this->deviceCommandService->setWallpaper($customer, $user, $request->input('image_url')),
                 'remove-wallpaper' => $this->deviceCommandService->removeWallpaper($customer, $user),
                 'request-location' => $this->deviceCommandService->requestLocation($customer, $user),
+                'call-enable' => $this->deviceCommandService->enableCall($customer, $user),
+                'call-disable' => $this->deviceCommandService->disableCall($customer, $user),
                 default => throw new Exception('Invalid command: '.$command),
             };
 
@@ -142,11 +144,16 @@ class DeviceController extends Controller
                 'reset-password' => $this->deviceCommandService->resetPassword($customer, $user, $request->input('password')),
                 'remove-password' => $this->deviceCommandService->removePassword($customer, $user),
                 'reboot' => $this->deviceCommandService->rebootDevice($customer, $user),
-                'remove-app' => $this->deviceCommandService->removeApp($customer, $user, $request->input('package_name')),
+                'remove-app' => $this->deviceCommandService->removeApp($customer, $user),
                 'wipe' => $this->deviceCommandService->wipeDevice($customer, $user),
+                'show-message' => $this->deviceCommandService->showMessage($customer, $user, $request->input('message'), $request->input('title', '')),
+                'reminder-screen' => $this->deviceCommandService->showReminderScreen($customer, $user, $request->input('message')),
+                'reminder-audio' => $this->deviceCommandService->playReminderAudio($customer, $user, $request->input('audio_url')),
                 'set-wallpaper' => $this->deviceCommandService->setWallpaper($customer, $user, $request->input('image_url')),
                 'remove-wallpaper' => $this->deviceCommandService->removeWallpaper($customer, $user),
                 'request-location' => $this->deviceCommandService->requestLocation($customer, $user),
+                'call-enable' => $this->deviceCommandService->enableCall($customer, $user),
+                'call-disable' => $this->deviceCommandService->disableCall($customer, $user),
                 default => throw new Exception('Invalid command: '.$command),
             };
 
@@ -280,8 +287,7 @@ class DeviceController extends Controller
                     'method' => 'POST',
                     'endpoint' => '/api/devices/command/remove-app',
                     'description' => 'Remove an app from the device',
-                    'requires_params' => true,
-                    'params' => ['package_name' => 'required'],
+                    'requires_params' => false,
                 ],
                 [
                     'command' => 'wipe',
@@ -336,7 +342,75 @@ class DeviceController extends Controller
                     'description' => 'Request device location',
                     'requires_params' => false,
                 ],
+                [
+                    'command' => 'call-enable',
+                    'method' => 'POST',
+                    'endpoint' => '/api/devices/command/call-enable',
+                    'description' => 'Enable phone calls (unlock calls)',
+                    'requires_params' => false,
+                ],
+                [
+                    'command' => 'call-disable',
+                    'method' => 'POST',
+                    'endpoint' => '/api/devices/command/call-disable',
+                    'description' => 'Disable phone calls (lock calls)',
+                    'requires_params' => false,
+                ],
             ],
         ]);
+    }
+
+    /**
+     * Update device location (called by device)
+     * Public endpoint - device sends location update
+     */
+    /**
+     * Receive command response from device (Public endpoint)
+     * Device sends response data after executing a command
+     */
+    public function commandResponse(\Illuminate\Http\Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'device_id' => 'required|string',
+                'command' => 'required|string',
+                'data' => 'nullable|array',
+            ]);
+
+            // Find customer by device_id
+            $deviceId = $validated['device_id'];
+            $customer = Customer::where('serial_number', $deviceId)
+                ->orWhere('imei_1', $deviceId)
+                ->orWhere('imei_2', $deviceId)
+                ->first();
+
+            if (! $customer) {
+                return $this->error('Device not found', null, 404);
+            }
+
+            // Find the most recent command log for this command
+            $commandLog = \App\Models\DeviceCommandLog::where('customer_id', $customer->id)
+                ->where('command', $validated['command'])
+                ->where('status', 'sent')
+                ->latest()
+                ->first();
+
+            if (! $commandLog) {
+                return $this->error('Command log not found', null, 404);
+            }
+
+            // Update command log with response data
+            $commandLog->update([
+                'status' => 'delivered',
+                'metadata' => $validated['data'] ?? [],
+            ]);
+
+            return $this->success([
+                'message' => 'Command response received successfully',
+                'command_log_id' => $commandLog->id,
+            ]);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), null, 500);
+        }
     }
 }

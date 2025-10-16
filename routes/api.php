@@ -34,6 +34,9 @@ Route::prefix('locations')->group(function () {
 // Public device registration (for automatic app installation)
 Route::post('/devices/register', [DeviceController::class, 'register']);
 
+// Public device command response (device sends any command response)
+Route::post('/devices/command-response', [DeviceController::class, 'commandResponse']);
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
 
