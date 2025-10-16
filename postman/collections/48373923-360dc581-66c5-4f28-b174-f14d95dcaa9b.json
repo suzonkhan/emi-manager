@@ -2117,6 +2117,82 @@
 					"response": []
 				},
 				{
+					"name": "Enable Call",
+					"id": "48373923-device-024",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/enable-call",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"enable-call"
+							]
+						},
+						"description": "Enable phone calls on the device. Unlocks call functionality."
+					},
+					"response": []
+				},
+				{
+					"name": "Disable Call",
+					"id": "48373923-device-025",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/disable-call",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"disable-call"
+							]
+						},
+						"description": "Disable phone calls on the device. Blocks all call functionality as a payment reminder."
+					},
+					"response": []
+				},
+				{
 					"name": "Get Command History",
 					"id": "48373923-device-022",
 					"request": {
@@ -2177,7 +2253,7 @@
 				}
 			],
 			"id": "48373923-device-group",
-			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration and 19 remote control commands."
+			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration and 21 remote control commands: lock/unlock, camera enable/disable, bluetooth enable/disable, hide/unhide app, password management, reboot, app removal, wipe device, notification messages, wallpaper control, location tracking, and call control."
 		}
 	],
 	"auth": {

@@ -30,7 +30,49 @@ This Postman collection provides comprehensive API testing for the EMI Manager L
 - **API Test** - Connectivity test endpoint
 - **Health Check** - Service health monitoring
 
-### 🐛 **Debug (Development Only)**
+### � **Device Control** (21 Commands)
+- **Register Device** - Register device with FCM token (public endpoint)
+- **Get Device Info** - View device status and capabilities
+- **Lock/Unlock Device** - Remote device lock control
+- **Camera Control** - Enable/disable device camera
+- **Bluetooth Control** - Enable/disable bluetooth
+- **App Control** - Hide/unhide apps from launcher
+- **Password Management** - Set/remove device lock password
+- **Reboot Device** - Restart device remotely
+- **Remove App** - Uninstall EMI app
+- **Wipe Device** - Factory reset (use with caution!)
+- **Show Message** - Display custom notification message
+- **Reminder Screen** - Show full-screen payment reminder
+- **Reminder Audio** - Play audio reminder
+- **Wallpaper Control** - Set/remove custom wallpaper
+- **Request Location** - Get device GPS coordinates
+- **Call Control** - Enable/disable phone call functionality
+- **Get Command History** - View all sent commands
+- **Get Available Commands** - List all device commands
+
+### 🪙 **Token Management**
+- **Get Tokens** - List tokens based on hierarchy
+- **Generate Tokens** - Create new tokens (Super Admin only)
+- **Assign Token** - Assign token to subordinate user
+- **Distribute Tokens** - Bulk distribute to multiple dealers
+- **Token Statistics** - View token counts and status
+- **Get Assignable Users** - List users who can receive tokens
+
+### 👤 **Customer Management**
+- **Get Customers** - List customers with filters
+- **Create Customer** - Register new customer with EMI details
+- **Get Customer Details** - View complete customer info
+- **Update Customer Status** - Approve/reject customer
+- **Customer Statistics** - View customer counts and loan data
+- **Upload Customer Documents** - Upload NID and photos
+
+### 📊 **Reports**
+- **Generate Report** - Create report (7 types: sales, installments, collections, products, customers, dealers, sub-dealers)
+- **Download Report PDF** - Download generated report as PDF
+- **Get Dealers for Filter** - List dealers for report filtering
+- **Get Sub-Dealers for Filter** - List sub-dealers for report filtering
+
+### �🐛 **Debug (Development Only)**
 - **Debug Users** - View all users with roles
 - **Debug Roles** - View all roles and permissions
 
@@ -75,6 +117,106 @@ The collection includes these variables:
 {
   "email_or_phone": "admin@example.com",
   "password": "password123"
+}
+```
+
+### **Device Registration Request (Public - No Auth)**
+```json
+{
+  "serial_number": "R2Q5X08F00Y",
+  "imei1": "223762838218759",
+  "fcm_token": "eXXX...firebase_cloud_messaging_token...XXXe"
+}
+```
+
+### **Device Command Request**
+```json
+{
+  "customer_id": 1
+}
+```
+
+### **Lock Device Command**
+```json
+{
+  "customer_id": 1
+}
+```
+
+### **Reset Password Command**
+```json
+{
+  "customer_id": 1,
+  "password": "1234"
+}
+```
+
+### **Show Message Command**
+```json
+{
+  "customer_id": 1,
+  "title": "Payment Reminder",
+  "message": "আপনার এই মাসের কিস্তি বাকি আছে।"
+}
+```
+
+### **Set Wallpaper Command**
+```json
+{
+  "customer_id": 1,
+  "image_url": "https://example.com/reminder-wallpaper.jpg"
+}
+```
+
+### **Hide App Command**
+```json
+{
+  "customer_id": 1,
+  "package_name": "com.facebook.katana"
+}
+```
+
+### **Create Customer Request**
+```json
+{
+  "name": "রহিম উদ্দিন",
+  "email": "rahim@example.com",
+  "mobile": "01712345678",
+  "nid_no": "1234567890123",
+  "present_address": {
+    "street_address": "১২৩ মুক্তিযোদ্ধা সরণি",
+    "landmark": "ঢাকা মেডিকেল কলেজের কাছে",
+    "postal_code": "1000",
+    "division_id": 1,
+    "district_id": 1,
+    "upazilla_id": 1
+  },
+  "permanent_address": {
+    "street_address": "৪৫৬ পুরাতন ঢাকা",
+    "landmark": "লালবাগ কেল্লার পাশে",
+    "postal_code": "1211",
+    "division_id": 1,
+    "district_id": 1,
+    "upazilla_id": 2
+  },
+  "product_type": "mobile",
+  "product_model": "Samsung Galaxy S23",
+  "product_price": 85000,
+  "down_payment": 15000,
+  "emi_duration_months": 12,
+  "imei_1": "123456789012345",
+  "imei_2": "543210987654321",
+  "serial_number": "SN123456789"
+}
+```
+
+### **Generate Report Request**
+```json
+{
+  "report_type": "sales",
+  "start_date": "2024-01-01",
+  "end_date": "2025-10-14",
+  "dealer_id": null
 }
 ```
 

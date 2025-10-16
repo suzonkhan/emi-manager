@@ -867,26 +867,30 @@ POST   /api/devices/command/lock        # Lock device
 POST   /api/devices/command/unlock      # Unlock device
 POST   /api/devices/command/disable-camera   # Disable camera
 POST   /api/devices/command/enable-camera    # Enable camera
+POST   /api/devices/command/lock-device      # Lock device
+POST   /api/devices/command/unlock-device    # Unlock device
+POST   /api/devices/command/disable-camera   # Disable camera
+POST   /api/devices/command/enable-camera    # Enable camera
 POST   /api/devices/command/disable-bluetooth # Disable bluetooth
-POST   /api/devices/command/enable-bluetooth  # Enable bluetooth
+POST   /api/devices/command/enable-bluetooth # Enable bluetooth
+POST   /api/devices/command/hide-app         # Hide app from launcher
+POST   /api/devices/command/unhide-app       # Unhide app
+POST   /api/devices/command/reset-password   # Reset device password
+POST   /api/devices/command/remove-password  # Remove device password
+POST   /api/devices/command/reboot           # Reboot device
+POST   /api/devices/command/remove-app       # Uninstall EMI app
+POST   /api/devices/command/wipe             # Factory reset device
 POST   /api/devices/command/show-message     # Show custom message
-POST   /api/devices/command/show-notification # Send notification
-POST   /api/devices/command/show-warning     # Display warning
-POST   /api/devices/command/clear-warning    # Clear warnings
-POST   /api/devices/command/hide-app         # Hide management app
-POST   /api/devices/command/show-app         # Show management app
-POST   /api/devices/command/set-password     # Set device password
-POST   /api/devices/command/remove-password  # Remove password
-POST   /api/devices/command/enable-kiosk     # Enable kiosk mode
-POST   /api/devices/command/disable-kiosk    # Disable kiosk mode
+POST   /api/devices/command/reminder-screen  # Show reminder screen
+POST   /api/devices/command/reminder-audio   # Play reminder audio
+POST   /api/devices/command/set-wallpaper    # Set custom wallpaper
+POST   /api/devices/command/remove-wallpaper # Remove wallpaper
 POST   /api/devices/command/request-location # Request GPS location
-POST   /api/devices/command/force-restart    # Force device restart
-POST   /api/devices/command/play-sound       # Play alert sound
+POST   /api/devices/command/enable-call      # Enable phone calls
+POST   /api/devices/command/disable-call     # Disable phone calls
 GET    /api/devices/{customer}               # Get device info
 GET    /api/devices/{customer}/history       # Get command history
-GET    /api/devices/{customer}/location-history    # Get location history
-GET    /api/devices/{customer}/latest-location     # Get latest location
-GET    /api/devices/commands            # List available commands
+GET    /api/devices/commands                 # List available commands
 ```
 
 ### Location Management
@@ -2332,10 +2336,11 @@ php artisan ide-helper:generate
 
 ### ✅ Remote Device Control
 - Firebase Cloud Messaging integration
-- 19 device control commands
+- 21 device control commands (lock/unlock, camera, bluetooth, apps, password, notifications, wallpaper, location, call control)
 - Automatic device registration
-- Command logging and history
-- Real-time device status
+- Command logging with metadata storage
+- Real-time device status tracking
+- GPS location tracking with response storage
 
 ### ✅ Enterprise-Grade Architecture
 - RESTful API design
