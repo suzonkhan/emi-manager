@@ -8,7 +8,6 @@ return [
     |
     | Path to the Firebase service account JSON file.
     | Store the JSON file securely and reference it here.
-    | If not provided, will use individual credentials below.
     |
     */
 
@@ -24,28 +23,6 @@ return [
     */
 
     'project_id' => env('FIREBASE_PROJECT_ID', 'ime-locker-app'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Firebase Client Email
-    |--------------------------------------------------------------------------
-    |
-    | Service account client email
-    |
-    */
-
-    'client_email' => env('FIREBASE_CLIENT_EMAIL'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Firebase Private Key
-    |--------------------------------------------------------------------------
-    |
-    | Service account private key (replace \n with \\n in .env)
-    |
-    */
-
-    'private_key' => env('FIREBASE_PRIVATE_KEY'),
 
     /*
     |--------------------------------------------------------------------------

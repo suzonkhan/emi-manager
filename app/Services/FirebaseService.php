@@ -14,31 +14,14 @@ class FirebaseService
 
     public function __construct()
     {
-        // Try using credentials file first
-        $credentialsPath = config('firebase.credentials');
+        $credentialsPath = config('firebase.credentials')
+            ?? storage_path('app/firebase/ime-locker-app-credentials.json');
 
-        if ($credentialsPath && file_exists($credentialsPath)) {
-            $factory = (new Factory)->withServiceAccount($credentialsPath);
-        } else {
-            // Fallback to environment variables
-            $projectId = config('firebase.project_id');
-            $clientEmail = env('FIREBASE_CLIENT_EMAIL');
-            $privateKey = env('FIREBASE_PRIVATE_KEY');
-
-            if (! $projectId || ! $clientEmail || ! $privateKey) {
-                throw new Exception('Firebase credentials not configured. Please set FIREBASE_CREDENTIALS file path or individual credentials (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) in .env');
-            }
-
-            $serviceAccount = [
-                'type' => 'service_account',
-                'project_id' => $projectId,
-                'private_key' => str_replace('\\n', "\n", $privateKey),
-                'client_email' => $clientEmail,
-            ];
-
-            $factory = (new Factory)->withServiceAccount($serviceAccount);
+        if (! file_exists($credentialsPath)) {
+            throw new Exception('Firebase credentials file not found at: '.$credentialsPath);
         }
 
+        $factory = (new Factory)->withServiceAccount($credentialsPath);
         $this->messaging = $factory->createMessaging();
     }
 
