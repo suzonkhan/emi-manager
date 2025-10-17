@@ -448,6 +448,80 @@ GET    /api/devices/{customer}/history  # Command history
 GET    /api/devices/commands            # List available commands
 ```
 
+### Preset Messages Feature
+
+**Automatic Message Delivery**: Set custom messages that automatically display on the device when specific commands are executed.
+
+#### How It Works
+1. User creates preset messages for specific commands (e.g., "LOCK_DEVICE")
+2. When the command is executed, the preset message automatically sends to the device
+3. Device displays the message to the user
+4. No extra API call needed - fully automatic
+
+#### Preset Message API Endpoints
+```
+GET    /api/preset-messages                    # Get all preset messages for authenticated user
+GET    /api/preset-messages/available-commands # Get list of commands that support presets
+POST   /api/preset-messages                    # Create or update preset message
+GET    /api/preset-messages/{id}               # Get specific preset message
+PUT    /api/preset-messages/{id}               # Update preset message
+DELETE /api/preset-messages/{id}               # Delete preset message
+POST   /api/preset-messages/{id}/toggle        # Toggle active/inactive status
+```
+
+#### Create/Update Preset Message
+```http
+POST /api/preset-messages
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "command": "LOCK_DEVICE",
+  "title": "Payment Reminder",
+  "message": "Your device has been locked due to missed payment. Please contact us to resolve.",
+  "is_active": true
+}
+```
+
+#### Supported Commands for Preset Messages
+- `LOCK_DEVICE` - Message shown when device is locked
+- `UNLOCK_DEVICE` - Message shown when device is unlocked
+- `DISABLE_CAMERA` - Message shown when camera is disabled
+- `ENABLE_CAMERA` - Message shown when camera is enabled
+- `DISABLE_BLUETOOTH` - Message shown when bluetooth is disabled
+- `ENABLE_BLUETOOTH` - Message shown when bluetooth is enabled
+- `HIDE_APP` - Message shown when app is hidden
+- `UNHIDE_APP` - Message shown when app is unhidden
+- `RESET_PASSWORD` - Message shown when password is reset
+- `REMOVE_PASSWORD` - Message shown when password is removed
+- `REBOOT_DEVICE` - Message shown before device reboots
+- `REMOVE_APP` - Message shown when app is removed
+- `WIPE_DEVICE` - Message shown before device wipe
+- `SET_WALLPAPER` - Message shown when wallpaper is set
+- `REMOVE_WALLPAPER` - Message shown when wallpaper is removed
+- `REQUEST_LOCATION` - Message shown when location is requested
+- `ENABLE_CALL` - Message shown when calls are enabled
+- `DISABLE_CALL` - Message shown when calls are disabled
+
+#### Response Format
+When a command with preset message is executed:
+```json
+{
+  "success": true,
+  "command": "LOCK_DEVICE",
+  "log_id": 123,
+  "message": "Command sent successfully",
+  "details": {
+    "success": true,
+    "preset_message_sent": true,
+    "preset_message": {
+      "title": "Payment Reminder",
+      "message": "Your device has been locked due to missed payment."
+    }
+  }
+}
+```
+
 ### Device Database Schema
 
 #### Customers Table (Device Fields)
@@ -475,10 +549,21 @@ GET    /api/devices/commands            # List available commands
 
 **Note:** The `metadata` column stores the device's response data, creating a complete request-response audit trail.
 
+#### Command Preset Messages Table
+- `user_id` - Foreign key to user (owner of preset)
+- `command` - Command name (e.g., LOCK_DEVICE)
+- `title` - Message title/header (nullable)
+- `message` - Message content to display
+- `is_active` - Active status (boolean)
+- **Unique Constraint**: One active preset per user per command
+
+**Note:** Preset messages automatically send when their associated command is executed, providing consistent customer communication without manual intervention.
+
 #### Migrations
 The device command logs table is created using two migrations:
 1. **`2025_10_08_164033_create_device_command_logs_table.php`** - Creates the base table structure
 2. **`2025_10_16_021140_add_metadata_to_device_command_logs_table.php`** - Adds the `metadata` JSON column
+3. **`2025_10_17_024204_create_command_preset_messages_table.php`** - Creates preset messages table
 
 This separation allows for clean migration history and easier rollback if needed.
 

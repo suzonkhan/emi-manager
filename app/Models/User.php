@@ -120,6 +120,11 @@ class User extends Authenticatable
         return $this->hasMany(Customer::class, 'created_by');
     }
 
+    public function presetMessages(): HasMany
+    {
+        return $this->hasMany(CommandPresetMessage::class);
+    }
+
     public function canCreateUser(string $role): bool
     {
         $userRole = $this->getRoleNames()->first();

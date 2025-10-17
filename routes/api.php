@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\InstallmentController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\PresetMessageController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Api\UserController;
@@ -106,6 +107,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/send-message', [DeviceController::class, 'sendMessage']); // Send message only (no command)
         Route::post('/command/{command}', [DeviceController::class, 'sendCommand']); // Send device command
         Route::post('/command-with-message/{command}', [DeviceController::class, 'sendCommandWithMessage']); // Send command + display message
+    });
+
+    // Preset message management routes
+    Route::prefix('preset-messages')->group(function () {
+        Route::get('/', [PresetMessageController::class, 'index']); // Get all preset messages for authenticated user
+        Route::get('/available-commands', [PresetMessageController::class, 'availableCommands']); // Get list of commands that can have presets
+        Route::post('/', [PresetMessageController::class, 'store']); // Create or update preset message
+        Route::get('/{presetMessage}', [PresetMessageController::class, 'show']); // Get specific preset message
+        Route::put('/{presetMessage}', [PresetMessageController::class, 'update']); // Update preset message
+        Route::delete('/{presetMessage}', [PresetMessageController::class, 'destroy']); // Delete preset message
+        Route::post('/{presetMessage}/toggle', [PresetMessageController::class, 'toggle']); // Toggle active status
     });
 
     // Report management routes

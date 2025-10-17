@@ -62,6 +62,28 @@ class DeviceCommandService
                     'sent_at' => now(),
                     'fcm_response' => json_encode($result),
                 ]);
+
+                // Check for preset message and send it automatically
+                $presetMessage = \App\Models\CommandPresetMessage::where('user_id', $user->id)
+                    ->where('command', $command)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($presetMessage) {
+                    // Send the preset message to device
+                    $messageResult = $this->firebaseService->showMessage(
+                        $customer->fcm_token,
+                        $presetMessage->message,
+                        $presetMessage->title ?? 'Notification'
+                    );
+
+                    // Add preset message info to result
+                    $result['preset_message_sent'] = $messageResult['success'];
+                    $result['preset_message'] = [
+                        'title' => $presetMessage->title,
+                        'message' => $presetMessage->message,
+                    ];
+                }
             } else {
                 $log->update([
                     'status' => 'failed',
