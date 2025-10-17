@@ -72,7 +72,21 @@ This Postman collection provides comprehensive API testing for the EMI Manager L
 - **Get Dealers for Filter** - List dealers for report filtering
 - **Get Sub-Dealers for Filter** - List sub-dealers for report filtering
 
-### �🐛 **Debug (Development Only)**
+### 📨 **Preset Messages** (10 Endpoints)
+- **Get All Preset Messages** - List all user's preset messages
+- **Get Available Commands** - List 18 commands that support presets
+- **Create Preset Message (Lock Device)** - Auto-message when device is locked
+- **Create Preset Message (Unlock Device)** - Auto-message when device is unlocked
+- **Create Preset Message (Disable Call)** - Auto-message when calls are disabled
+- **Create Preset Message (Request Location)** - Auto-message when location is requested
+- **Get Specific Preset Message** - View details of one preset
+- **Update Preset Message** - Modify existing preset message
+- **Toggle Preset Message Status** - Enable/disable preset without deletion
+- **Delete Preset Message** - Permanently remove preset message
+
+**Automatic Message Delivery**: When you execute a device command (like lock/unlock), the system automatically checks if you have an active preset message for that command and sends it to the device. No manual message entry needed!
+
+### 🐛 **Debug (Development Only)**
 - **Debug Users** - View all users with roles
 - **Debug Roles** - View all roles and permissions
 
@@ -173,6 +187,57 @@ The collection includes these variables:
 {
   "customer_id": 1,
   "package_name": "com.facebook.katana"
+}
+```
+
+### **Preset Message Requests**
+
+#### **Create Preset Message for Lock Device**
+```json
+{
+  "command": "LOCK_DEVICE",
+  "title": "⚠️ Payment Required",
+  "message": "Your device has been locked due to missed payment. Please pay your installment to unlock. Contact: 01700000000",
+  "is_active": true
+}
+```
+
+#### **Create Preset Message for Unlock Device**
+```json
+{
+  "command": "UNLOCK_DEVICE",
+  "title": "✅ Thank You!",
+  "message": "Thank you for your payment! Your device has been unlocked. Next payment due date will be notified.",
+  "is_active": true
+}
+```
+
+#### **Create Preset Message for Disable Call**
+```json
+{
+  "command": "DISABLE_CALL",
+  "title": "📵 Calls Restricted",
+  "message": "Phone calls have been temporarily restricted due to overdue payment. Please clear your balance to restore service.",
+  "is_active": true
+}
+```
+
+#### **Create Preset Message for Request Location**
+```json
+{
+  "command": "REQUEST_LOCATION",
+  "title": "📍 Location Request",
+  "message": "We are requesting your device location for verification purposes. This helps us serve you better and ensure security.",
+  "is_active": true
+}
+```
+
+#### **Update Preset Message**
+```json
+{
+  "title": "⚠️ Updated Payment Reminder",
+  "message": "Your device has been locked. Please contact us immediately at 01700000000 to resolve payment issues.",
+  "is_active": true
 }
 ```
 

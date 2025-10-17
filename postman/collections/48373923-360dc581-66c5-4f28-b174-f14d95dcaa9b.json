@@ -2254,6 +2254,339 @@
 			],
 			"id": "48373923-device-group",
 			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration and 21 remote control commands: lock/unlock, camera enable/disable, bluetooth enable/disable, hide/unhide app, password management, reboot, app removal, wipe device, notification messages, wallpaper control, location tracking, and call control."
+		},
+		{
+			"name": "Preset Messages",
+			"item": [
+				{
+					"name": "Get All Preset Messages",
+					"id": "48373923-preset-001",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/preset-messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages"
+							]
+						},
+						"description": "Get all preset messages for the authenticated user. Returns list of preset messages with their command, title, message content, and active status."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Commands",
+					"id": "48373923-preset-002",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/preset-messages/available-commands",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages",
+								"available-commands"
+							]
+						},
+						"description": "Get list of all commands that support preset messages. Returns 18 commands: LOCK_DEVICE, UNLOCK_DEVICE, DISABLE_CAMERA, ENABLE_CAMERA, DISABLE_BLUETOOTH, ENABLE_BLUETOOTH, HIDE_APP, UNHIDE_APP, RESET_PASSWORD, REMOVE_PASSWORD, REBOOT_DEVICE, REMOVE_APP, WIPE_DEVICE, SET_WALLPAPER, REMOVE_WALLPAPER, REQUEST_LOCATION, ENABLE_CALL, DISABLE_CALL."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Preset Message (Lock Device)",
+					"id": "48373923-preset-003",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"command\": \"LOCK_DEVICE\",\n  \"title\": \"⚠️ Payment Required\",\n  \"message\": \"Your device has been locked due to missed payment. Please pay your installment to unlock. Contact: 01700000000\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/preset-messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages"
+							]
+						},
+						"description": "Create or update preset message for LOCK_DEVICE command. This message will automatically display on the device when lock command is executed."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Preset Message (Unlock Device)",
+					"id": "48373923-preset-004",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"command\": \"UNLOCK_DEVICE\",\n  \"title\": \"✅ Thank You!\",\n  \"message\": \"Thank you for your payment! Your device has been unlocked. Next payment due date will be notified.\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/preset-messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages"
+							]
+						},
+						"description": "Create or update preset message for UNLOCK_DEVICE command. This thank you message will automatically display when device is unlocked."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Preset Message (Disable Call)",
+					"id": "48373923-preset-005",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"command\": \"DISABLE_CALL\",\n  \"title\": \"📵 Calls Restricted\",\n  \"message\": \"Phone calls have been temporarily restricted due to overdue payment. Please clear your balance to restore service.\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/preset-messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages"
+							]
+						},
+						"description": "Create or update preset message for DISABLE_CALL command. This message will automatically display when call functionality is disabled."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Preset Message (Request Location)",
+					"id": "48373923-preset-006",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"command\": \"REQUEST_LOCATION\",\n  \"title\": \"📍 Location Request\",\n  \"message\": \"We are requesting your device location for verification purposes. This helps us serve you better and ensure security.\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/preset-messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages"
+							]
+						},
+						"description": "Create or update preset message for REQUEST_LOCATION command. This message will automatically display when location is requested."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Preset Message",
+					"id": "48373923-preset-007",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/preset-messages/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages",
+								"1"
+							]
+						},
+						"description": "Get details of a specific preset message by ID. User can only view their own preset messages."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Preset Message",
+					"id": "48373923-preset-008",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"⚠️ Updated Payment Reminder\",\n  \"message\": \"Your device has been locked. Please contact us immediately at 01700000000 to resolve payment issues.\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/preset-messages/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages",
+								"1"
+							]
+						},
+						"description": "Update an existing preset message. Can update title, message content, and active status. User can only update their own preset messages."
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Preset Message Status",
+					"id": "48373923-preset-009",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/preset-messages/1/toggle",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages",
+								"1",
+								"toggle"
+							]
+						},
+						"description": "Toggle the active status of a preset message. Switches between active (true) and inactive (false) without deleting the message."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Preset Message",
+					"id": "48373923-preset-010",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/preset-messages/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"preset-messages",
+								"1"
+							]
+						},
+						"description": "Permanently delete a preset message. User can only delete their own preset messages."
+					},
+					"response": []
+				}
+			],
+			"id": "48373923-preset-group",
+			"description": "Preset message management for automatic message delivery when device commands are executed. Users can create custom messages for 18 different commands that will automatically display on customer devices. Includes full CRUD operations and toggle functionality."
 		}
 	],
 	"auth": {
