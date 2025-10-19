@@ -2539,7 +2539,119 @@ This comprehensive README was created by merging **25 separate documentation fil
 
 ## � Production Issues & Fixes
 
-### Issue 1: CORS Error - "No 'Access-Control-Allow-Origin' header present"
+### Issue 1: Installment Data Visibility - Security Vulnerability (October 19, 2025)
+
+**Problem**: Dealers, sub-dealers, and salesmen could see ALL installments in the system instead of only installments from customers within their hierarchy.
+
+**Security Impact**: 
+- Users seeing sensitive financial data outside their authorized scope
+- Data leak allowing access to other dealers' customer payment information
+- Violation of hierarchical access control principle
+
+**Root Cause**: 
+- `InstallmentController::getAllCustomersWithInstallments()` method fetched all customers without hierarchical filtering
+- No user access control applied to customer query
+- Different from `CustomerController` which properly uses `CustomerService` with hierarchy filtering
+
+**Solution Implemented**:
+
+**1. Added Hierarchical Access Control to InstallmentController**:
+
+```php
+// app/Http/Controllers/Api/InstallmentController.php
+
+public function getAllCustomersWithInstallments(Request $request): JsonResponse
+{
+    $user = $request->user();
+    
+    $query = Customer::with(['token:id,code', 'installments'])
+        ->withCount([...]);
+    
+    // Apply hierarchical access control (NEW)
+    $query = $this->applyUserAccessControl($query, $user);
+    
+    // Apply filters...
+}
+
+// Helper methods added to controller
+protected function applyUserAccessControl($query, User $user)
+{
+    if (!$user->role) {
+        return $query->whereRaw('1 = 0'); // No results
+    }
+    
+    // Super admin sees all
+    if ($user->role === 'super_admin') {
+        return $query;
+    }
+    
+    // Get user's hierarchy (themselves + all downline users)
+    $hierarchyUserIds = $this->getUserHierarchyIds($user);
+    
+    // Filter by created_by in hierarchy
+    return $query->whereIn('created_by', $hierarchyUserIds);
+}
+
+protected function getUserHierarchyIds(User $user): array
+{
+    $userIds = [$user->id];
+    
+    // Get all descendant users recursively
+    $children = User::where('parent_id', $user->id)->get();
+    foreach ($children as $child) {
+        $userIds = array_merge($userIds, $this->getUserHierarchyIds($child));
+    }
+    
+    return array_unique($userIds);
+}
+```
+
+**2. Fixed Auth Helper Usage**:
+```php
+// Changed from:
+'collected_by' => auth()->id(),
+
+// To:
+'collected_by' => $request->user()->id,
+```
+
+**Access Control Rules After Fix**:
+- ✅ **Super Admin** - Sees all customers and installments system-wide
+- ✅ **Dealer** - Sees only customers created by themselves and their sub-dealers/salesmen
+- ✅ **Sub-Dealer** - Sees only customers created by themselves and their salesmen
+- ✅ **Salesman** - Sees only customers they personally created
+
+**Verification Steps**:
+```bash
+# Test as dealer
+curl -X GET https://api.imelocker.com/api/installments/customers \
+  -H "Authorization: Bearer {dealer_token}"
+
+# Should only return customers created by dealer and their downline
+
+# Test as salesman  
+curl -X GET https://api.imelocker.com/api/installments/customers \
+  -H "Authorization: Bearer {salesman_token}"
+
+# Should only return customers created by salesman
+```
+
+**Files Modified**:
+- ✅ `app/Http/Controllers/Api/InstallmentController.php` - Added hierarchical filtering
+- ✅ README.md - Updated documentation
+
+**Testing Recommended**:
+- Test installments page with different user roles (dealer, sub-dealer, salesman)
+- Verify each user only sees their hierarchy's data
+- Confirm super admin still sees all data
+
+**Related Pattern**: This follows the same access control pattern used in:
+- `app/Repositories/Customer/CustomerRepository.php` - `applyUserAccessControl()` method
+- `app/Services/CustomerService.php` - All customer queries filtered by hierarchy
+
+---
+
+### Issue 2: CORS Error - "No 'Access-Control-Allow-Origin' header present"
 
 **Problem**: Frontend at `https://imelocker.com` cannot access API at `https://www.imelocker.com` due to CORS policy blocking.
 

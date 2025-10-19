@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Installment;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -105,7 +106,7 @@ class InstallmentController extends Controller
                 'payment_method' => $request->payment_method,
                 'transaction_reference' => $request->transaction_reference,
                 'notes' => $request->notes,
-                'collected_by' => auth()->id(),
+                'collected_by' => $request->user()->id,
             ]);
 
             // Check if all installments are paid
@@ -191,6 +192,8 @@ class InstallmentController extends Controller
     public function getAllCustomersWithInstallments(Request $request): JsonResponse
     {
         try {
+            $user = $request->user();
+
             $query = Customer::with(['token:id,code', 'installments'])
                 ->withCount([
                     'installments as total_installments',
@@ -201,6 +204,9 @@ class InstallmentController extends Controller
                         $query->whereIn('status', ['pending', 'overdue']);
                     },
                 ]);
+
+            // Apply hierarchical access control
+            $query = $this->applyUserAccessControl($query, $user);
 
             // Apply filters
             if ($request->filled('search')) {
@@ -273,5 +279,45 @@ class InstallmentController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Apply hierarchical access control to customer query
+     */
+    protected function applyUserAccessControl($query, User $user)
+    {
+        // If user has no role, return empty query
+        if (! $user->role) {
+            return $query->whereRaw('1 = 0'); // Returns no results
+        }
+
+        // Super admin can see all customers
+        if ($user->role === 'super_admin') {
+            return $query;
+        }
+
+        // Get all users in this user's hierarchy (downline)
+        $hierarchyUserIds = $this->getUserHierarchyIds($user);
+
+        // User can see customers created by themselves or their downline users
+        return $query->whereIn('created_by', $hierarchyUserIds);
+    }
+
+    /**
+     * Get all user IDs in the user's hierarchy (including themselves)
+     */
+    protected function getUserHierarchyIds(User $user): array
+    {
+        $userIds = [$user->id]; // Include the user themselves
+
+        // Get direct children
+        $children = User::where('parent_id', $user->id)->get();
+
+        foreach ($children as $child) {
+            // Recursively get all descendants
+            $userIds = array_merge($userIds, $this->getUserHierarchyIds($child));
+        }
+
+        return array_unique($userIds);
     }
 }
