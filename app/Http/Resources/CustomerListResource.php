@@ -21,6 +21,7 @@ class CustomerListResource extends JsonResource
             'nid_no' => $this->nid_no,
             'name' => $this->name,
             'mobile' => $this->mobile,
+            'photo' => $this->photo,
             'product_type' => $this->product_type,
             'product_model' => $this->product_model,
             'emi_per_month' => number_format($this->emi_per_month, 2, '.', ''),

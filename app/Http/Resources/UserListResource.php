@@ -15,6 +15,7 @@ class UserListResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'photo' => $this->photo,
             'role' => $this->getRoleNames()->first(),
             'plain_password' => $this->when($request->user() && $this->canViewPassword($request->user()), $this->plain_password),
             'is_active' => $this->is_active,
