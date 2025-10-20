@@ -262,6 +262,22 @@ class FirebaseService
     }
 
     /**
+     * Send command to lock USB
+     */
+    public function lockUsb(string $fcmToken): array
+    {
+        return $this->sendDataMessage($fcmToken, 'LOCK_USB', ['state' => 'true']);
+    }
+
+    /**
+     * Send command to unlock USB
+     */
+    public function unlockUsb(string $fcmToken): array
+    {
+        return $this->sendDataMessage($fcmToken, 'UNLOCK_USB', ['state' => 'false']);
+    }
+
+    /**
      * Validate FCM token
      */
     public function validateToken(string $fcmToken): bool

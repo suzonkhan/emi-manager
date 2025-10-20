@@ -19,6 +19,7 @@ class CreateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
             'password' => 'required|string|min:8',
             'role' => [
                 'required',

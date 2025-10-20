@@ -54,7 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Token management routes
     Route::prefix('tokens')->group(function () {
-        Route::get('/', [TokenController::class, 'index']);
+        Route::get('/', [TokenController::class, 'index']); // Get available tokens for user
+        Route::get('/history', [TokenController::class, 'history']); // Get token history (all tokens related to user)
         Route::post('/generate', [TokenController::class, 'generate']); // Super Admin only
         Route::post('/assign', [TokenController::class, 'assign']); // Assign single token
         Route::post('/assign-bulk', [TokenController::class, 'assignBulk']); // Assign multiple tokens by quantity

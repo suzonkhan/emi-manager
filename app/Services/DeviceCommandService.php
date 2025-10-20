@@ -489,6 +489,46 @@ class DeviceCommandService
     }
 
     /**
+     * Lock USB
+     */
+    public function lockUsb(Customer $customer, User $user): array
+    {
+        $result = $this->sendCommand(
+            $customer,
+            'LOCK_USB',
+            ['state' => 'true'],
+            $user,
+            fn ($token) => $this->firebaseService->lockUsb($token)
+        );
+
+        if ($result['success']) {
+            $customer->update(['is_usb_locked' => true]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Unlock USB
+     */
+    public function unlockUsb(Customer $customer, User $user): array
+    {
+        $result = $this->sendCommand(
+            $customer,
+            'UNLOCK_USB',
+            ['state' => 'false'],
+            $user,
+            fn ($token) => $this->firebaseService->unlockUsb($token)
+        );
+
+        if ($result['success']) {
+            $customer->update(['is_usb_locked' => false]);
+        }
+
+        return $result;
+    }
+
+    /**
      * Get command history for customer
      */
     public function getCommandHistory(Customer $customer, int $limit = 50): \Illuminate\Database\Eloquent\Collection

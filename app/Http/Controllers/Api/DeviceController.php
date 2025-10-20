@@ -154,6 +154,8 @@ class DeviceController extends Controller
                 'request-location' => $this->deviceCommandService->requestLocation($customer, $user),
                 'call-enable' => $this->deviceCommandService->enableCall($customer, $user),
                 'call-disable' => $this->deviceCommandService->disableCall($customer, $user),
+                'lock-usb' => $this->deviceCommandService->lockUsb($customer, $user),
+                'unlock-usb' => $this->deviceCommandService->unlockUsb($customer, $user),
                 default => throw new Exception('Invalid command: '.$command),
             };
 
@@ -354,6 +356,20 @@ class DeviceController extends Controller
                     'method' => 'POST',
                     'endpoint' => '/api/devices/command/call-disable',
                     'description' => 'Disable phone calls (lock calls)',
+                    'requires_params' => false,
+                ],
+                [
+                    'command' => 'lock-usb',
+                    'method' => 'POST',
+                    'endpoint' => '/api/devices/command/lock-usb',
+                    'description' => 'Lock USB port (disable USB)',
+                    'requires_params' => false,
+                ],
+                [
+                    'command' => 'unlock-usb',
+                    'method' => 'POST',
+                    'endpoint' => '/api/devices/command/unlock-usb',
+                    'description' => 'Unlock USB port (enable USB)',
                     'requires_params' => false,
                 ],
             ],

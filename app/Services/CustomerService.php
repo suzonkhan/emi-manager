@@ -81,6 +81,14 @@ class CustomerService
                 }
             }
 
+            // Handle photo upload
+            $photoPath = null;
+            if (isset($customerData['photo']) && $customerData['photo'] instanceof \Illuminate\Http\UploadedFile) {
+                $photo = $customerData['photo'];
+                $fileName = 'customer_'.time().'_'.uniqid().'.'.$photo->getClientOriginalExtension();
+                $photoPath = $photo->storeAs('photos/customers', $fileName, 'public');
+            }
+
             // Calculate remaining amount after down payment
             $remainingAmount = $customerData['product_price'] - $customerData['down_payment'];
 
@@ -93,6 +101,7 @@ class CustomerService
                 'name' => $customerData['name'],
                 'email' => $customerData['email'] ?? null,
                 'mobile' => $customerData['mobile'],
+                'photo' => $photoPath,
                 'present_address_id' => $presentAddress->id,
                 'permanent_address_id' => $permanentAddress->id,
                 'token_id' => $token->id,

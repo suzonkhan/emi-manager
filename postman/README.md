@@ -30,12 +30,13 @@ This Postman collection provides comprehensive API testing for the EMI Manager L
 - **API Test** - Connectivity test endpoint
 - **Health Check** - Service health monitoring
 
-### � **Device Control** (21 Commands)
+### � **Device Control** (23 Commands)
 - **Register Device** - Register device with FCM token (public endpoint)
 - **Get Device Info** - View device status and capabilities
 - **Lock/Unlock Device** - Remote device lock control
 - **Camera Control** - Enable/disable device camera
 - **Bluetooth Control** - Enable/disable bluetooth
+- **USB Control** - Lock/unlock USB port
 - **App Control** - Hide/unhide apps from launcher
 - **Password Management** - Set/remove device lock password
 - **Reboot Device** - Restart device remotely
@@ -58,13 +59,14 @@ This Postman collection provides comprehensive API testing for the EMI Manager L
 - **Token Statistics** - View token counts and status
 - **Get Assignable Users** - List users who can receive tokens
 
-### 👤 **Customer Management**
+### 👤 **Customer Management** (7 Endpoints)
 - **Get Customers** - List customers with filters
 - **Create Customer** - Register new customer with EMI details
 - **Get Customer Details** - View complete customer info
 - **Update Customer Status** - Approve/reject customer
 - **Customer Statistics** - View customer counts and loan data
 - **Upload Customer Documents** - Upload NID and photos
+- **Delete Customer** - Remove customer and all associated data
 
 ### 📊 **Reports**
 - **Generate Report** - Create report (7 types: sales, installments, collections, products, customers, dealers, sub-dealers)
@@ -187,6 +189,20 @@ The collection includes these variables:
 {
   "customer_id": 1,
   "package_name": "com.facebook.katana"
+}
+```
+
+### **Lock USB Command**
+```json
+{
+  "customer_id": 1
+}
+```
+
+### **Unlock USB Command**
+```json
+{
+  "customer_id": 1
 }
 ```
 

@@ -935,6 +935,35 @@
 						"description": "Upload customer documents including NID, photo, and guarantor documents."
 					},
 					"response": []
+				},
+				{
+					"name": "Delete Customer",
+					"id": "48373923-customer-007",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/customers/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customers",
+								"1"
+							]
+						},
+						"description": "Delete a customer and all associated data (installments, documents). Only creator or admin can delete. Permanently removes all customer records."
+					},
+					"response": []
 				}
 			],
 			"id": "48373923-customer-group"
@@ -2189,6 +2218,82 @@
 							]
 						},
 						"description": "Disable phone calls on the device. Blocks all call functionality as a payment reminder."
+					},
+					"response": []
+				},
+				{
+					"name": "Lock USB",
+					"id": "48373923-device-026",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/lock-usb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"lock-usb"
+							]
+						},
+						"description": "Lock USB port on the device. Disables all USB functionality to prevent unauthorized data transfer."
+					},
+					"response": []
+				},
+				{
+					"name": "Unlock USB",
+					"id": "48373923-device-027",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command/unlock-usb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command",
+								"unlock-usb"
+							]
+						},
+						"description": "Unlock USB port on the device. Enables USB functionality for data transfer and charging."
 					},
 					"response": []
 				},

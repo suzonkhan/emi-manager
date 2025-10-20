@@ -33,6 +33,12 @@ class CreateCustomerRequest extends FormRequest
                 'regex:/^[0-9+\-\s()]{10,15}$/',
                 Rule::unique('customers'),
             ],
+            'photo' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,jpg,png',
+                'max:2048', // 2MB
+            ],
             'email' => [
                 'nullable',
                 'email',

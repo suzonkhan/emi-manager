@@ -249,6 +249,14 @@ class TokenService
     }
 
     /**
+     * Get complete token history for user (all tokens they created, assigned, or used)
+     */
+    public function getTokenHistoryPaginated(User $user, int $perPage = 15, string $search = ''): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        return $this->tokenRepository->getTokenHistoryForUserPaginated($user, $perPage, $search);
+    }
+
+    /**
      * Use token for customer creation
      */
     /**

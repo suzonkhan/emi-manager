@@ -91,6 +91,14 @@ class UserService
             $userData['present_address_id'] = $presentAddress->id;
             $userData['permanent_address_id'] = $permanentAddress->id;
 
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                $photo = $request->file('photo');
+                $fileName = 'user_'.time().'_'.uniqid().'.'.$photo->getClientOriginalExtension();
+                $path = $photo->storeAs('photos/users', $fileName, 'public');
+                $userData['photo'] = $path;
+            }
+
             $user = $this->userRepository->createUser($userData, $currentUser->id);
 
             if ($roleId = $request->getRoleId()) {

@@ -21,6 +21,8 @@ interface TokenRepositoryInterface
 
     public function getCreatedTokensByUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator;
 
+    public function getTokenHistoryForUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator;
+
     public function getAssignedTokensByUser(User $user): Collection;
 
     public function getUsedTokensByUser(User $user): Collection;

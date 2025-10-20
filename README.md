@@ -237,14 +237,33 @@ Authorization: Bearer {token}
 
 ### Token API Endpoints
 ```
-GET    /api/tokens                    # Get user's tokens
+GET    /api/tokens                    # Get user's available tokens (tokens they can use)
+GET    /api/tokens/history            # Get complete token history (all related tokens)
 POST   /api/tokens/generate           # Generate new tokens (Super Admin)
 POST   /api/tokens/assign             # Assign single token
 POST   /api/tokens/assign-bulk        # Assign multiple tokens
 GET    /api/tokens/{code}             # Get token details
 GET    /api/tokens/{code}/chain       # Get assignment chain
 GET    /api/tokens/assignable-users   # Get users you can assign to
+GET    /api/tokens/available-for-customer  # Get tokens available for customer creation
+GET    /api/tokens/statistics         # Get token statistics
 ```
+
+### Token Tables in Frontend
+
+#### Available Tokens Table
+- Shows only tokens the user can **actively use** for customer creation
+- Includes tokens directly assigned to the user
+- For Super Admin: Shows unassigned available tokens
+- **Purpose**: Quick access to usable tokens
+
+#### Token History Table
+- Shows **complete history** of all tokens related to the user
+- Includes tokens created by user, assigned to user, or used by user
+- Shows full lifecycle: Creator → Assigned To → Used By
+- **Purpose**: Complete audit trail and tracking
+
+
 
 ---
 
@@ -255,6 +274,7 @@ Customers are **data-only entities** without login credentials, managed by sales
 
 ### Customer Features
 - ✅ Complete personal information (NID, name, mobile, email)
+- ✅ Photo upload support (JPEG, JPG, PNG - max 2MB)
 - ✅ Product details (type, model, price, IMEI tracking)
 - ✅ EMI calculations (automatic based on duration/interest)
 - ✅ Dual addresses (present and permanent with full location hierarchy)
@@ -265,7 +285,7 @@ Customers are **data-only entities** without login credentials, managed by sales
 ### Customer Creation
 ```http
 POST /api/customers
-Content-Type: application/json
+Content-Type: multipart/form-data
 Authorization: Bearer {token}
 
 {
@@ -273,6 +293,7 @@ Authorization: Bearer {token}
   "name": "John Doe",
   "mobile": "+8801712345678",
   "email": "john@example.com",
+  "photo": <file>,
   "token_code": "ABCD-1234-WXYZ",
   "product_type": "smartphone",
   "product_model": "Samsung Galaxy A54",
@@ -290,6 +311,12 @@ Authorization: Bearer {token}
   "permanent_upazilla_id": 100
 }
 ```
+
+**Photo Upload Requirements:**
+- **Formats**: JPEG, JPG, PNG
+- **Max Size**: 2MB
+- **Storage**: Files stored in `storage/app/public/photos/customers/`
+- **Access**: Files accessible via `/storage/photos/customers/filename.jpg`
 
 ### Customer API Endpoints
 ```
@@ -314,7 +341,7 @@ POST   /api/customers/{id}/documents # Upload document
 ## 💰 Installment Management System
 
 ### Overview
-Complete EMI tracking system with automatic schedule generation, payment recording, and overdue management.
+Complete EMI tracking system with automatic schedule generation, payment recording, overdue management, and comprehensive filtering capabilities.
 
 ### Installment Features
 - ✅ Auto-generation when customer is created
@@ -324,6 +351,79 @@ Complete EMI tracking system with automatic schedule generation, payment recordi
 - ✅ Overdue tracking and notifications
 - ✅ Payment history with collector tracking
 - ✅ Status badges (Paid, Pending, Partial, Overdue, Waived)
+- ✅ **Comprehensive Filtering** - 25+ filter parameters for advanced search
+
+### Advanced Installment Filters
+
+The installment system now supports comprehensive filtering across multiple categories:
+
+#### 🔍 Search Filters
+- **Global Search**: Search across name, mobile, NID, email, IMEI, serial number, customer ID
+- **Customer ID**: Filter by dealer customer ID (e.g., D-001)
+- **Name**: Search by customer name
+- **Mobile**: Filter by mobile number
+- **Email**: Filter by email address
+- **NID Number**: Search by national ID
+
+#### 📦 Product Filters
+- **Product Type**: Filter by Mobile Phone, Tablet, Television
+- **Product Model**: Search by product model name
+- **Serial Number**: Filter by device serial number
+- **Token Code**: Search by assigned token
+- **IMEI 1**: Filter by first IMEI number
+- **IMEI 2**: Filter by second IMEI number
+
+#### 📍 Location Filters
+- **Division**: Filter by administrative division
+- **District**: Filter by district (cascading based on division)
+- **Upazilla**: Filter by sub-district (cascading based on district)
+
+#### 💵 Financial Filters
+- **Price Range**: Min/Max product price
+- **EMI Range**: Min/Max monthly EMI amount
+- **Duration**: Filter by loan duration (3, 6, 12, 18, 24, 36 months)
+
+#### 📊 Status Filters
+- **Customer Status**: Active, Completed, Defaulted, Cancelled
+- **Payment Status**: 
+  - Fully Paid - All installments completed
+  - Partial - Some installments partially paid
+  - Overdue - Has overdue installments
+  - Pending - Has pending installments
+- **Has Device**: Filter customers with/without registered devices
+- **Device Locked**: Filter by device lock status
+
+#### 📅 Date Filters
+- **Created From**: Start date for customer registration
+- **Created To**: End date for customer registration
+
+### Filter Usage Example
+```javascript
+// Frontend filter submission
+const filters = {
+  search: "john",                    // Global search
+  product_type: "Mobile Phone",      // Specific product
+  division_id: "3",                  // Dhaka division
+  district_id: "47",                 // Dhaka district
+  status: "active",                  // Active customers
+  payment_status: "overdue",         // With overdue payments
+  price_min: "10000",               // Price >= 10,000
+  price_max: "50000",               // Price <= 50,000
+  emi_min: "2000",                  // EMI >= 2,000
+  duration: "12",                   // 12-month plans
+  has_device: "true",               // Has registered device
+  created_from: "2025-01-01",       // Created after Jan 1
+  created_to: "2025-10-20"          // Created before Oct 20
+};
+```
+
+### Backend Filter Implementation
+All filters are properly sanitized and applied with hierarchical access control:
+- Filters respect user hierarchy (users only see their downline data)
+- Location filters use relationship queries for proper joins
+- Payment status uses complex queries on installment relationships
+- Date ranges use proper date comparisons
+- Numeric ranges validated for min/max consistency
 
 ### Installment Generation
 Automatically created when a customer is registered:
@@ -397,19 +497,21 @@ Remote Android device management via Firebase Cloud Messaging (FCM) for EMI comp
 4. **ENABLE_CAMERA** - Enable camera access
 5. **DISABLE_BLUETOOTH** - Disable bluetooth
 6. **ENABLE_BLUETOOTH** - Enable bluetooth
-7. **SHOW_MESSAGE** - Display custom message
-8. **SHOW_NOTIFICATION** - Send notification
-9. **SHOW_WARNING** - Display warning message
-10. **CLEAR_WARNING** - Clear warning messages
-11. **HIDE_APP** - Hide management app
-12. **SHOW_APP** - Show management app
-13. **SET_PASSWORD** - Set device password
-14. **REMOVE_PASSWORD** - Remove device password
-15. **ENABLE_KIOSK_MODE** - Restrict to single app
-16. **DISABLE_KIOSK_MODE** - Exit kiosk mode
-17. **REQUEST_LOCATION** - Get device GPS location
-18. **FORCE_RESTART** - Restart device
-19. **PLAY_SOUND** - Play alert sound
+7. **LOCK_USB** - Lock USB port (disable USB)
+8. **UNLOCK_USB** - Unlock USB port (enable USB)
+9. **SHOW_MESSAGE** - Display custom message
+10. **SHOW_NOTIFICATION** - Send notification
+11. **SHOW_WARNING** - Display warning message
+12. **CLEAR_WARNING** - Clear warning messages
+13. **HIDE_APP** - Hide management app
+14. **SHOW_APP** - Show management app
+15. **SET_PASSWORD** - Set device password
+16. **REMOVE_PASSWORD** - Remove device password
+17. **ENABLE_KIOSK_MODE** - Restrict to single app
+18. **DISABLE_KIOSK_MODE** - Exit kiosk mode
+19. **REQUEST_LOCATION** - Get device GPS location
+20. **FORCE_RESTART** - Restart device
+21. **PLAY_SOUND** - Play alert sound
 
 ### Device Registration (Public Endpoint)
 ```http
@@ -490,6 +592,8 @@ Authorization: Bearer {token}
 - `ENABLE_CAMERA` - Message shown when camera is enabled
 - `DISABLE_BLUETOOTH` - Message shown when bluetooth is disabled
 - `ENABLE_BLUETOOTH` - Message shown when bluetooth is enabled
+- `LOCK_USB` - Message shown when USB is locked
+- `UNLOCK_USB` - Message shown when USB is unlocked
 - `HIDE_APP` - Message shown when app is hidden
 - `UNHIDE_APP` - Message shown when app is unhidden
 - `RESET_PASSWORD` - Message shown when password is reset
@@ -848,7 +952,7 @@ php test-device-api.php
 - Auto-generates test FCM tokens
 - Login and authentication
 - Register test device
-- Send all 19 commands
+- Send all 21 commands
 - View command history
 - Test Firebase connection
 - No real device needed!
@@ -1737,6 +1841,22 @@ Implemented using **Spatie Laravel Permission** package.
 
 ### Hierarchical Permissions
 
+#### User Features
+- ✅ Complete profile information (name, email, phone)
+- ✅ Photo upload support (JPEG, JPG, PNG - max 2MB)
+- ✅ Role-based access control (5 roles)
+- ✅ Dual addresses (present and permanent with location hierarchy)
+- ✅ Parent-child relationship tracking
+- ✅ Password management (bcrypt hashed + plain text storage for admin viewing)
+- ✅ Mobile banking details (bKash, Nagad merchant numbers)
+- ✅ Account status management (active/inactive)
+
+**Photo Upload Requirements:**
+- **Formats**: JPEG, JPG, PNG
+- **Max Size**: 2MB
+- **Storage**: Files stored in `storage/app/public/photos/users/`
+- **Access**: Files accessible via `/storage/photos/users/filename.jpg`
+
 #### User Creation Rules
 - Super Admin → Can create Dealers only
 - Dealer → Can create Sub Dealers only
@@ -2117,7 +2237,7 @@ php test-device-api.php
 - Firebase Admin SDK integration
 - Public registration endpoint
 - Command logging and history
-- Multiple device commands (19 types)
+- Multiple device commands (21 types)
 
 ✅ **Best Practices Applied**:
 - Public endpoint for automatic registration
@@ -2150,7 +2270,7 @@ All detailed documentation has been consolidated into this README. Original docu
 - ✅ **Token System**: Generation, assignment (single/bulk), status lifecycle
 - ✅ **Customer Management**: Pages, forms, validation, addresses
 - ✅ **Installment System**: Auto-generation, payments, modals, status tracking
-- ✅ **Device Control**: 19 commands, Firebase FCM, registration, logging
+- ✅ **Device Control**: 21 commands, Firebase FCM, registration, logging
 
 ### Implementation Guides
 - ✅ **Token Forms**: Generate/Assign forms with proper validation

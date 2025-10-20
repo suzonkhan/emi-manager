@@ -68,6 +68,26 @@ class TokenRepository implements TokenRepositoryInterface
         return $query->paginate($perPage);
     }
 
+    /**
+     * Get complete token history for user (all tokens they created, assigned to, or used)
+     */
+    public function getTokenHistoryForUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator
+    {
+        $query = Token::where(function ($q) use ($user) {
+            $q->where('created_by', $user->id)
+                ->orWhere('assigned_to', $user->id)
+                ->orWhere('used_by', $user->id);
+        })
+            ->with(['creator', 'assignedTo', 'usedBy'])
+            ->latest();
+
+        if (! empty($search)) {
+            $query->where('code', 'like', "%{$search}%");
+        }
+
+        return $query->paginate($perPage);
+    }
+
     public function getAssignedTokensByUser(User $user): Collection
     {
         return Token::where('assigned_to', $user->id)

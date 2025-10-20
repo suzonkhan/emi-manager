@@ -209,12 +209,47 @@ class InstallmentController extends Controller
             $query = $this->applyUserAccessControl($query, $user);
 
             // Apply filters
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('nid_no', 'like', "%{$search}%")
-                        ->orWhere('mobile', 'like', "%{$search}%");
+            if ($request->filled('product_type')) {
+                $query->where('product_type', $request->product_type);
+            }
+
+            if ($request->filled('token')) {
+                $query->whereHas('token', function ($q) use ($request) {
+                    $q->where('code', 'like', "%{$request->token}%");
+                });
+            }
+
+            if ($request->filled('serial_number')) {
+                $query->where('serial_number', 'like', "%{$request->serial_number}%");
+            }
+
+            if ($request->filled('name')) {
+                $query->where('name', 'like', "%{$request->name}%");
+            }
+
+            if ($request->filled('email')) {
+                $query->where('email', 'like', "%{$request->email}%");
+            }
+
+            if ($request->filled('mobile')) {
+                $query->where('mobile', 'like', "%{$request->mobile}%");
+            }
+
+            if ($request->filled('division_id')) {
+                $query->whereHas('presentAddress', function ($q) use ($request) {
+                    $q->where('division_id', $request->division_id);
+                });
+            }
+
+            if ($request->filled('district_id')) {
+                $query->whereHas('presentAddress', function ($q) use ($request) {
+                    $q->where('district_id', $request->district_id);
+                });
+            }
+
+            if ($request->filled('upazilla_id')) {
+                $query->whereHas('presentAddress', function ($q) use ($request) {
+                    $q->where('upazilla_id', $request->upazilla_id);
                 });
             }
 
