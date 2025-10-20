@@ -42,12 +42,12 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean',
+            'email_verified_at'   => 'datetime',
+            'password'            => 'hashed',
+            'is_active'           => 'boolean',
             'can_change_password' => 'boolean',
-            'last_login_at' => 'datetime',
-            'metadata' => 'array',
+            'last_login_at'       => 'datetime',
+            'metadata'            => 'array',
         ];
     }
 
@@ -75,7 +75,7 @@ class User extends Authenticatable
     public static function generateUniqueId(): string
     {
         do {
-            $uniqueId = 'EMI-'.strtoupper(Str::random(8));
+            $uniqueId = 'EMI-' . strtoupper(Str::random(8));
         } while (self::where('unique_id', $uniqueId)->exists());
 
         return $uniqueId;
@@ -132,9 +132,9 @@ class User extends Authenticatable
 
         $hierarchy = [
             'super_admin' => ['dealer', 'sub_dealer', 'salesman'],
-            'dealer' => ['sub_dealer', 'salesman'],
-            'sub_dealer' => ['salesman'],
-            'salesman' => [],
+            'dealer'      => ['sub_dealer', 'salesman'],
+            'sub_dealer'  => ['salesman'],
+            'salesman'    => [],
         ];
 
         return in_array($role, $hierarchy[$userRole] ?? []);
@@ -149,9 +149,9 @@ class User extends Authenticatable
     {
         $levels = [
             'super_admin' => 1,
-            'dealer' => 2,
-            'sub_dealer' => 3,
-            'salesman' => 4,
+            'dealer'      => 2,
+            'sub_dealer'  => 3,
+            'salesman'    => 4,
         ];
 
         $role = $this->getRoleNames()->first();
@@ -188,7 +188,7 @@ class User extends Authenticatable
      */
     public function getPlainPasswordForViewer(User $viewer): ?string
     {
-        if (! $this->canViewPassword($viewer)) {
+        if (!$this->canViewPassword($viewer)) {
             return null;
         }
 

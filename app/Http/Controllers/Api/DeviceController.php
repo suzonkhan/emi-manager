@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DeviceCommandRequest;
 use App\Http\Requests\Api\DeviceRegisterRequest;
+use App\Http\Requests\Api\DeviceStatusCheckRequest;
 use App\Http\Resources\DeviceCommandLogResource;
 use App\Http\Resources\DeviceResource;
+use App\Http\Resources\DeviceStatusCheckResource;
 use App\Models\Customer;
 use App\Services\DeviceCommandService;
 use App\Traits\ApiResponseTrait;
@@ -18,6 +20,45 @@ class DeviceController extends Controller
     use ApiResponseTrait;
 
     public function __construct(private DeviceCommandService $deviceCommandService) {}
+
+    /**
+     * Check device status (for factory reset recovery)
+     * Finds device by serial number or IMEI and returns current status
+     * Public endpoint - no authentication required
+     */
+    public function checkStatus(DeviceStatusCheckRequest $request): JsonResponse
+    {
+        try {
+            $serialNumber = $request->input('serial_number');
+            $imei1 = $request->input('imei1');
+
+            // Find customer/device by serial number or IMEI
+            $customer = Customer::where(function ($query) use ($serialNumber, $imei1) {
+                $query->where('serial_number', $serialNumber)
+                    ->orWhere('imei_1', $imei1);
+            })->first();
+
+            // Device not found in system
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'is_registered' => false,
+                    'message' => 'Device not found in system',
+                    'data' => [
+                        'serial_number' => $serialNumber,
+                        'imei1' => $imei1,
+                    ],
+                ], 404);
+            }
+
+            // Device found - return full status with resource
+            return response()->json(
+                new DeviceStatusCheckResource($customer)
+            );
+        } catch (Exception $e) {
+            return $this->error('Failed to check device status: ' . $e->getMessage(), null, 500);
+        }
+    }
 
     /**
      * Register device for a customer

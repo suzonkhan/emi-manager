@@ -4,6 +4,7 @@ namespace App\Repositories\User;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -56,7 +57,19 @@ class UserRepository implements UserRepositoryInterface
         if ($currentUser->hasRole('super_admin')) {
             // Super admin sees all users except themselves
             $query = $this->user->where('id', '!=', $currentUser->id)
-                ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
+                ->with([
+                    'roles:id,name',
+                    'presentAddress:id,street_address,landmark,postal_code,division_id,district_id,upazilla_id',
+                    'presentAddress.division:id,name',
+                    'presentAddress.district:id,name',
+                    'presentAddress.upazilla:id,name'
+                ])
+                ->withCount([
+                    'assignedTokens as total_tokens',
+                    'assignedTokens as total_available_tokens' => function ($query) {
+                        $query->where('status', 'available');
+                    }
+                ])
                 ->latest();
         } else {
             // Other users see only their hierarchy (all descendants)
@@ -65,7 +78,19 @@ class UserRepository implements UserRepositoryInterface
             $hierarchyUserIds = array_diff($hierarchyUserIds, [$currentUser->id]);
 
             $query = $this->user->whereIn('id', $hierarchyUserIds)
-                ->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla'])
+                ->with([
+                    'roles:id,name',
+                    'presentAddress:id,street_address,landmark,postal_code,division_id,district_id,upazilla_id',
+                    'presentAddress.division:id,name',
+                    'presentAddress.district:id,name',
+                    'presentAddress.upazilla:id,name'
+                ])
+                ->withCount([
+                    'assignedTokens as total_tokens',
+                    'assignedTokens as total_available_tokens' => function ($query) {
+                        $query->where('status', 'available');
+                    }
+                ])
                 ->latest();
         }
 
@@ -74,7 +99,19 @@ class UserRepository implements UserRepositoryInterface
 
     public function searchUsersWithFilters(array $filters, User $currentUser, int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->user->with(['roles', 'presentAddress.division', 'presentAddress.district', 'presentAddress.upazilla']);
+        $query = $this->user->with([
+                'roles:id,name',
+                'presentAddress:id,street_address,landmark,postal_code,division_id,district_id,upazilla_id',
+                'presentAddress.division:id,name',
+                'presentAddress.district:id,name',
+                'presentAddress.upazilla:id,name'
+            ])
+            ->withCount([
+                'assignedTokens as total_tokens',
+                'assignedTokens as total_available_tokens' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ]);
 
         // Apply hierarchy filtering first
         if ($currentUser->hasRole('super_admin')) {
@@ -186,19 +223,28 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * Get all user IDs in the user's hierarchy (including themselves)
+     * Optimized to use a single recursive CTE query instead of N+1 queries
      */
     protected function getUserHierarchyIds(User $user): array
     {
-        $userIds = [$user->id]; // Include the user themselves
+        // Use a recursive CTE (Common Table Expression) for efficient hierarchy traversal
+        $userIds = DB::select("
+            WITH RECURSIVE user_hierarchy AS (
+                -- Base case: start with the current user
+                SELECT id, parent_id
+                FROM users
+                WHERE id = ?
+                
+                UNION ALL
+                
+                -- Recursive case: get all children
+                SELECT u.id, u.parent_id
+                FROM users u
+                INNER JOIN user_hierarchy uh ON u.parent_id = uh.id
+            )
+            SELECT id FROM user_hierarchy
+        ", [$user->id]);
 
-        // Get direct children
-        $children = User::where('parent_id', $user->id)->get();
-
-        foreach ($children as $child) {
-            // Recursively get all descendants
-            $userIds = array_merge($userIds, $this->getUserHierarchyIds($child));
-        }
-
-        return array_unique($userIds);
+        return array_map(fn($item) => $item->id, $userIds);
     }
 }

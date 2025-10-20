@@ -30,29 +30,29 @@ class UserController extends Controller
 
             // Build filters array
             $filters = [
-                'unique_id' => $request->input('unique_id'),
-                'name' => $request->input('name'),
-                'email' => $request->input('email'),
-                'phone' => $request->input('phone'),
-                'role' => $request->input('role'),
+                'unique_id'   => $request->input('unique_id'),
+                'name'        => $request->input('name'),
+                'email'       => $request->input('email'),
+                'phone'       => $request->input('phone'),
+                'role'        => $request->input('role'),
                 'division_id' => $request->input('division_id'),
                 'district_id' => $request->input('district_id'),
                 'upazilla_id' => $request->input('upazilla_id'),
-                'status' => $request->input('status'),
+                'status'      => $request->input('status'),
             ];
 
             // Remove null values
-            $filters = array_filter($filters, fn ($value) => $value !== null);
+            $filters = array_filter($filters, fn($value) => $value !== null);
 
             $users = $this->userService->searchUsers($filters, $request->user(), $perPage);
 
             return $this->success([
-                'users' => UserListResource::collection($users->items()),
-                'pagination' => [
+                'users'           => UserListResource::collection($users->items()),
+                'pagination'      => [
                     'current_page' => $users->currentPage(),
-                    'last_page' => $users->lastPage(),
-                    'per_page' => $users->perPage(),
-                    'total' => $users->total(),
+                    'last_page'    => $users->lastPage(),
+                    'per_page'     => $users->perPage(),
+                    'total'        => $users->total(),
                 ],
                 'filters_applied' => $filters,
             ]);
@@ -67,11 +67,11 @@ class UserController extends Controller
             $user = $this->userService->createUser($request, $request->user());
 
             return $this->success([
-                'user' => new UserDetailResource($user),
+                'user'    => new UserDetailResource($user),
                 'message' => 'User created successfully',
             ], 201);
         } catch (\Exception $e) {
-            return $this->error('Failed to create user: '.$e->getMessage(), null, 500);
+            return $this->error('Failed to create user: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -79,7 +79,7 @@ class UserController extends Controller
     {
         $user = $this->userService->getUserDetails($id, $request->user());
 
-        if (! $user) {
+        if (!$user) {
             return $this->forbidden('You do not have permission to view this user');
         }
 
@@ -93,28 +93,28 @@ class UserController extends Controller
         try {
             $user = $this->userService->updateUser($request, $id, $request->user());
 
-            if (! $user) {
+            if (!$user) {
                 return $this->forbidden('You do not have permission to update this user');
             }
 
             return $this->success([
-                'user' => new UserDetailResource($user),
+                'user'    => new UserDetailResource($user),
                 'message' => 'User updated successfully',
             ]);
         } catch (\Exception $e) {
-            return $this->error('Failed to update user: '.$e->getMessage(), null, 500);
+            return $this->error('Failed to update user: ' . $e->getMessage(), null, 500);
         }
     }
 
     public function resetPassword(ResetPasswordRequest $request, int $id): JsonResponse
     {
-        if (! $request->user()->hasRole('super_admin')) {
+        if (!$request->user()->hasRole('super_admin')) {
             return $this->forbidden('Only super admin can reset passwords');
         }
 
         $success = $this->userService->resetPassword($request, $id, $request->user());
 
-        if (! $success) {
+        if (!$success) {
             return $this->forbidden('You do not have permission to reset this user\'s password');
         }
 
@@ -130,27 +130,27 @@ class UserController extends Controller
 
     public function getPassword(Request $request, int $id): JsonResponse
     {
-        if (! $request->user()->hasRole('super_admin')) {
+        if (!$request->user()->hasRole('super_admin')) {
             return $this->forbidden('Only super admin can view user passwords');
         }
 
         $user = $this->userService->getUserDetails($id, $request->user());
 
-        if (! $user) {
+        if (!$user) {
             return $this->forbidden('You do not have permission to view this user');
         }
 
         $plainPassword = $user->getPlainPasswordForViewer($request->user());
 
-        if (! $plainPassword) {
+        if (!$plainPassword) {
             return $this->error('Password not available for this user', null, 404);
         }
 
         return $this->success([
-            'password' => $plainPassword,
-            'user_id' => $user->id,
+            'password'  => $plainPassword,
+            'user_id'   => $user->id,
             'user_name' => $user->name,
-            'message' => 'Password retrieved successfully',
+            'message'   => 'Password retrieved successfully',
         ]);
     }
 }

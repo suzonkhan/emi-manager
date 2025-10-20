@@ -15,6 +15,9 @@
             font-size: 9px;
             color: #333;
         }
+        .container {
+            padding: 50px;
+        }
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -76,9 +79,10 @@
     </style>
 </head>
 <body>
+    <div class="container">
     <div class="header">
-        <h1>{{ $report['report_type'] }}</h1>
-        <p>EMI Manager - Dealer Report</p>
+        <h1>AI Locker</h1>
+        <h3>{{ $report['report_type'] }}</h3>
     </div>
 
     <div class="info-section">
@@ -120,8 +124,7 @@
         </tbody>
     </table>
 
-    <div class="footer">
-        <p>© {{ date('Y') }} EMI Manager. All rights reserved. | Page <span class="pagenum"></span></p>
+
     </div>
 </body>
 </html>

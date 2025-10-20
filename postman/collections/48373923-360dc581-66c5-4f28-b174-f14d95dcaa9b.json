@@ -2689,10 +2689,128 @@
 					},
 					"response": []
 				}
-			],
-			"id": "48373923-preset-group",
-			"description": "Preset message management for automatic message delivery when device commands are executed. Users can create custom messages for 18 different commands that will automatically display on customer devices. Includes full CRUD operations and toggle functionality."
-		}
+		],
+		"id": "48373923-preset-group",
+		"description": "Preset message management for automatic message delivery when device commands are executed. Users can create custom messages for 18 different commands that will automatically display on customer devices. Includes full CRUD operations and toggle functionality."
+	},
+	{
+		"name": "Factory Reset Recovery",
+		"item": [
+			{
+				"name": "Check Device Status (Factory Reset Recovery)",
+				"id": "48373923-factory-001",
+				"request": {
+					"auth": {
+						"type": "noauth"
+					},
+					"method": "POST",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Accept",
+							"value": "application/json"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": "{\n  \"serial_number\": \"ABC123456789\",\n  \"imei1\": \"123456789012345\"\n}"
+					},
+					"url": {
+						"raw": "{{base_url}}/devices/status/check",
+						"host": [
+							"{{base_url}}"
+						],
+						"path": [
+							"devices",
+							"status",
+							"check"
+						]
+					},
+					"description": "Public endpoint for factory reset recovery. Device checks its registration and lock status after factory reset. Returns device info, lock status, payment details, and restrictions. No authentication required."
+				},
+				"response": []
+			},
+			{
+				"name": "Test - Device Not Found",
+				"id": "48373923-factory-002",
+				"request": {
+					"auth": {
+						"type": "noauth"
+					},
+					"method": "POST",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Accept",
+							"value": "application/json"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": "{\n  \"serial_number\": \"UNKNOWN_SERIAL\",\n  \"imei1\": \"000000000000000\"\n}"
+					},
+					"url": {
+						"raw": "{{base_url}}/devices/status/check",
+						"host": [
+							"{{base_url}}"
+						],
+						"path": [
+							"devices",
+							"status",
+							"check"
+						]
+					},
+					"description": "Test case for device not found. Should return 404 with is_registered: false"
+				},
+				"response": []
+			},
+			{
+				"name": "Test - Validation Error",
+				"id": "48373923-factory-003",
+				"request": {
+					"auth": {
+						"type": "noauth"
+					},
+					"method": "POST",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Accept",
+							"value": "application/json"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": "{\n  \"serial_number\": \"\"\n}"
+					},
+					"url": {
+						"raw": "{{base_url}}/devices/status/check",
+						"host": [
+							"{{base_url}}"
+						],
+						"path": [
+							"devices",
+							"status",
+							"check"
+						]
+					},
+					"description": "Test validation errors when required fields are missing. Should return 422 with validation errors."
+				},
+				"response": []
+			}
+		],
+		"id": "48373923-factory-group",
+		"description": "Factory reset recovery endpoint. Allows Android devices to automatically check their registration and lock status after factory reset without manual FCM commands. Public endpoint - no authentication required."
+	}
 	],
 	"auth": {
 		"type": "bearer",
@@ -2722,8 +2840,8 @@
 					"const requestName = pm.info.requestName;",
 					"const token = pm.collectionVariables.get('token');",
 					"",
-					"// Skip adding Authorization header for Login and Device Registration (public endpoints)",
-					"const publicEndpoints = ['Login', 'Register Device'];",
+				"// Skip adding Authorization header for Login and Device Registration (public endpoints)",
+				"const publicEndpoints = ['Login', 'Register Device', 'Check Device Status (Factory Reset Recovery)', 'Test - Device Not Found', 'Test - Validation Error'];",
 					"",
 					"if (!publicEndpoints.includes(requestName)) {",
 					"    if (token) {",

@@ -20,6 +20,8 @@ class UserListResource extends JsonResource
             'plain_password' => $this->when($request->user() && $this->canViewPassword($request->user()), $this->plain_password),
             'is_active' => $this->is_active,
             'present_address' => new AddressResource($this->whenLoaded('presentAddress')),
+            'total_tokens' => $this->total_tokens ?? 0,
+            'total_available_tokens' => $this->total_available_tokens ?? 0,
             'last_login_at' => $this->last_login_at,
             'created_at' => $this->created_at,
         ];

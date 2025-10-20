@@ -32,11 +32,17 @@ Route::prefix('locations')->group(function () {
     Route::get('/upazillas/{district_id}', [LocationController::class, 'getUpazillas']);
 });
 
-// Public device registration (for automatic app installation)
-Route::post('/devices/register', [DeviceController::class, 'register']);
-
-// Public device command response (device sends any command response)
-Route::post('/devices/command-response', [DeviceController::class, 'commandResponse']);
+// Public device routes (no authentication required)
+Route::prefix('devices')->group(function () {
+    // Device registration (for automatic app installation)
+    Route::post('/register', [DeviceController::class, 'register']);
+    
+    // Device status check (for factory reset recovery)
+    Route::post('/status/check', [DeviceController::class, 'checkStatus']);
+    
+    // Device command response (device sends any command response)
+    Route::post('/command-response', [DeviceController::class, 'commandResponse']);
+});
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
