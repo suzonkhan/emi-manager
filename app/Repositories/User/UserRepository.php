@@ -56,42 +56,56 @@ class UserRepository implements UserRepositoryInterface
     {
         if ($currentUser->hasRole('super_admin')) {
             // Super admin sees all users except themselves
-            $query = $this->user->where('id', '!=', $currentUser->id)
+            $query = $this->user->where('users.id', '!=', $currentUser->id)
+                ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->select('users.*')
+                ->selectRaw("CASE 
+                    WHEN roles.name = 'super_admin' THEN 1
+                    WHEN roles.name = 'dealer' THEN 2
+                    WHEN roles.name = 'sub_dealer' THEN 3
+                    WHEN roles.name = 'salesman' THEN 4
+                    ELSE 5
+                END as hierarchy_level")
+                ->selectRaw('(SELECT COUNT(DISTINCT ta.token_id) FROM token_assignments ta WHERE ta.to_user_id = users.id AND ta.action = "assigned") as total_tokens')
+                ->selectRaw('(SELECT COUNT(*) FROM tokens t WHERE t.assigned_to = users.id AND t.status IN ("available", "assigned")) as total_available_tokens')
                 ->with([
-                    'roles:id,name',
+                    'roles',
                     'presentAddress:id,street_address,landmark,postal_code,division_id,district_id,upazilla_id',
                     'presentAddress.division:id,name',
                     'presentAddress.district:id,name',
                     'presentAddress.upazilla:id,name'
                 ])
-                ->withCount([
-                    'assignedTokens as total_tokens',
-                    'assignedTokens as total_available_tokens' => function ($query) {
-                        $query->where('status', 'available');
-                    }
-                ])
-                ->latest();
+                ->orderBy('hierarchy_level')
+                ->orderBy('users.created_at', 'desc');
         } else {
             // Other users see only their hierarchy (all descendants)
             $hierarchyUserIds = $this->getUserHierarchyIds($currentUser);
             // Remove current user from the list
             $hierarchyUserIds = array_diff($hierarchyUserIds, [$currentUser->id]);
 
-            $query = $this->user->whereIn('id', $hierarchyUserIds)
+            $query = $this->user->whereIn('users.id', $hierarchyUserIds)
+                ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->select('users.*')
+                ->selectRaw("CASE 
+                    WHEN roles.name = 'super_admin' THEN 1
+                    WHEN roles.name = 'dealer' THEN 2
+                    WHEN roles.name = 'sub_dealer' THEN 3
+                    WHEN roles.name = 'salesman' THEN 4
+                    ELSE 5
+                END as hierarchy_level")
+                ->selectRaw('(SELECT COUNT(DISTINCT ta.token_id) FROM token_assignments ta WHERE ta.to_user_id = users.id AND ta.action = "assigned") as total_tokens')
+                ->selectRaw('(SELECT COUNT(*) FROM tokens t WHERE t.assigned_to = users.id AND t.status IN ("available", "assigned")) as total_available_tokens')
                 ->with([
-                    'roles:id,name',
+                    'roles',
                     'presentAddress:id,street_address,landmark,postal_code,division_id,district_id,upazilla_id',
                     'presentAddress.division:id,name',
                     'presentAddress.district:id,name',
                     'presentAddress.upazilla:id,name'
                 ])
-                ->withCount([
-                    'assignedTokens as total_tokens',
-                    'assignedTokens as total_available_tokens' => function ($query) {
-                        $query->where('status', 'available');
-                    }
-                ])
-                ->latest();
+                ->orderBy('hierarchy_level')
+                ->orderBy('users.created_at', 'desc');
         }
 
         return $query->paginate($perPage);
@@ -99,58 +113,65 @@ class UserRepository implements UserRepositoryInterface
 
     public function searchUsersWithFilters(array $filters, User $currentUser, int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->user->with([
-                'roles:id,name',
+        $query = $this->user
+            ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->select('users.*')
+            ->selectRaw("CASE 
+                WHEN roles.name = 'super_admin' THEN 1
+                WHEN roles.name = 'dealer' THEN 2
+                WHEN roles.name = 'sub_dealer' THEN 3
+                WHEN roles.name = 'salesman' THEN 4
+                ELSE 5
+            END as hierarchy_level")
+            ->selectRaw('(SELECT COUNT(DISTINCT ta.token_id) FROM token_assignments ta WHERE ta.to_user_id = users.id AND ta.action = "assigned") as total_tokens')
+            ->selectRaw('(SELECT COUNT(*) FROM tokens t WHERE t.assigned_to = users.id AND t.status IN ("available", "assigned")) as total_available_tokens')
+            ->with([
+                'roles',
                 'presentAddress:id,street_address,landmark,postal_code,division_id,district_id,upazilla_id',
                 'presentAddress.division:id,name',
                 'presentAddress.district:id,name',
                 'presentAddress.upazilla:id,name'
-            ])
-            ->withCount([
-                'assignedTokens as total_tokens',
-                'assignedTokens as total_available_tokens' => function ($query) {
-                    $query->where('status', 'available');
-                }
             ]);
 
         // Apply hierarchy filtering first
         if ($currentUser->hasRole('super_admin')) {
-            $query->where('id', '!=', $currentUser->id);
+            $query->where('users.id', '!=', $currentUser->id);
         } else {
             // Get all users in hierarchy (all descendants)
             $hierarchyUserIds = $this->getUserHierarchyIds($currentUser);
             // Remove current user from the list
             $hierarchyUserIds = array_diff($hierarchyUserIds, [$currentUser->id]);
 
-            $query->whereIn('id', $hierarchyUserIds);
+            $query->whereIn('users.id', $hierarchyUserIds);
         }
 
         // Apply individual filters
         if (! empty($filters['unique_id'])) {
-            $query->where('unique_id', 'like', '%'.$filters['unique_id'].'%');
+            $query->where('users.unique_id', 'like', '%'.$filters['unique_id'].'%');
         }
 
         if (! empty($filters['name'])) {
-            $query->where('name', 'like', '%'.$filters['name'].'%');
+            $query->where('users.name', 'like', '%'.$filters['name'].'%');
         }
 
         if (! empty($filters['email'])) {
-            $query->where('email', 'like', '%'.$filters['email'].'%');
+            $query->where('users.email', 'like', '%'.$filters['email'].'%');
         }
 
         if (! empty($filters['phone'])) {
-            $query->where('phone', 'like', '%'.$filters['phone'].'%');
+            $query->where('users.phone', 'like', '%'.$filters['phone'].'%');
         }
 
         if (! empty($filters['role'])) {
-            $query->role($filters['role']); // Using Spatie's role method
+            $query->where('roles.name', $filters['role']);
         }
 
         if (! empty($filters['status'])) {
             if ($filters['status'] === 'active') {
-                $query->where('is_active', true);
+                $query->where('users.is_active', true);
             } elseif ($filters['status'] === 'inactive') {
-                $query->where('is_active', false);
+                $query->where('users.is_active', false);
             }
         }
 
@@ -169,7 +190,7 @@ class UserRepository implements UserRepositoryInterface
             });
         }
 
-        return $query->latest()->paginate($perPage);
+        return $query->orderBy('hierarchy_level')->orderBy('users.created_at', 'desc')->paginate($perPage);
     }
 
     public function findUserWithDetails(int $id): ?User
