@@ -121,8 +121,10 @@ class DeviceController extends Controller
                 'set-wallpaper' => $this->deviceCommandService->setWallpaper($customer, $user, $request->input('image_url')),
                 'remove-wallpaper' => $this->deviceCommandService->removeWallpaper($customer, $user),
                 'request-location' => $this->deviceCommandService->requestLocation($customer, $user),
-                'call-enable' => $this->deviceCommandService->enableCall($customer, $user),
-                'call-disable' => $this->deviceCommandService->disableCall($customer, $user),
+                'enable-call' => $this->deviceCommandService->enableCall($customer, $user),
+                'disable-call' => $this->deviceCommandService->disableCall($customer, $user),
+                'lock-usb' => $this->deviceCommandService->lockUsb($customer, $user),
+                'unlock-usb' => $this->deviceCommandService->unlockUsb($customer, $user),
                 default => throw new Exception('Invalid command: '.$command),
             };
 
