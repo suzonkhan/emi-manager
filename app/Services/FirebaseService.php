@@ -14,59 +14,27 @@ class FirebaseService
 
     public function __construct()
     {
-        // Try environment variable first (production recommended)
-        $credentialsJson = config('firebase.credentials_json');
-        
-        if ($credentialsJson) {
-            // Using credentials from environment variable
-            $credentialsArray = is_array($credentialsJson) ? $credentialsJson : json_decode($credentialsJson, true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid Firebase credentials JSON: ' . json_last_error_msg());
-            }
-            
-            $factory = (new Factory)->withServiceAccount($credentialsArray);
-        } else {
-            // Fallback to file-based credentials
-            $credentialsPath = config('firebase.credentials');
+        $credentialsPath = config('firebase.credentials');
 
-            // If no path in config, use default storage path
-            if (! $credentialsPath) {
-                $credentialsPath = storage_path('app/firebase/ime-locker-app-credentials.json');
-            }
-
-            // If path is relative (doesn't start with / or C:), resolve it
-            if (! str_starts_with($credentialsPath, '/') && ! preg_match('/^[A-Z]:/i', $credentialsPath)) {
-                if (str_starts_with($credentialsPath, 'storage/')) {
-                    $credentialsPath = storage_path(substr($credentialsPath, 8));
-                } else {
-                    $credentialsPath = base_path($credentialsPath);
-                }
-            }
-
-            if (! file_exists($credentialsPath)) {
-                throw new Exception('Firebase credentials file not found at: '.$credentialsPath);
-            }
-
-            // Load and validate JSON
-            $credentialsJson = file_get_contents($credentialsPath);
-            $credentialsArray = json_decode($credentialsJson, true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid JSON in Firebase credentials file: ' . json_last_error_msg());
-            }
-
-            $factory = (new Factory)->withServiceAccount($credentialsPath);
+        // If no path in config, use default storage path
+        if (! $credentialsPath) {
+            $credentialsPath = storage_path('app/firebase/ime-locker-app-credentials.json');
         }
-        
-        // Validate required fields
-        $requiredFields = ['project_id', 'client_email', 'private_key'];
-        foreach ($requiredFields as $field) {
-            if (empty($credentialsArray[$field])) {
-                throw new Exception("Firebase credentials missing required field: {$field}");
+
+        // If path is relative (doesn't start with / or C:), resolve it
+        if (! str_starts_with($credentialsPath, '/') && ! preg_match('/^[A-Z]:/i', $credentialsPath)) {
+            if (str_starts_with($credentialsPath, 'storage/')) {
+                $credentialsPath = storage_path(substr($credentialsPath, 8));
+            } else {
+                $credentialsPath = base_path($credentialsPath);
             }
         }
 
+        if (! file_exists($credentialsPath)) {
+            throw new Exception('Firebase credentials file not found at: '.$credentialsPath);
+        }
+
+        $factory = (new Factory)->withServiceAccount($credentialsPath);
         $this->messaging = $factory->createMessaging();
     }
 

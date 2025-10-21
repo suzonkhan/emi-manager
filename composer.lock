@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "41a908db514183ffd087a8cd4ec9c31d",
+    "content-hash": "f33af009125e709d3bf4feda2a67fc4b",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -416,16 +416,16 @@
         },
         {
             "name": "cuyz/valinor",
-            "version": "2.2.0",
+            "version": "2.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CuyZ/Valinor.git",
-                "reference": "35470e576041dd9695ef36aceaab8925bc676586"
+                "reference": "f6e00a8c4196d2df483d454ab67a54f0ced60a1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CuyZ/Valinor/zipball/35470e576041dd9695ef36aceaab8925bc676586",
-                "reference": "35470e576041dd9695ef36aceaab8925bc676586",
+                "url": "https://api.github.com/repos/CuyZ/Valinor/zipball/f6e00a8c4196d2df483d454ab67a54f0ced60a1a",
+                "reference": "f6e00a8c4196d2df483d454ab67a54f0ced60a1a",
                 "shasum": ""
             },
             "require": {
@@ -481,7 +481,7 @@
             ],
             "support": {
                 "issues": "https://github.com/CuyZ/Valinor/issues",
-                "source": "https://github.com/CuyZ/Valinor/tree/2.2.0"
+                "source": "https://github.com/CuyZ/Valinor/tree/2.2.2"
             },
             "funding": [
                 {
@@ -489,7 +489,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-09-29T13:07:34+00:00"
+            "time": "2025-10-13T07:23:21+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -1273,16 +1273,16 @@
         },
         {
             "name": "google/cloud-core",
-            "version": "v1.66.0",
+            "version": "v1.67.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-core.git",
-                "reference": "7abbb4d4dc9cd54479d00079e2de9fa4d7a96268"
+                "reference": "2405b8116dcc4ec50756cc44486c149e34b1b4e5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/7abbb4d4dc9cd54479d00079e2de9fa4d7a96268",
-                "reference": "7abbb4d4dc9cd54479d00079e2de9fa4d7a96268",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/2405b8116dcc4ec50756cc44486c149e34b1b4e5",
+                "reference": "2405b8116dcc4ec50756cc44486c149e34b1b4e5",
                 "shasum": ""
             },
             "require": {
@@ -1333,9 +1333,9 @@
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
             "support": {
-                "source": "https://github.com/googleapis/google-cloud-php-core/tree/v1.66.0"
+                "source": "https://github.com/googleapis/google-cloud-php-core/tree/v1.67.0"
             },
-            "time": "2025-10-07T18:41:09+00:00"
+            "time": "2025-10-10T18:34:03+00:00"
         },
         {
             "name": "google/cloud-storage",
@@ -1601,16 +1601,16 @@
         },
         {
             "name": "google/protobuf",
-            "version": "v4.32.1",
+            "version": "v4.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/protocolbuffers/protobuf-php.git",
-                "reference": "c4ed1c1f9bbc1e91766e2cd6c0af749324fe87cb"
+                "reference": "b50269e23204e5ae859a326ec3d90f09efe3047d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/c4ed1c1f9bbc1e91766e2cd6c0af749324fe87cb",
-                "reference": "c4ed1c1f9bbc1e91766e2cd6c0af749324fe87cb",
+                "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/b50269e23204e5ae859a326ec3d90f09efe3047d",
+                "reference": "b50269e23204e5ae859a326ec3d90f09efe3047d",
                 "shasum": ""
             },
             "require": {
@@ -1639,9 +1639,9 @@
                 "proto"
             ],
             "support": {
-                "source": "https://github.com/protocolbuffers/protobuf-php/tree/v4.32.1"
+                "source": "https://github.com/protocolbuffers/protobuf-php/tree/v4.33.0"
             },
-            "time": "2025-09-14T05:14:52+00:00"
+            "time": "2025-10-15T20:10:28+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -2162,23 +2162,23 @@
         },
         {
             "name": "kreait/firebase-php",
-            "version": "7.22.0",
+            "version": "7.23.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kreait/firebase-php.git",
-                "reference": "97a39cb83de9acf1b0de8b0aa2fa0da0d8955c79"
+                "reference": "b75f8fa15d7ca9b029e0a87a152bcb67489f1623"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kreait/firebase-php/zipball/97a39cb83de9acf1b0de8b0aa2fa0da0d8955c79",
-                "reference": "97a39cb83de9acf1b0de8b0aa2fa0da0d8955c79",
+                "url": "https://api.github.com/repos/kreait/firebase-php/zipball/b75f8fa15d7ca9b029e0a87a152bcb67489f1623",
+                "reference": "b75f8fa15d7ca9b029e0a87a152bcb67489f1623",
                 "shasum": ""
             },
             "require": {
                 "beste/clock": "^3.0",
                 "beste/in-memory-cache": "^1.3.1",
                 "beste/json": "^1.5.1",
-                "cuyz/valinor": "^2.0",
+                "cuyz/valinor": "^2.2.1",
                 "ext-ctype": "*",
                 "ext-filter": "*",
                 "ext-json": "*",
@@ -2202,17 +2202,17 @@
                 "psr/log": "^1.1|^2.0|^3.0.2"
             },
             "require-dev": {
-                "google/cloud-firestore": "^1.53.0",
-                "php-cs-fixer/shim": "^3.85.1",
+                "google/cloud-firestore": "^1.54.2",
+                "php-cs-fixer/shim": "^3.88.2",
                 "phpstan/extension-installer": "^1.4.3",
-                "phpstan/phpstan": "^2.1.22",
+                "phpstan/phpstan": "^2.1.31",
                 "phpstan/phpstan-deprecation-rules": "^2.0.3",
                 "phpstan/phpstan-phpunit": "^2.0.7",
-                "phpstan/phpstan-strict-rules": "^2.0.6",
-                "phpunit/phpunit": "^10.5.48",
-                "rector/rector": "^2.1.2",
+                "phpstan/phpstan-strict-rules": "^2.0.7",
+                "phpunit/phpunit": "^10.5.58",
+                "rector/rector": "^2.2.2",
                 "shipmonk/composer-dependency-analyser": "^1.8.3",
-                "symfony/var-dumper": "^6.4.15 || ^7.3.2",
+                "symfony/var-dumper": "^6.4.15 || ^7.3.4",
                 "vlucas/phpdotenv": "^5.6.2"
             },
             "suggest": {
@@ -2259,7 +2259,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-09-20T22:11:10+00:00"
+            "time": "2025-10-12T23:21:27+00:00"
         },
         {
             "name": "kreait/firebase-tokens",
@@ -2806,22 +2806,22 @@
         },
         {
             "name": "lcobucci/jwt",
-            "version": "5.5.0",
+            "version": "5.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lcobucci/jwt.git",
-                "reference": "a835af59b030d3f2967725697cf88300f579088e"
+                "reference": "bb3e9f21e4196e8afc41def81ef649c164bca25e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lcobucci/jwt/zipball/a835af59b030d3f2967725697cf88300f579088e",
-                "reference": "a835af59b030d3f2967725697cf88300f579088e",
+                "url": "https://api.github.com/repos/lcobucci/jwt/zipball/bb3e9f21e4196e8afc41def81ef649c164bca25e",
+                "reference": "bb3e9f21e4196e8afc41def81ef649c164bca25e",
                 "shasum": ""
             },
             "require": {
                 "ext-openssl": "*",
                 "ext-sodium": "*",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0",
+                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
                 "psr/clock": "^1.0"
             },
             "require-dev": {
@@ -2863,7 +2863,7 @@
             ],
             "support": {
                 "issues": "https://github.com/lcobucci/jwt/issues",
-                "source": "https://github.com/lcobucci/jwt/tree/5.5.0"
+                "source": "https://github.com/lcobucci/jwt/tree/5.6.0"
             },
             "funding": [
                 {
@@ -2875,7 +2875,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-01-26T21:29:45+00:00"
+            "time": "2025-10-17T11:30:53+00:00"
         },
         {
             "name": "league/commonmark",
