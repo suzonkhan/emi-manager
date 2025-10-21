@@ -15,6 +15,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Firebase Credentials JSON (Alternative to file path)
+    |--------------------------------------------------------------------------
+    |
+    | You can provide Firebase credentials as JSON string in environment
+    | This is recommended for production to avoid file permission issues
+    |
+    */
+
+    'credentials_json' => env('FIREBASE_CREDENTIALS_JSON'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Firebase Project ID
     |--------------------------------------------------------------------------
     |

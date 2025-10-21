@@ -3239,7 +3239,111 @@ tail -f storage/logs/laravel.log | grep "checkStatus"
 
 ---
 
-**Last Updated**: October 20, 2025  
-**Version**: 2.1  
+## 🔧 Production Server Deployment Fix (October 2025)
+
+### Issue After `composer update`
+
+After running `composer update`, you may encounter Firebase SDK errors due to version 7.22.0's stricter validation:
+
+```
+Could not map type `Kreait\Firebase\ServiceAccount`:
+- `projectId`: Value *missing* is not a valid non-empty string.
+```
+
+### Root Cause
+The new Firebase SDK (7.22.0) has stricter credential validation and different initialization requirements.
+
+### Solution: Updated FirebaseService
+
+The `FirebaseService.php` has been updated to support **two methods** of providing credentials:
+
+#### Method 1: Environment Variable (Recommended for Production)
+
+**Advantages**:
+- No file permission issues
+- More secure (no files in storage)
+- Easier to manage in cPanel/Plesk
+
+**Setup**:
+```bash
+# Add to .env
+FIREBASE_CREDENTIALS_JSON='{"type":"service_account","project_id":"ime-locker-app",...}'
+```
+
+#### Method 2: File Path (Fallback)
+
+**Setup**:
+```bash
+# Add to .env
+FIREBASE_CREDENTIALS=storage/app/firebase/ime-locker-app-credentials.json
+
+# Ensure file exists with proper permissions
+chmod 640 storage/app/firebase/ime-locker-app-credentials.json
+```
+
+### Deployment Steps
+
+1. **Fix PHP.ini Syntax Error** (if present):
+```bash
+# Check line 450 in php.ini
+sed -n '450p' /opt/cpanel/ea-php83/root/etc/php.ini
+
+# Common issues:
+# Wrong: memory_limit == 256M
+# Correct: memory_limit = 256M
+```
+
+2. **Update Code on Server**:
+```bash
+git pull origin master
+```
+
+3. **Configure Firebase Credentials**:
+```bash
+# Option A: Using environment variable (recommended)
+nano .env
+# Add: FIREBASE_CREDENTIALS_JSON='...'
+
+# Option B: Using file path
+# Ensure file exists in storage/app/firebase/
+```
+
+4. **Clear and Rebuild Cache**:
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan config:cache
+php artisan route:cache
+```
+
+5. **Verify Firebase Connection**:
+```bash
+php artisan about
+# Should show no errors under Firebase section
+```
+
+### Troubleshooting
+
+**If Firebase still fails**:
+```bash
+# Verify JSON syntax
+cat storage/app/firebase/ime-locker-app-credentials.json | python -m json.tool
+
+# Check required fields exist
+grep -E '"(project_id|client_email|private_key)"' storage/app/firebase/ime-locker-app-credentials.json
+```
+
+**If php.ini error persists**:
+- Contact your hosting provider to fix the syntax error
+- Or switch to a different PHP version (e.g., ea-php82)
+
+### Files Changed
+- `app/Services/FirebaseService.php` - Added dual credential loading (env var + file)
+- `config/firebase.php` - Added `credentials_json` config option
+
+---
+
+**Last Updated**: October 21, 2025  
+**Version**: 2.2  
 **Status**: Production Ready ✅  
 **Documentation**: Fully Consolidated (40 files → 1 file)
