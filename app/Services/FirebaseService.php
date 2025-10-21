@@ -34,7 +34,16 @@ class FirebaseService
             throw new Exception('Firebase credentials file not found at: '.$credentialsPath);
         }
 
-        $factory = (new Factory)->withServiceAccount($credentialsPath);
+        // Load credentials as array to ensure proper validation
+        $credentialsJson = file_get_contents($credentialsPath);
+        $credentials = json_decode($credentialsJson, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid JSON in Firebase credentials: ' . json_last_error_msg());
+        }
+
+        // Use array instead of file path for newer SDK versions
+        $factory = (new Factory)->withServiceAccount($credentials);
         $this->messaging = $factory->createMessaging();
     }
 

@@ -3253,20 +3253,20 @@ Could not map type `Kreait\Firebase\ServiceAccount`:
 ### Root Cause
 The new Firebase SDK (7.22+) has stricter credential validation and different initialization requirements that cause compatibility issues.
 
-### Solution: Downgrade Firebase SDK
+### Solution: Updated Firebase SDK Integration
 
-The Firebase PHP SDK has been **locked to version 7.13** which is stable and doesn't have these validation issues.
+The Firebase PHP SDK has been configured to work with version **7.13+** with proper credential handling.
 
 **composer.json**:
 ```json
-"kreait/firebase-php": "7.13.*"
+"kreait/firebase-php": "^7.13"
 ```
 
-**Why 7.13?**:
-- ✅ Stable and well-tested
-- ✅ Supports PHP 8.2 and 8.3
-- ✅ No breaking changes in credential handling
-- ✅ Compatible with our existing code
+**What Changed**:
+- ✅ Loads credentials as array (required by SDK 7.22+)
+- ✅ Validates JSON before passing to Firebase
+- ✅ Supports PHP 8.2, 8.3, and 8.4
+- ✅ Compatible with latest Firebase SDK features
 - ✅ Works with file-based credentials
 
 **Setup**:
@@ -3293,16 +3293,24 @@ sed -n '450p' /opt/cpanel/ea-php83/root/etc/php.ini
 2. **Update Code on Server**:
 ```bash
 git pull origin master
+composer install --no-dev --optimize-autoloader
 ```
 
 3. **Configure Firebase Credentials**:
 ```bash
-# Option A: Using environment variable (recommended)
-nano .env
-# Add: FIREBASE_CREDENTIALS_JSON='...'
+# Ensure credentials file exists
+ls -la storage/app/firebase/ime-locker-app-credentials.json
 
-# Option B: Using file path
-# Ensure file exists in storage/app/firebase/
+# If missing, upload from local:
+scp storage/app/firebase/ime-locker-app-credentials.json user@server:/path/to/app/storage/app/firebase/
+
+# Set permissions
+chmod 640 storage/app/firebase/ime-locker-app-credentials.json
+
+# Update .env
+nano .env
+# Add or update:
+FIREBASE_CREDENTIALS=storage/app/firebase/ime-locker-app-credentials.json
 ```
 
 4. **Clear and Rebuild Cache**:
@@ -3335,8 +3343,8 @@ grep -E '"(project_id|client_email|private_key)"' storage/app/firebase/ime-locke
 - Or switch to a different PHP version (e.g., ea-php82)
 
 ### Files Changed
-- `app/Services/FirebaseService.php` - Added dual credential loading (env var + file)
-- `config/firebase.php` - Added `credentials_json` config option
+- `composer.json` - Updated Firebase SDK to ^7.13 (supports PHP 8.4)
+- `app/Services/FirebaseService.php` - Loads credentials as array for SDK 7.22+ compatibility
 
 ---
 
