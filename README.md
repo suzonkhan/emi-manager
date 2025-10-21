@@ -3253,24 +3253,21 @@ Could not map type `Kreait\Firebase\ServiceAccount`:
 ### Root Cause
 The new Firebase SDK (7.22+) has stricter credential validation and different initialization requirements that cause compatibility issues.
 
-### Solution: Updated FirebaseService
+### Solution: Downgrade Firebase SDK
 
-The `FirebaseService.php` has been updated to support **two methods** of providing credentials:
+The Firebase PHP SDK has been **locked to version 7.13** which is stable and doesn't have these validation issues.
 
-#### Method 1: Environment Variable (Recommended for Production)
-
-**Advantages**:
-- No file permission issues
-- More secure (no files in storage)
-- Easier to manage in cPanel/Plesk
-
-**Setup**:
-```bash
-# Add to .env
-FIREBASE_CREDENTIALS_JSON='{"type":"service_account","project_id":"ime-locker-app",...}'
+**composer.json**:
+```json
+"kreait/firebase-php": "7.13.*"
 ```
 
-#### Method 2: File Path (Fallback)
+**Why 7.13?**:
+- ✅ Stable and well-tested
+- ✅ Supports PHP 8.2 and 8.3
+- ✅ No breaking changes in credential handling
+- ✅ Compatible with our existing code
+- ✅ Works with file-based credentials
 
 **Setup**:
 ```bash
