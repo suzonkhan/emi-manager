@@ -3251,7 +3251,7 @@ Could not map type `Kreait\Firebase\ServiceAccount`:
 ```
 
 ### Root Cause
-The new Firebase SDK (7.22.0) has stricter credential validation and different initialization requirements.
+The new Firebase SDK (7.22+) has stricter credential validation and different initialization requirements that cause compatibility issues.
 
 ### Solution: Updated FirebaseService
 
