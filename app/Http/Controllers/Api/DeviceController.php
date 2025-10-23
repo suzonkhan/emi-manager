@@ -465,6 +465,9 @@ class DeviceController extends Controller
                 'metadata' => $validated['data'] ?? [],
             ]);
 
+            // Fire event for real-time notification
+            event(new \App\Events\DeviceCommandResponseReceived($commandLog, $validated['data'] ?? []));
+
             return $this->success([
                 'message'        => 'Command response received successfully',
                 'command_log_id' => $commandLog->id,
