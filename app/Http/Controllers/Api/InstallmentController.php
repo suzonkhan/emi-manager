@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Installment;
+use App\Models\PaymentToken;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,40 +27,40 @@ class InstallmentController extends Controller
 
             $summary = [
                 'total_installments' => $customer->emi_duration_months,
-                'total_amount' => $customer->getTotalPayableAmount(),
-                'total_paid' => $installments->where('status', 'paid')->sum('paid_amount'),
-                'total_pending' => $installments->whereIn('status', ['pending', 'overdue'])->sum('amount'),
-                'paid_count' => $installments->where('status', 'paid')->count(),
-                'pending_count' => $installments->whereIn('status', ['pending', 'overdue'])->count(),
-                'overdue_count' => $installments->where('status', 'overdue')->count(),
+                'total_amount'       => $customer->getTotalPayableAmount(),
+                'total_paid'         => $installments->where('status', 'paid')->sum('paid_amount'),
+                'total_pending'      => $installments->whereIn('status', ['pending', 'overdue'])->sum('amount'),
+                'paid_count'         => $installments->where('status', 'paid')->count(),
+                'pending_count'      => $installments->whereIn('status', ['pending', 'overdue'])->count(),
+                'overdue_count'      => $installments->where('status', 'overdue')->count(),
             ];
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'customer' => [
-                        'id' => $customer->id,
-                        'name' => $customer->name,
-                        'nid_no' => $customer->nid_no,
-                        'mobile' => $customer->mobile,
-                        'product_type' => $customer->product_type,
-                        'product_model' => $customer->product_model,
-                        'product_price' => $customer->product_price,
-                        'emi_per_month' => $customer->emi_per_month,
+                'data'    => [
+                    'customer'     => [
+                        'id'                  => $customer->id,
+                        'name'                => $customer->name,
+                        'nid_no'              => $customer->nid_no,
+                        'mobile'              => $customer->mobile,
+                        'product_type'        => $customer->product_type,
+                        'product_model'       => $customer->product_model,
+                        'product_price'       => $customer->product_price,
+                        'emi_per_month'       => $customer->emi_per_month,
                         'emi_duration_months' => $customer->emi_duration_months,
-                        'token_code' => $customer->token->code ?? null,
-                        'imei_1' => $customer->imei_1,
-                        'imei_2' => $customer->imei_2,
+                        'token_code'          => $customer->token->code ?? null,
+                        'imei_1'              => $customer->imei_1,
+                        'imei_2'              => $customer->imei_2,
                     ],
                     'installments' => $installments,
-                    'summary' => $summary,
+                    'summary'      => $summary,
                 ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch installment history',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -70,18 +71,18 @@ class InstallmentController extends Controller
     public function recordPayment(Request $request, Installment $installment): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'paid_amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string|in:cash,bank_transfer,mobile_banking,card,cheque',
+            'paid_amount'           => 'required|numeric|min:0',
+            'payment_method'        => 'required|string|in:cash,bank_transfer,mobile_banking,card,cheque',
             'transaction_reference' => 'nullable|string|max:255',
-            'paid_date' => 'required|date',
-            'notes' => 'nullable|string|max:1000',
+            'paid_date'             => 'required|date',
+            'notes'                 => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors(),
+                'errors'  => $validator->errors(),
             ], 422);
         }
 
@@ -89,7 +90,7 @@ class InstallmentController extends Controller
             DB::beginTransaction();
 
             $paidAmount = $request->paid_amount;
-            $totalPaid = $installment->paid_amount + $paidAmount;
+            $totalPaid  = $installment->paid_amount + $paidAmount;
 
             // Determine status
             $status = 'pending';
@@ -100,18 +101,18 @@ class InstallmentController extends Controller
             }
 
             $installment->update([
-                'paid_amount' => $totalPaid,
-                'paid_date' => $request->paid_date,
-                'status' => $status,
-                'payment_method' => $request->payment_method,
+                'paid_amount'           => $totalPaid,
+                'paid_date'             => $request->paid_date,
+                'status'                => $status,
+                'payment_method'        => $request->payment_method,
                 'transaction_reference' => $request->transaction_reference,
-                'notes' => $request->notes,
-                'collected_by' => $request->user()->id,
+                'notes'                 => $request->notes,
+                'collected_by'          => $request->user()->id,
             ]);
 
             // Check if all installments are paid
             $customer = $installment->customer;
-            $allPaid = $customer->installments()
+            $allPaid  = $customer->installments()
                 ->where('status', '!=', 'paid')
                 ->count() === 0;
 
@@ -124,7 +125,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Payment recorded successfully',
-                'data' => $installment->fresh(['collectedBy']),
+                'data'    => $installment->fresh(['collectedBy']),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -132,7 +133,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to record payment',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -149,18 +150,18 @@ class InstallmentController extends Controller
             $customer->installments()->delete();
 
             $installments = [];
-            $dueDate = now()->addMonth(); // First installment due next month
+            $dueDate      = now()->addMonth(); // First installment due next month
 
             for ($i = 1; $i <= $customer->emi_duration_months; $i++) {
                 $installments[] = [
-                    'customer_id' => $customer->id,
+                    'customer_id'        => $customer->id,
                     'installment_number' => $i,
-                    'amount' => $customer->emi_per_month,
-                    'due_date' => $dueDate->copy()->addMonths($i - 1),
-                    'status' => 'pending',
-                    'paid_amount' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'amount'             => $customer->emi_per_month,
+                    'due_date'           => $dueDate->copy()->addMonths($i - 1),
+                    'status'             => 'pending',
+                    'paid_amount'        => 0,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
                 ];
             }
 
@@ -171,7 +172,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Installments generated successfully',
-                'data' => [
+                'data'    => [
                     'total_installments' => count($installments),
                 ],
             ]);
@@ -181,7 +182,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to generate installments',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -197,7 +198,7 @@ class InstallmentController extends Controller
             $query = Customer::with(['token:id,code', 'installments'])
                 ->withCount([
                     'installments as total_installments',
-                    'installments as paid_installments' => function ($query) {
+                    'installments as paid_installments'    => function ($query) {
                         $query->where('status', 'paid');
                     },
                     'installments as pending_installments' => function ($query) {
@@ -262,8 +263,8 @@ class InstallmentController extends Controller
 
             // Add calculated fields
             $customers->getCollection()->transform(function ($customer) {
-                $customer->total_paid = $customer->installments->where('status', 'paid')->sum('paid_amount');
-                $customer->total_payable = $customer->getTotalPayableAmount();
+                $customer->total_paid       = $customer->installments->where('status', 'paid')->sum('paid_amount');
+                $customer->total_payable    = $customer->getTotalPayableAmount();
                 $customer->remaining_amount = $customer->total_payable - $customer->total_paid;
 
                 return $customer;
@@ -271,13 +272,13 @@ class InstallmentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'customers' => $customers->items(),
+                'data'    => [
+                    'customers'  => $customers->items(),
                     'pagination' => [
                         'current_page' => $customers->currentPage(),
-                        'last_page' => $customers->lastPage(),
-                        'per_page' => $customers->perPage(),
-                        'total' => $customers->total(),
+                        'last_page'    => $customers->lastPage(),
+                        'per_page'     => $customers->perPage(),
+                        'total'        => $customers->total(),
                     ],
                 ],
             ]);
@@ -285,7 +286,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch customers',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -303,7 +304,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Overdue installments updated',
-                'data' => [
+                'data'    => [
                     'updated_count' => $updated,
                 ],
             ]);
@@ -311,7 +312,7 @@ class InstallmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update overdue installments',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -322,7 +323,7 @@ class InstallmentController extends Controller
     protected function applyUserAccessControl($query, User $user)
     {
         // If user has no role, return empty query
-        if (! $user->role) {
+        if (!$user->role) {
             return $query->whereRaw('1 = 0'); // Returns no results
         }
 
@@ -354,5 +355,459 @@ class InstallmentController extends Controller
         }
 
         return array_unique($userIds);
+    }
+
+    /**
+     * Generate payment link for a customer's next unpaid installment
+     */
+    public function generatePaymentLinkForCustomer(Request $request, Customer $customer): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'amount' => 'required|numeric|min:0.01',
+                'expires_in_hours' => 'nullable|integer|min:1|max:168', // Max 7 days
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            // Find the next unpaid installment for this customer
+            $installment = $customer->installments()
+                ->whereIn('status', ['pending', 'overdue'])
+                ->orderBy('installment_number')
+                ->first();
+
+            if (!$installment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No unpaid installments found for this customer',
+                ], 400);
+            }
+
+            // Check if there's already a pending payment token for this installment
+            $existingToken = PaymentToken::where('installment_id', $installment->id)
+                ->whereIn('status', ['pending', 'submitted'])
+                ->where('expires_at', '>', now())
+                ->first();
+
+            if ($existingToken) {
+                $frontendUrl = config('app.frontend_url');
+                $paymentLink = "{$frontendUrl}/payment/{$existingToken->token}";
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'A payment link already exists for this installment',
+                    'data' => [
+                        'payment_link' => $paymentLink,
+                        'token' => $existingToken->token,
+                        'amount' => $existingToken->amount,
+                        'expires_at' => $existingToken->expires_at,
+                        'installment_number' => $installment->installment_number,
+                        'customer' => [
+                            'name' => $customer->name,
+                            'mobile' => $customer->mobile,
+                        ],
+                        'is_existing' => true,
+                    ],
+                ]);
+            }
+
+            DB::beginTransaction();
+
+            $amount = $request->amount;
+            $expiresInHours = $request->expires_in_hours ?? 24; // Default 24 hours
+
+            $paymentToken = PaymentToken::create([
+                'token' => PaymentToken::generateToken(),
+                'customer_id' => $customer->id,
+                'installment_id' => $installment->id,
+                'created_by' => $request->user()->id,
+                'amount' => $amount,
+                'expires_at' => now()->addHours($expiresInHours),
+            ]);
+
+            DB::commit();
+
+            $frontendUrl = config('app.frontend_url');
+            $paymentLink = "{$frontendUrl}/payment/{$paymentToken->token}";
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment link generated successfully',
+                'data' => [
+                    'payment_link' => $paymentLink,
+                    'token' => $paymentToken->token,
+                    'amount' => $amount,
+                    'expires_at' => $paymentToken->expires_at,
+                    'installment_number' => $installment->installment_number,
+                    'customer' => [
+                        'name' => $customer->name,
+                        'mobile' => $customer->mobile,
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate payment link',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate payment link for a specific installment
+     */
+    public function generatePaymentLink(Request $request, Installment $installment): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'amount' => 'required|numeric|min:0.01',
+                'expires_in_hours' => 'nullable|integer|min:1|max:168', // Max 7 days
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            // Check if installment is already paid
+            if ($installment->status === 'paid') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This installment is already paid',
+                ], 400);
+            }
+
+            // Check if there's already a pending payment token for this installment
+            $existingToken = PaymentToken::where('installment_id', $installment->id)
+                ->whereIn('status', ['pending', 'submitted'])
+                ->where('expires_at', '>', now())
+                ->first();
+
+            if ($existingToken) {
+                $frontendUrl = config('app.frontend_url');
+                $paymentLink = "{$frontendUrl}/payment/{$existingToken->token}";
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'A payment link already exists for this installment',
+                    'data' => [
+                        'payment_link' => $paymentLink,
+                        'token' => $existingToken->token,
+                        'amount' => $existingToken->amount,
+                        'expires_at' => $existingToken->expires_at,
+                        'customer' => [
+                            'name' => $installment->customer->name,
+                            'mobile' => $installment->customer->mobile,
+                        ],
+                        'is_existing' => true,
+                    ],
+                ]);
+            }
+
+            DB::beginTransaction();
+
+            $amount = $request->amount;
+            $expiresInHours = $request->expires_in_hours ?? 24; // Default 24 hours
+
+            $paymentToken = PaymentToken::create([
+                'token' => PaymentToken::generateToken(),
+                'customer_id' => $installment->customer_id,
+                'installment_id' => $installment->id,
+                'created_by' => $request->user()->id,
+                'amount' => $amount,
+                'expires_at' => now()->addHours($expiresInHours),
+            ]);
+
+            DB::commit();
+
+            $frontendUrl = config('app.frontend_url');
+            $paymentLink = "{$frontendUrl}/payment/{$paymentToken->token}";
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment link generated successfully',
+                'data' => [
+                    'payment_link' => $paymentLink,
+                    'token' => $paymentToken->token,
+                    'amount' => $amount,
+                    'expires_at' => $paymentToken->expires_at,
+                    'customer' => [
+                        'name' => $installment->customer->name,
+                        'mobile' => $installment->customer->mobile,
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate payment link',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payment link details (for customer to view)
+     */
+    public function getPaymentLinkDetails(string $token): JsonResponse
+    {
+        try {
+            $paymentToken = PaymentToken::with(['customer', 'installment'])
+                ->where('token', $token)
+                ->first();
+
+            if (!$paymentToken) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payment link',
+                ], 404);
+            }
+
+            if ($paymentToken->isExpired()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment link has expired',
+                ], 410);
+            }
+
+            if (!$paymentToken->canBeUsed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment link is no longer available',
+                ], 410);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'customer' => [
+                        'name' => $paymentToken->customer->name,
+                        'mobile' => $paymentToken->customer->mobile,
+                        'nid_no' => $paymentToken->customer->nid_no,
+                    ],
+                    'installment' => [
+                        'installment_number' => $paymentToken->installment->installment_number,
+                        'due_date' => $paymentToken->installment->due_date,
+                        'amount' => $paymentToken->amount,
+                    ],
+                    'expires_at' => $paymentToken->expires_at,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch payment details',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Submit payment information (customer)
+     */
+    public function submitPayment(Request $request, string $token): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'payment_method' => 'required|string|in:cash,bank_transfer,mobile_banking,card,cheque',
+                'transaction_reference' => 'required|string|max:255',
+                'notes' => 'nullable|string|max:1000',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            $paymentToken = PaymentToken::where('token', $token)->first();
+
+            if (!$paymentToken) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payment link',
+                ], 404);
+            }
+
+            if (!$paymentToken->canBeUsed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment link is no longer available',
+                ], 410);
+            }
+
+            // Use the amount from payment token and set today's date automatically
+            $paymentData = [
+                'payment_method' => $request->payment_method,
+                'transaction_reference' => $request->transaction_reference,
+                'paid_amount' => $paymentToken->amount,
+                'paid_date' => now()->toDateString(),
+            ];
+
+            $paymentToken->markAsSubmitted($paymentData, $request->notes);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment information submitted successfully. Please wait for approval.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit payment',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pending payment submissions (for admin)
+     */
+    public function getPendingPayments(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            $query = PaymentToken::with(['customer', 'installment', 'createdBy'])
+                ->where('status', 'submitted');
+
+            // Apply hierarchical access control
+            $hierarchyUserIds = $this->getUserHierarchyIds($user);
+            $query->whereIn('created_by', $hierarchyUserIds);
+
+            $pendingPayments = $query->latest('submitted_at')->paginate($request->per_page ?? 10);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'pending_payments' => $pendingPayments->items(),
+                    'pagination' => [
+                        'current_page' => $pendingPayments->currentPage(),
+                        'last_page' => $pendingPayments->lastPage(),
+                        'per_page' => $pendingPayments->perPage(),
+                        'total' => $pendingPayments->total(),
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch pending payments',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve payment submission
+     */
+    public function approvePayment(Request $request, PaymentToken $paymentToken): JsonResponse
+    {
+        try {
+            if ($paymentToken->status !== 'submitted') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment is not in submitted status',
+                ], 400);
+            }
+
+            DB::beginTransaction();
+
+            // Approve the payment token
+            $paymentToken->approve($request->user()->id, $request->admin_notes);
+
+            // Record the payment in the installment
+            $installment = $paymentToken->installment;
+            $paymentData = $paymentToken->payment_data;
+
+            $totalPaid = $installment->paid_amount + $paymentData['paid_amount'];
+
+            // Determine status
+            $status = 'pending';
+            if ($totalPaid >= $installment->amount) {
+                $status = 'paid';
+            } elseif ($totalPaid > 0) {
+                $status = 'partial';
+            }
+
+            $installment->update([
+                'paid_amount' => $totalPaid,
+                'paid_date' => $paymentData['paid_date'],
+                'status' => $status,
+                'payment_method' => $paymentData['payment_method'],
+                'transaction_reference' => $paymentData['transaction_reference'],
+                'notes' => $paymentToken->customer_notes,
+                'collected_by' => $request->user()->id,
+            ]);
+
+            // Check if all installments are paid
+            $customer = $installment->customer;
+            $allPaid = $customer->installments()
+                ->where('status', '!=', 'paid')
+                ->count() === 0;
+
+            if ($allPaid) {
+                $customer->update(['status' => 'completed']);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment approved successfully',
+                'data' => $installment->fresh(['collectedBy']),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve payment',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject payment submission
+     */
+    public function rejectPayment(Request $request, PaymentToken $paymentToken): JsonResponse
+    {
+        try {
+            if ($paymentToken->status !== 'submitted') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment is not in submitted status',
+                ], 400);
+            }
+
+            $paymentToken->reject($request->user()->id, $request->admin_notes);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment rejected successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reject payment',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 }

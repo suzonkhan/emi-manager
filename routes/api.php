@@ -44,6 +44,12 @@ Route::prefix('devices')->group(function () {
     Route::post('/command-response', [DeviceController::class, 'commandResponse']);
 });
 
+// Public payment routes (no authentication required)
+Route::prefix('payment')->group(function () {
+    Route::get('/{token}', [InstallmentController::class, 'getPaymentLinkDetails']); // Get payment link details
+    Route::post('/{token}/submit', [InstallmentController::class, 'submitPayment']); // Submit payment information
+});
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -92,6 +98,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/generate/{customer}', [InstallmentController::class, 'generateInstallments']); // Generate installments for a customer
         Route::post('/payment/{installment}', [InstallmentController::class, 'recordPayment']); // Record payment for an installment
         Route::post('/update-overdue', [InstallmentController::class, 'updateOverdueInstallments']); // Update overdue status
+        
+        // Payment link management routes
+        Route::post('/payment-link/{installment}', [InstallmentController::class, 'generatePaymentLink']); // Generate payment link for specific installment
+        Route::post('/payment-link-customer/{customer}', [InstallmentController::class, 'generatePaymentLinkForCustomer']); // Generate payment link for customer's next unpaid installment
+        Route::get('/pending-payments', [InstallmentController::class, 'getPendingPayments']); // Get pending payment submissions
+        Route::post('/approve-payment/{paymentToken}', [InstallmentController::class, 'approvePayment']); // Approve payment submission
+        Route::post('/reject-payment/{paymentToken}', [InstallmentController::class, 'rejectPayment']); // Reject payment submission
     });
 
     // Location routes for addresses
