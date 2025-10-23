@@ -2694,6 +2694,263 @@
 			"description": "Preset message management for automatic message delivery when device commands are executed. Users can create custom messages for 18 different commands that will automatically display on customer devices. Includes full CRUD operations and toggle functionality."
 		},
 		{
+			"name": "Installments & Payment Links",
+			"item": [
+				{
+					"name": "Generate Payment Link for Customer",
+					"id": "48373923-installment-001",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/installments/payment-link-customer/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"installments",
+								"payment-link-customer",
+								"1"
+							]
+						},
+						"description": "Generate a secure payment link for customer's next unpaid installment. Returns existing link if one is already active. Link expires in 7 days. Customer can submit payment details via this link."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Payment Link for Specific Installment",
+					"id": "48373923-installment-002",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/installments/payment-link/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"installments",
+								"payment-link",
+								"1"
+							]
+						},
+						"description": "Generate a secure payment link for a specific installment. Returns existing link if one is already active. Link expires in 7 days. Can be shared via SMS/WhatsApp."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment Link Details (Public)",
+					"id": "48373923-installment-003",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/payment/YOUR_TOKEN_HERE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"YOUR_TOKEN_HERE"
+							]
+						},
+						"description": "Public endpoint to get payment link details. No authentication required. Returns customer info, installment details, and payment form data. Replace YOUR_TOKEN_HERE with actual payment token."
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Payment (Public)",
+					"id": "48373923-installment-004",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"payment_method\": \"mobile_banking\",\n  \"transaction_reference\": \"TXN123456789\",\n  \"notes\": \"Paid via bKash from 01712345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/payment/YOUR_TOKEN_HERE/submit",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"YOUR_TOKEN_HERE",
+								"submit"
+							]
+						},
+						"description": "Public endpoint for customers to submit payment information. No authentication required. Payment method options: cash, bank_transfer, mobile_banking, card, cheque. Amount and date are automatically set by server. Replace YOUR_TOKEN_HERE with actual payment token."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Pending Payments",
+					"id": "48373923-installment-005",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/installments/pending-payments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"installments",
+								"pending-payments"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of pending payment submissions awaiting approval. Shows payment details, customer info, and installment information. Users see payments based on their hierarchy."
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Payment",
+					"id": "48373923-installment-006",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"admin_notes\": \"Payment verified and approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/installments/approve-payment/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"installments",
+								"approve-payment",
+								"1"
+							]
+						},
+						"description": "Approve a pending payment submission. Marks the installment as paid with the submitted payment details. Payment token is marked as approved. Optional admin notes can be added."
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Payment",
+					"id": "48373923-installment-007",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"admin_notes\": \"Transaction reference not found. Please provide correct information.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/installments/reject-payment/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"installments",
+								"reject-payment",
+								"1"
+							]
+						},
+						"description": "Reject a pending payment submission. Payment token is marked as rejected. Admin notes are required to explain the reason for rejection."
+					},
+					"response": []
+				}
+			],
+			"id": "48373923-installment-group",
+			"description": "Installment and payment link management. Generate secure payment links for customers to submit payment information via SMS/WhatsApp. Links expire in 7 days. Includes public endpoints for customers and admin endpoints for approval/rejection of submitted payments."
+		},
+		{
 			"name": "Factory Reset Recovery",
 			"item": [
 				{
