@@ -19,8 +19,9 @@ class DeviceCommandLogResource extends JsonResource
             'status' => $this->status,
             'metadata' => $this->metadata,
             'error_message' => $this->error_message,
+            'notes' => $this->error_message, // Include notes field for frontend
             'sent_at' => $this->sent_at?->toIso8601String(),
-            'sent_by' => $this->whenLoaded('sentBy', function () {
+            'sent_by_user' => $this->whenLoaded('sentBy', function () {
                 return [
                     'id' => $this->sentBy->id,
                     'name' => $this->sentBy->name,

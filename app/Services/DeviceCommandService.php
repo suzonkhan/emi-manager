@@ -534,7 +534,7 @@ class DeviceCommandService
     public function getCommandHistory(Customer $customer, int $limit = 50): \Illuminate\Database\Eloquent\Collection
     {
         return $customer->deviceCommandLogs()
-            ->with(['sentBy', 'locationResponse'])
+            ->with(['sentBy', 'customer'])
             ->latest()
             ->limit($limit)
             ->get();
