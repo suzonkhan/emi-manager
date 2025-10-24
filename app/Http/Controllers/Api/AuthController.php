@@ -68,4 +68,22 @@ class AuthController extends Controller
             return $this->validationError($e);
         }
     }
+
+    /**
+     * Register or update FCM token for push notifications
+     */
+    public function registerFcmToken(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $user->fcm_token = $validated['fcm_token'];
+        $user->save();
+
+        return $this->success([
+            'message' => 'FCM token registered successfully',
+        ]);
+    }
 }

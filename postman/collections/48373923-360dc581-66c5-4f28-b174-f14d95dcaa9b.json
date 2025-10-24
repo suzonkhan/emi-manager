@@ -186,6 +186,43 @@
 						"description": "Change user password. Requires current password for verification."
 					},
 					"response": []
+				},
+				{
+					"name": "Register FCM Token",
+					"id": "48373923-fcm-token-001",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fcm_token\": \"eXXX...firebase_cloud_messaging_token_for_admin_app...XXXe\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register-fcm-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register-fcm-token"
+							]
+						},
+						"description": "Register or update FCM token for admin user to receive push notifications when customer devices respond to commands. Called after login from admin Android app. Token will be used to send real-time command response notifications via FCM."
+					},
+					"response": []
 				}
 			],
 			"id": "48373923-ead972f4-ed84-496d-8ba1-95fc6cb1ddf1"

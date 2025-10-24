@@ -22,6 +22,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/profile', [AuthController::class, 'profile']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/register-fcm-token', [AuthController::class, 'registerFcmToken']);
     });
 });
 

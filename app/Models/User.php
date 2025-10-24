@@ -31,6 +31,7 @@ class User extends Authenticatable
         'can_change_password',
         'is_active',
         'metadata',
+        'fcm_token',
     ];
 
     protected $hidden = [
