@@ -476,4 +476,97 @@ class DeviceController extends Controller
             return $this->error($e->getMessage(), null, 500);
         }
     }
+
+    /**
+     * Submit device location from customer device (Public endpoint)
+     */
+    public function submitLocation(\Illuminate\Http\Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'device_id'   => 'required|string',
+                'latitude'    => 'required|numeric|between:-90,90',
+                'longitude'   => 'required|numeric|between:-180,180',
+                'accuracy'    => 'nullable|numeric|min:0',
+                'altitude'    => 'nullable|numeric',
+                'speed'       => 'nullable|numeric|min:0',
+                'provider'    => 'nullable|string|max:50',
+                'address'     => 'nullable|string|max:500',
+                'recorded_at' => 'nullable|date',
+                'metadata'    => 'nullable|array',
+            ]);
+
+            // Find customer by device_id
+            $deviceId = $validated['device_id'];
+            $customer = Customer::where('serial_number', $deviceId)
+                ->orWhere('imei_1', $deviceId)
+                ->orWhere('imei_2', $deviceId)
+                ->first();
+
+            if (!$customer) {
+                return $this->error('Device not found', null, 404);
+            }
+
+            // Create location log
+            $locationLog = \App\Models\DeviceLocationLog::create([
+                'customer_id' => $customer->id,
+                'latitude'    => $validated['latitude'],
+                'longitude'   => $validated['longitude'],
+                'accuracy'    => $validated['accuracy'] ?? null,
+                'altitude'    => $validated['altitude'] ?? null,
+                'speed'       => $validated['speed'] ?? null,
+                'provider'    => $validated['provider'] ?? null,
+                'address'     => $validated['address'] ?? null,
+                'metadata'    => $validated['metadata'] ?? null,
+                'recorded_at' => $validated['recorded_at'] ?? now(),
+            ]);
+
+            return $this->success([
+                'message'         => 'Location submitted successfully',
+                'location_log_id' => $locationLog->id,
+                'google_maps_url' => $locationLog->google_maps_url,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationError($e);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Get location history for a customer's device
+     */
+    public function getLocationHistory(Customer $customer, \Illuminate\Http\Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->query('limit', 50);
+
+            $locations = \App\Models\DeviceLocationLog::where('customer_id', $customer->id)
+                ->orderBy('recorded_at', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($location) {
+                    return [
+                        'id'            => $location->id,
+                        'latitude'      => $location->latitude,
+                        'longitude'     => $location->longitude,
+                        'accuracy'      => $location->accuracy,
+                        'altitude'      => $location->altitude,
+                        'speed'         => $location->speed,
+                        'provider'      => $location->provider,
+                        'address'       => $location->address,
+                        'recorded_at'   => $location->recorded_at->toIso8601String(),
+                        'google_maps_url' => $location->google_maps_url,
+                        'metadata'      => $location->metadata,
+                    ];
+                });
+
+            return $this->success([
+                'locations' => $locations,
+                'total'     => $locations->count(),
+            ]);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), null, 500);
+        }
+    }
 }

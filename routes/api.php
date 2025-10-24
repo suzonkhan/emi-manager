@@ -43,6 +43,9 @@ Route::prefix('devices')->group(function () {
     
     // Device command response (device sends any command response)
     Route::post('/command-response', [DeviceController::class, 'commandResponse']);
+    
+    // Device location submission (device sends GPS location)
+    Route::post('/location', [DeviceController::class, 'submitLocation']);
 });
 
 // Public payment routes (no authentication required)
@@ -125,6 +128,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/commands', [DeviceController::class, 'availableCommands']); // List all available commands
         Route::get('/{customer}', [DeviceController::class, 'show']); // Get device info
         Route::get('/{customer}/history', [DeviceController::class, 'commandHistory']); // Get command history
+        Route::get('/{customer}/locations', [DeviceController::class, 'getLocationHistory']); // Get location history
         Route::post('/send-message', [DeviceController::class, 'sendMessage']); // Send message only (no command)
         Route::post('/command/{command}', [DeviceController::class, 'sendCommand']); // Send device command
         Route::post('/command-with-message/{command}', [DeviceController::class, 'sendCommandWithMessage']); // Send command + display message
