@@ -3228,7 +3228,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "3a7fb234-a064-4936-b687-e223a7fa5a43",
+				"id": "7ece3954-a3be-42a7-a070-90f3978a54a1",
 				"type": "text/javascript",
 				"requests": {},
 				"exec": [
@@ -3242,8 +3242,8 @@
 					"const requestName = pm.info.requestName;",
 					"const token = pm.collectionVariables.get('token');",
 					"",
-				"// Skip adding Authorization header for Login and Device Registration (public endpoints)",
-				"const publicEndpoints = ['Login', 'Register Device', 'Check Device Status (Factory Reset Recovery)', 'Test - Device Not Found', 'Test - Validation Error', 'Command Response (Device Callback)', 'Submit Device Location (Device Callback)', 'Get Payment Link Details (Public)', 'Submit Payment (Public)'];",
+					"// Skip adding Authorization header for Login and Device Registration (public endpoints)",
+					"const publicEndpoints = ['Login', 'Register Device', 'Check Device Status (Factory Reset Recovery)', 'Test - Device Not Found', 'Test - Validation Error', 'Command Response (Device Callback)', 'Submit Device Location (Device Callback)', 'Get Payment Link Details (Public)', 'Submit Payment (Public)'];",
 					"",
 					"if (!publicEndpoints.includes(requestName)) {",
 					"    if (token) {",
@@ -3262,7 +3262,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "fb9b50d4-5498-4636-9250-4097fd3844b2",
+				"id": "4eb54085-2e99-47d9-8309-1ba7abf6a35c",
 				"type": "text/javascript",
 				"requests": {},
 				"exec": [
