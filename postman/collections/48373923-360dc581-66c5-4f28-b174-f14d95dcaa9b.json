@@ -2355,10 +2355,46 @@
 						"description": "Get list of all available device control commands with their parameters and descriptions."
 					},
 					"response": []
+				},
+				{
+					"name": "Command Response (Device Callback)",
+					"id": "48373923-device-028",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"device_id\": \"223762838218759\",\n  \"command\": \"LOCK_DEVICE\",\n  \"data\": {\n    \"status\": \"success\",\n    \"timestamp\": \"2025-10-24T10:30:00Z\",\n    \"additional_info\": \"Device locked successfully\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/devices/command-response",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"command-response"
+							]
+						},
+						"description": "Public endpoint for devices to send command execution responses back to server. Device sends response after executing any command. Triggers real-time Firebase notification to admin. No authentication required - device identifies itself by device_id (serial_number, imei1, or imei2)."
+					},
+					"response": []
 				}
 			],
 			"id": "48373923-device-group",
-			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration and 21 remote control commands: lock/unlock, camera enable/disable, bluetooth enable/disable, hide/unhide app, password management, reboot, app removal, wipe device, notification messages, wallpaper control, location tracking, and call control."
+			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration, 21 remote control commands (lock/unlock, camera enable/disable, bluetooth enable/disable, hide/unhide app, password management, reboot, app removal, wipe device, notification messages, wallpaper control, location tracking, call control, USB control), command history, available commands list, and device callback endpoint for command responses that trigger real-time Firebase notifications."
 		},
 		{
 			"name": "Preset Messages",
@@ -3097,8 +3133,8 @@
 					"const requestName = pm.info.requestName;",
 					"const token = pm.collectionVariables.get('token');",
 					"",
-					"// Skip adding Authorization header for Login and Device Registration (public endpoints)",
-					"const publicEndpoints = ['Login', 'Register Device', 'Check Device Status (Factory Reset Recovery)', 'Test - Device Not Found', 'Test - Validation Error'];",
+				"// Skip adding Authorization header for Login and Device Registration (public endpoints)",
+				"const publicEndpoints = ['Login', 'Register Device', 'Check Device Status (Factory Reset Recovery)', 'Test - Device Not Found', 'Test - Validation Error', 'Command Response (Device Callback)', 'Get Payment Link Details (Public)', 'Submit Payment (Public)'];",
 					"",
 					"if (!publicEndpoints.includes(requestName)) {",
 					"    if (token) {",
