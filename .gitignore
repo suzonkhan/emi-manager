@@ -24,3 +24,5 @@ Homestead.yaml
 Thumbs.db
 /.well-known
 /public/error_log
+# Firebase credentials
+storage/app/firebase/*.json
