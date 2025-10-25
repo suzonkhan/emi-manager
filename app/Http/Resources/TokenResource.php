@@ -14,10 +14,14 @@ class TokenResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Compute display status based on context
+        $displayStatus = $this->getDisplayStatus($request->user());
+        
         return [
             'id' => $this->id,
             'code' => $this->code,
             'status' => $this->status,
+            'display_status' => $displayStatus, // Human-readable status for UI
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
@@ -46,9 +50,9 @@ class TokenResource extends JsonResource
             'customer' => $this->when($this->customer, function () {
                 return [
                     'id' => $this->customer->id,
-                    'full_name' => $this->customer->full_name,
-                    'phone' => $this->customer->phone,
-                    'financed_amount' => $this->customer->financed_amount,
+                    'name' => $this->customer->name,
+                    'phone' => $this->customer->mobile,
+                    'financed_amount' => $this->customer->product_price - $this->customer->down_payment,
                 ];
             }),
 
@@ -109,5 +113,34 @@ class TokenResource extends JsonResource
         }
 
         return $chain;
+    }
+
+    /**
+     * Get display status for the current user context
+     */
+    private function getDisplayStatus($currentUser): string
+    {
+        // If token is used, always show "Used"
+        if ($this->status === 'used') {
+            return 'used';
+        }
+
+        // If token is available (not assigned to anyone), show "Available"
+        if ($this->status === 'available' && !$this->assigned_to) {
+            return 'available';
+        }
+
+        // If token is assigned
+        if ($this->status === 'assigned' && $this->assigned_to) {
+            // Check if it's assigned to the current user or to someone else
+            if ($this->assigned_to === $currentUser->id) {
+                return 'available'; // Token assigned to me = available for me to use
+            } else {
+                return 'distributed'; // Token assigned to someone else = I distributed it
+            }
+        }
+
+        // Default fallback
+        return $this->status;
     }
 }

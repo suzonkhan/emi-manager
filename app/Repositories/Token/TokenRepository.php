@@ -37,8 +37,20 @@ class TokenRepository implements TokenRepositoryInterface
     public function getAvailableTokensForUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator
     {
         $query = $this->getTokensQueryForUser($user)
-            ->where('status', 'available')
-            ->with(['creator']);
+            ->where(function ($q) use ($user) {
+                // Include tokens that are available and unassigned
+                $q->where(function ($subQuery) {
+                    $subQuery->where('status', 'available')
+                        ->whereNull('assigned_to');
+                })
+                // OR tokens that are assigned to this user
+                ->orWhere(function ($subQuery) use ($user) {
+                    $subQuery->where('status', 'assigned')
+                        ->where('assigned_to', $user->id);
+                });
+            })
+            ->whereNull('used_by')
+            ->with(['creator', 'assignedTo']);
 
         if (! empty($search)) {
             $query->where('code', 'like', "%{$search}%");
@@ -73,12 +85,23 @@ class TokenRepository implements TokenRepositoryInterface
      */
     public function getTokenHistoryForUserPaginated(User $user, int $perPage = 15, string $search = ''): LengthAwarePaginator
     {
-        $query = Token::where(function ($q) use ($user) {
+        // Get user's children IDs (users they assigned tokens to)
+        $childrenIds = $user->children()->pluck('id')->toArray();
+        
+        $query = Token::where(function ($q) use ($user, $childrenIds) {
+            // Tokens created by the user
             $q->where('created_by', $user->id)
+                // OR tokens assigned TO the user
                 ->orWhere('assigned_to', $user->id)
+                // OR tokens used BY the user
                 ->orWhere('used_by', $user->id);
+            
+            // OR tokens assigned to user's children (tokens they distributed to their team)
+            if (! empty($childrenIds)) {
+                $q->orWhereIn('assigned_to', $childrenIds);
+            }
         })
-            ->with(['creator', 'assignedTo', 'usedBy'])
+            ->with(['creator', 'assignedTo', 'usedBy', 'customer'])
             ->latest();
 
         if (! empty($search)) {
@@ -137,18 +160,52 @@ class TokenRepository implements TokenRepositoryInterface
 
     public function getTokenStatistics(User $user): array
     {
-        $createdQuery = Token::where('created_by', $user->id);
         $accessibleQuery = $this->getTokensQueryForUser($user);
 
+        // Get tokens the user can actually use (available or assigned to them)
+        $availableTokens = (clone $accessibleQuery)
+            ->where(function ($query) use ($user) {
+                $query->where('status', 'available')
+                    ->whereNull('assigned_to')
+                    ->orWhere(function ($q) use ($user) {
+                        $q->where('assigned_to', $user->id)
+                            ->where('status', 'assigned');
+                    });
+            })
+            ->whereNull('used_by')
+            ->count();
+
+        // Get all tokens user has access to (total)
+        $totalTokens = (clone $accessibleQuery)->count();
+
+        // Get tokens that the user has assigned TO OTHERS (their children/sub-dealers)
+        // This shows how many tokens they've distributed to their team
+        $childrenIds = $user->children()->pluck('id')->toArray();
+        $assignedTokens = Token::whereIn('assigned_to', $childrenIds)
+            ->where('status', 'assigned')
+            ->whereNull('used_by')
+            ->count();
+
+        // Get tokens used by user
+        $usedTokens = Token::where('used_by', $user->id)
+            ->where('status', 'used')
+            ->count();
+
         return [
-            'created_total' => (clone $createdQuery)->count(),
-            'created_available' => (clone $createdQuery)->where('status', 'available')->count(),
-            'created_assigned' => (clone $createdQuery)->where('status', 'assigned')->count(),
-            'created_used' => (clone $createdQuery)->where('status', 'used')->count(),
-            'accessible_total' => (clone $accessibleQuery)->count(),
-            'accessible_available' => (clone $accessibleQuery)->where('status', 'available')->count(),
-            'assigned_to_me' => Token::where('assigned_to', $user->id)->count(),
-            'used_by_me' => Token::where('used_by', $user->id)->count(),
+            'total_tokens' => $totalTokens,
+            'available_tokens' => $availableTokens,
+            'assigned_tokens' => $assignedTokens,
+            'used_tokens' => $usedTokens,
+            
+            // Keep old keys for backward compatibility
+            'created_total' => Token::where('created_by', $user->id)->count(),
+            'created_available' => Token::where('created_by', $user->id)->where('status', 'available')->count(),
+            'created_assigned' => Token::where('created_by', $user->id)->where('status', 'assigned')->count(),
+            'created_used' => Token::where('created_by', $user->id)->where('status', 'used')->count(),
+            'accessible_total' => $totalTokens,
+            'accessible_available' => $availableTokens,
+            'assigned_to_children' => $assignedTokens,
+            'used_by_me' => $usedTokens,
         ];
     }
 
@@ -224,10 +281,20 @@ class TokenRepository implements TokenRepositoryInterface
         // Get assignable roles for the user
         $assignableRoles = $this->roleHierarchyService->getAssignableRolesByRole($userRole);
 
-        // User can see tokens created by users in their hierarchy or assigned to them
-        return $query->where(function (Builder $q) use ($user, $assignableRoles) {
+        // Get user's children IDs for tokens assigned to them
+        $childrenIds = $user->children()->pluck('id')->toArray();
+
+        // User can see tokens:
+        // 1. Created by them
+        // 2. Assigned to them
+        // 3. Assigned to their children (sub-dealers, salesmen)
+        // 4. Created by users in their hierarchy
+        return $query->where(function (Builder $q) use ($user, $assignableRoles, $childrenIds) {
             $q->where('created_by', $user->id)
                 ->orWhere('assigned_to', $user->id)
+                ->when(! empty($childrenIds), function (Builder $query) use ($childrenIds) {
+                    $query->orWhereIn('assigned_to', $childrenIds);
+                })
                 ->orWhereHas('creator', function (Builder $creatorQuery) use ($assignableRoles) {
                     $creatorQuery->role($assignableRoles);
                 });

@@ -240,7 +240,24 @@ class TokenController extends Controller
             // Salesmen use their parent's tokens and don't receive assignments
             $assignableRoles = array_filter($assignableRoles, fn ($role) => $role !== 'salesman');
 
+            // Get users under the current user in the hierarchy
             $assignableUsers = User::role($assignableRoles)
+                ->where(function ($query) use ($user) {
+                    // If super_admin, can assign to anyone with assignable roles
+                    if ($user->hasRole('super_admin')) {
+                        return;
+                    }
+                    
+                    // For other roles, only show users under them in hierarchy
+                    // This includes direct children and descendants
+                    $query->where('parent_id', $user->id)
+                        ->orWhereHas('parent', function ($q) use ($user) {
+                            $q->where('parent_id', $user->id);
+                        })
+                        ->orWhereHas('parent.parent', function ($q) use ($user) {
+                            $q->where('parent_id', $user->id);
+                        });
+                })
                 ->select(['id', 'name', 'email'])
                 ->get();
 
