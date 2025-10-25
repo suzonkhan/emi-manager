@@ -114,18 +114,38 @@ class DashboardController extends Controller
     private function getTokenStats(User $user, bool $isSuperAdmin, $currentMonthStart): array
     {
         if ($isSuperAdmin) {
-            $totalTokens = Token::count();
-            // Used tokens are those that have a customer associated via token_id
-            $usedTokens = Token::whereHas('customer')->count();
-            // Available tokens are assigned but not used
-            $availableTokens = Token::where('status', 'assigned')
-                ->doesntHave('customer')
+            // For Super Admin, show tokens they CREATED (generated)
+            $createdByUser = Token::where('created_by', $user->id);
+            
+            $totalTokens = (clone $createdByUser)->count();
+            
+            // Used tokens - tokens with status 'used'
+            $usedTokens = (clone $createdByUser)
+                ->where('status', 'used')
                 ->count();
-            // New used tokens this month - tokens whose customers were created this month
-            $newUsedThisMonth = Token::whereHas('customer', function ($query) use ($currentMonthStart) {
-                $query->where('created_at', '>=', $currentMonthStart);
-            })->count();
+            
+            // Available tokens - unassigned + tokens assigned to super admin
+            $availableTokens = (clone $createdByUser)
+                ->where(function ($query) use ($user) {
+                    $query->where('status', 'available')
+                        ->whereNull('assigned_to')
+                        ->orWhere(function ($q) use ($user) {
+                            $q->where('assigned_to', $user->id)
+                                ->where('status', 'assigned');
+                        });
+                })
+                ->whereNull('used_by')
+                ->count();
+            
+            // New used tokens this month
+            $newUsedThisMonth = (clone $createdByUser)
+                ->where('status', 'used')
+                ->whereHas('customer', function ($query) use ($currentMonthStart) {
+                    $query->where('created_at', '>=', $currentMonthStart);
+                })
+                ->count();
         } else {
+            // For other roles, use hierarchy-based logic
             $assignedTokenIds = $user->assignedTokens()->pluck('id');
             $totalTokens = $assignedTokenIds->count();
             $usedTokens = Token::whereIn('id', $assignedTokenIds)

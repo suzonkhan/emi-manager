@@ -160,36 +160,68 @@ class TokenRepository implements TokenRepositoryInterface
 
     public function getTokenStatistics(User $user): array
     {
-        $accessibleQuery = $this->getTokensQueryForUser($user);
+        // For Super Admin, show tokens they CREATED (generated)
+        if ($user->hasRole('super_admin')) {
+            $createdByUser = Token::where('created_by', $user->id);
+            
+            $totalTokens = (clone $createdByUser)->count();
+            
+            // Available: Unassigned tokens + tokens assigned to super admin
+            $availableTokens = (clone $createdByUser)
+                ->where(function ($query) use ($user) {
+                    $query->where('status', 'available')
+                        ->whereNull('assigned_to')
+                        ->orWhere(function ($q) use ($user) {
+                            $q->where('assigned_to', $user->id)
+                                ->where('status', 'assigned');
+                        });
+                })
+                ->whereNull('used_by')
+                ->count();
+            
+            // Distributed: All tokens assigned to anyone (distributed to the system)
+            $assignedTokens = (clone $createdByUser)
+                ->where('status', 'assigned')
+                ->whereNotNull('assigned_to')
+                ->count();
+            
+            // Used: All tokens that have been used
+            $usedTokens = (clone $createdByUser)
+                ->where('status', 'used')
+                ->count();
+        } else {
+            // For Dealers, Sub-Dealers, Salesmen - use hierarchy-based logic
+            $accessibleQuery = $this->getTokensQueryForUser($user);
 
-        // Get tokens the user can actually use (available or assigned to them)
-        $availableTokens = (clone $accessibleQuery)
-            ->where(function ($query) use ($user) {
-                $query->where('status', 'available')
-                    ->whereNull('assigned_to')
-                    ->orWhere(function ($q) use ($user) {
-                        $q->where('assigned_to', $user->id)
-                            ->where('status', 'assigned');
-                    });
-            })
-            ->whereNull('used_by')
-            ->count();
+            // Get tokens the user can actually use (available or assigned to them)
+            $availableTokens = (clone $accessibleQuery)
+                ->where(function ($query) use ($user) {
+                    $query->where('status', 'available')
+                        ->whereNull('assigned_to')
+                        ->orWhere(function ($q) use ($user) {
+                            $q->where('assigned_to', $user->id)
+                                ->where('status', 'assigned');
+                        });
+                })
+                ->whereNull('used_by')
+                ->count();
 
-        // Get all tokens user has access to (total)
-        $totalTokens = (clone $accessibleQuery)->count();
+            // Get all tokens user has access to (total)
+            $totalTokens = (clone $accessibleQuery)->count();
 
-        // Get tokens that the user has assigned TO OTHERS (their children/sub-dealers)
-        // This shows how many tokens they've distributed to their team
-        $childrenIds = $user->children()->pluck('id')->toArray();
-        $assignedTokens = Token::whereIn('assigned_to', $childrenIds)
-            ->where('status', 'assigned')
-            ->whereNull('used_by')
-            ->count();
+            // Get tokens that the user has assigned TO OTHERS (their children/sub-dealers)
+            // This shows how many tokens they've distributed to their team
+            $childrenIds = $user->children()->pluck('id')->toArray();
+            $assignedTokens = Token::whereIn('assigned_to', $childrenIds)
+                ->where('status', 'assigned')
+                ->whereNull('used_by')
+                ->count();
 
-        // Get tokens used by user
-        $usedTokens = Token::where('used_by', $user->id)
-            ->where('status', 'used')
-            ->count();
+            // Get tokens used by user
+            $usedTokens = Token::where('used_by', $user->id)
+                ->where('status', 'used')
+                ->count();
+        }
 
         return [
             'total_tokens' => $totalTokens,
