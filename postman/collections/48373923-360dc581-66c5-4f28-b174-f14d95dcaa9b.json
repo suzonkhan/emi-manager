@@ -2330,13 +2330,89 @@
 								"unlock-usb"
 							]
 						},
-						"description": "Unlock USB port on the device. Enables USB functionality for data transfer and charging."
-					},
-					"response": []
+					"description": "Unlock USB port on the device. Enables USB functionality for data transfer and charging."
 				},
-				{
-					"name": "Get Command History",
-					"id": "48373923-device-022",
+				"response": []
+			},
+			{
+				"name": "Apply FRP",
+				"id": "48373923-device-028",
+				"request": {
+					"method": "POST",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Accept",
+							"value": "application/json"
+						},
+						{
+							"key": "Authorization",
+							"value": "Bearer {{token}}"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": "{\n  \"customer_id\": 1\n}"
+					},
+					"url": {
+						"raw": "{{base_url}}/devices/command/apply-frp",
+						"host": [
+							"{{base_url}}"
+						],
+						"path": [
+							"devices",
+							"command",
+							"apply-frp"
+						]
+					},
+					"description": "Apply Factory Reset Protection to the device. Prevents device from being factory reset without authorization."
+				},
+				"response": []
+			},
+			{
+				"name": "Remove FRP",
+				"id": "48373923-device-029",
+				"request": {
+					"method": "POST",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Accept",
+							"value": "application/json"
+						},
+						{
+							"key": "Authorization",
+							"value": "Bearer {{token}}"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": "{\n  \"customer_id\": 1\n}"
+					},
+					"url": {
+						"raw": "{{base_url}}/devices/command/remove-frp",
+						"host": [
+							"{{base_url}}"
+						],
+						"path": [
+							"devices",
+							"command",
+							"remove-frp"
+						]
+					},
+					"description": "Remove Factory Reset Protection from the device. Allows device to be factory reset normally."
+				},
+				"response": []
+			},
+			{
+				"name": "Get Command History",
+				"id": "48373923-device-022",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -2503,7 +2579,7 @@
 				}
 			],
 			"id": "48373923-device-group",
-			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration, 21 remote control commands (lock/unlock, camera enable/disable, bluetooth enable/disable, hide/unhide app, password management, reboot, app removal, wipe device, notification messages, wallpaper control, location tracking, call control, USB control), command history, available commands list, and device callback endpoint for command responses that trigger real-time Firebase notifications."
+			"description": "Device control and management endpoints using Firebase Cloud Messaging (FCM). Includes device registration, 23 remote control commands (lock/unlock, camera enable/disable, bluetooth enable/disable, hide/unhide app, password management, reboot, app removal, wipe device, notification messages, wallpaper control, location tracking, call control, USB control, FRP control), command history, available commands list, and device callback endpoint for command responses that trigger real-time Firebase notifications."
 		},
 		{
 			"name": "Preset Messages",

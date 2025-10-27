@@ -126,6 +126,8 @@ class DeviceController extends Controller
                 'disable-call'      => $this->deviceCommandService->disableCall($customer, $user),
                 'lock-usb'          => $this->deviceCommandService->lockUsb($customer, $user),
                 'unlock-usb'        => $this->deviceCommandService->unlockUsb($customer, $user),
+                'apply-frp'         => $this->deviceCommandService->applyFrp($customer, $user),
+                'remove-frp'        => $this->deviceCommandService->removeFrp($customer, $user),
                 default             => throw new Exception('Invalid command: ' . $command),
             };
 
@@ -200,6 +202,8 @@ class DeviceController extends Controller
                 'disable-call'      => $this->deviceCommandService->disableCall($customer, $user),
                 'lock-usb'          => $this->deviceCommandService->lockUsb($customer, $user),
                 'unlock-usb'        => $this->deviceCommandService->unlockUsb($customer, $user),
+                'apply-frp'         => $this->deviceCommandService->applyFrp($customer, $user),
+                'remove-frp'        => $this->deviceCommandService->removeFrp($customer, $user),
                 default             => throw new Exception('Invalid command: ' . $command),
             };
 
@@ -416,9 +420,24 @@ class DeviceController extends Controller
                     'description'     => 'Unlock USB port (enable USB)',
                     'requires_params' => false,
                 ],
+                [
+                    'command'         => 'apply-frp',
+                    'method'          => 'POST',
+                    'endpoint'        => '/api/devices/command/apply-frp',
+                    'description'     => 'Apply Factory Reset Protection',
+                    'requires_params' => false,
+                ],
+                [
+                    'command'         => 'remove-frp',
+                    'method'          => 'POST',
+                    'endpoint'        => '/api/devices/command/remove-frp',
+                    'description'     => 'Remove Factory Reset Protection',
+                    'requires_params' => false,
+                ],
             ],
         ]);
     }
+
 
     /**
      * Update device location (called by device)

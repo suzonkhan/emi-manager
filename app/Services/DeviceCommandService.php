@@ -529,6 +529,46 @@ class DeviceCommandService
     }
 
     /**
+     * Apply Factory Reset Protection
+     */
+    public function applyFrp(Customer $customer, User $user): array
+    {
+        $result = $this->sendCommand(
+            $customer,
+            'APPLY_FRP',
+            ['state' => 'true'],
+            $user,
+            fn ($token) => $this->firebaseService->applyFrp($token)
+        );
+
+        if ($result['success']) {
+            $customer->update(['is_frp_enabled' => true]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Remove Factory Reset Protection
+     */
+    public function removeFrp(Customer $customer, User $user): array
+    {
+        $result = $this->sendCommand(
+            $customer,
+            'REMOVE_FRP',
+            ['state' => 'false'],
+            $user,
+            fn ($token) => $this->firebaseService->removeFrp($token)
+        );
+
+        if ($result['success']) {
+            $customer->update(['is_frp_enabled' => false]);
+        }
+
+        return $result;
+    }
+
+    /**
      * Get command history for customer
      */
     public function getCommandHistory(Customer $customer, int $limit = 50): \Illuminate\Database\Eloquent\Collection

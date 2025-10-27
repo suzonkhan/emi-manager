@@ -285,6 +285,22 @@ class FirebaseService
     }
 
     /**
+     * Send command to apply Factory Reset Protection
+     */
+    public function applyFrp(string $fcmToken): array
+    {
+        return $this->sendDataMessage($fcmToken, 'APPLY_FRP', ['state' => 'true']);
+    }
+
+    /**
+     * Send command to remove Factory Reset Protection
+     */
+    public function removeFrp(string $fcmToken): array
+    {
+        return $this->sendDataMessage($fcmToken, 'REMOVE_FRP', ['state' => 'false']);
+    }
+
+    /**
      * Validate FCM token
      */
     public function validateToken(string $fcmToken): bool

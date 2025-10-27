@@ -36,6 +36,7 @@ class Customer extends Model
         'is_app_hidden',
         'is_call_disabled',
         'is_usb_locked',
+        'is_frp_enabled',
         'has_password',
         'custom_wallpaper_url',
         'last_command_sent_at',
@@ -59,6 +60,7 @@ class Customer extends Model
             'is_app_hidden' => 'boolean',
             'is_call_disabled' => 'boolean',
             'is_usb_locked' => 'boolean',
+            'is_frp_enabled' => 'boolean',
             'has_password' => 'boolean',
             'last_command_sent_at' => 'datetime',
         ];
