@@ -2330,89 +2330,13 @@
 								"unlock-usb"
 							]
 						},
-					"description": "Unlock USB port on the device. Enables USB functionality for data transfer and charging."
+						"description": "Unlock USB port on the device. Enables USB functionality for data transfer and charging."
+					},
+					"response": []
 				},
-				"response": []
-			},
-			{
-				"name": "Apply FRP",
-				"id": "48373923-device-028",
-				"request": {
-					"method": "POST",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						},
-						{
-							"key": "Accept",
-							"value": "application/json"
-						},
-						{
-							"key": "Authorization",
-							"value": "Bearer {{token}}"
-						}
-					],
-					"body": {
-						"mode": "raw",
-						"raw": "{\n  \"customer_id\": 1\n}"
-					},
-					"url": {
-						"raw": "{{base_url}}/devices/command/apply-frp",
-						"host": [
-							"{{base_url}}"
-						],
-						"path": [
-							"devices",
-							"command",
-							"apply-frp"
-						]
-					},
-					"description": "Apply Factory Reset Protection to the device. Prevents device from being factory reset without authorization."
-				},
-				"response": []
-			},
-			{
-				"name": "Remove FRP",
-				"id": "48373923-device-029",
-				"request": {
-					"method": "POST",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						},
-						{
-							"key": "Accept",
-							"value": "application/json"
-						},
-						{
-							"key": "Authorization",
-							"value": "Bearer {{token}}"
-						}
-					],
-					"body": {
-						"mode": "raw",
-						"raw": "{\n  \"customer_id\": 1\n}"
-					},
-					"url": {
-						"raw": "{{base_url}}/devices/command/remove-frp",
-						"host": [
-							"{{base_url}}"
-						],
-						"path": [
-							"devices",
-							"command",
-							"remove-frp"
-						]
-					},
-					"description": "Remove Factory Reset Protection from the device. Allows device to be factory reset normally."
-				},
-				"response": []
-			},
-			{
-				"name": "Get Command History",
-				"id": "48373923-device-022",
+				{
+					"name": "Get Command History",
+					"id": "48373923-device-022",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -2466,78 +2390,6 @@
 							]
 						},
 						"description": "Get list of all available device control commands with their parameters and descriptions."
-					},
-					"response": []
-				},
-				{
-					"name": "Command Response (Device Callback)",
-					"id": "48373923-device-028",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"device_id\": \"223762838218759\",\n  \"command\": \"LOCK_DEVICE\",\n  \"data\": {\n    \"status\": \"success\",\n    \"timestamp\": \"2025-10-24T10:30:00Z\",\n    \"additional_info\": \"Device locked successfully\"\n  }\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/devices/command-response",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"devices",
-								"command-response"
-							]
-						},
-						"description": "Public endpoint for devices to send command execution responses back to server. Device sends response after executing any command. Triggers real-time Firebase notification to admin. No authentication required - device identifies itself by device_id (serial_number, imei1, or imei2)."
-					},
-					"response": []
-				},
-				{
-					"name": "Submit Device Location (Device Callback)",
-					"id": "48373923-device-029",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"device_id\": \"223762838218759\",\n  \"latitude\": 23.8103,\n  \"longitude\": 90.4125,\n  \"accuracy\": 15.5,\n  \"altitude\": 25.0,\n  \"speed\": 5.5,\n  \"provider\": \"GPS\",\n  \"address\": \"Dhaka, Bangladesh\",\n  \"recorded_at\": \"2025-10-24T14:30:00Z\",\n  \"metadata\": {\n    \"battery_level\": 85,\n    \"network_type\": \"4G\"\n  }\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/devices/location",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"devices",
-								"location"
-							]
-						},
-						"description": "Public endpoint for customer devices to submit GPS location. Device sends latitude, longitude, and optional metadata (accuracy, altitude, speed, provider, address). Returns location log ID and Google Maps URL. No authentication required - device identifies itself by device_id (serial_number, imei1, or imei2)."
 					},
 					"response": []
 				},
