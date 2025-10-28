@@ -1,21 +1,24 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
- 
-    # Redirect all requests to the public folder
+
+    # Exclude vendor and certain paths from redirect
+    RewriteCond %{REQUEST_URI} !^/vendor/
+    RewriteCond %{REQUEST_URI} !^/storage/app/
+    RewriteCond %{REQUEST_URI} !^/storage/framework/
+    RewriteCond %{REQUEST_URI} !^/storage/logs/
+    
+    # Redirect all other requests to public
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
-# CORS Headers - Allow cross-origin requests
+# CORS Headers
 <IfModule mod_headers.c>
-    # Handle preflight OPTIONS requests
     Header always set Access-Control-Allow-Origin "*"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept, Origin, X-XSRF-TOKEN"
     Header always set Access-Control-Expose-Headers "Authorization"
     Header always set Access-Control-Allow-Credentials "true"
     Header always set Access-Control-Max-Age "3600"
-    
-    # Handle preflight requests
     RewriteCond %{REQUEST_METHOD} OPTIONS
     RewriteRule ^(.*)$ $1 [R=200,L]
 </IfModule>
